@@ -1,0 +1,23 @@
+[project]
+name = "oai-supervisor"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "Rick Ross",email = "rick.ross@temporal.io"}
+]
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "asyncio (>=3.4.3,<4.0.0)",
+    "uuid (>=1.30,<2.0)",
+    "pydantic (>=2.11.7,<3.0.0)",
+    "openai-agents (>=0.0.19,<0.0.20)",
+]
+
+[tool.poetry]
+packages = [{include = "oai_supervisor", from = "src"}]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"

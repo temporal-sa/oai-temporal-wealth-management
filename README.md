@@ -1,6 +1,8 @@
 # Wealth Management Agent Example using OpenAI Agents SDK
 Demonstrates how to use OpenAI Agents SDK using handoffs to other agents. 
 
+The Temporal version of this example is located [here](src/temporal_supervisor/README.md) 
+
 Scenarios currently implemented include
 * List Beneficiaries - shows a list of beneficiaries and their relationship to the account owner
 * List Investments - shows a list of accounts and their current balances
@@ -33,4 +35,4 @@ source setoaikey.sh
 poetry run python src/oai_supervisor/main.py
 ```
 
-You can ask for your beneficiaries or investment accounts. In either case, you will be prompted to enter in an account ID which at this time can be anyting
+You can ask for your beneficiaries or investment accounts. In either case, you will be prompted to enter in an account ID which at this time can be anything

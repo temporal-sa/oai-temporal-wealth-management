@@ -1,3 +1,5 @@
 __pycache__
 /setoaikey.sh
+/setcloudenv.sh
 .idea
+.DS_Store

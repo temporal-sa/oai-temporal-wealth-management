@@ -6,12 +6,13 @@ authors = [
     {name = "Rick Ross",email = "rick.ross@temporal.io"}
 ]
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = "~=3.9"
 dependencies = [
     "asyncio (>=3.4.3,<4.0.0)",
     "uuid (>=1.30,<2.0)",
     "pydantic (>=2.11.7,<3.0.0)",
-    "openai-agents (>=0.0.19,<0.0.20)",
+    "openai-agents >= 0.0.19",
+    "temporalio (>=1.13.0,<2.0.0)",
 ]
 
 [tool.poetry]

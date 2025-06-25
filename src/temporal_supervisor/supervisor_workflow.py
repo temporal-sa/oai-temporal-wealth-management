@@ -37,7 +37,7 @@ async def list_beneficiaries(
         account_id: The customer's account id
     """
     # update the context
-    context.account_id = account_id
+    context.context.account_id = account_id
     return [
         { "Fred", "son" },
         { "Sandy", "daughter" },
@@ -55,7 +55,7 @@ async def list_investments(
         account_id: The customer's account id'
     """
     # update the context
-    context.account_id = account_id
+    context.context.account_id = account_id
     return [
         { "Checking", 203.45 },
         { "Savings", 375.81 },
@@ -76,7 +76,7 @@ def init_agents() -> Agent[WealthManagementContext]:
         instructions=f"""{RECOMMENDED_PROMPT_PREFIX}
         You are a beneficiary agent. If you are speaking with a customer you were likely transfered from the supervisor agent.
         # Routine
-        1. Ask for their account id,
+        1. Ask for their account id if you don't already have one.
         2. Display a list of their beneficaires using the list_beneficiaries tool.
         If the customer asks a question that is not related to the routine, transfer back to the supervisor agent.""",
         tools=[list_beneficiaries],
@@ -88,7 +88,7 @@ def init_agents() -> Agent[WealthManagementContext]:
         instructions=f"""{RECOMMENDED_PROMPT_PREFIX}
         You are an investment agent. If you are speaking with a customer, you were likely transfered from the supervisor agent.
         # Routine
-        1. Ask for their account id.
+        1. Ask for their account id if you don't already have one.
         2. Display a list of their accounts and balances using the list_investments tool
         If the customer asks a question that is not related to the routine, transfer back to the supervisor agent.""",
         tools=[list_investments],
@@ -98,9 +98,10 @@ def init_agents() -> Agent[WealthManagementContext]:
         name="Supervisor Agent",
         handoff_description="A supervisor agent that can delegate customer's requests to the appropriate agent",
         instructions=f""""{RECOMMENDED_PROMPT_PREFIX}
-            You are a helpful agent. You can use your tools to delegate questions to other appropriate agents
-            # Routine
-            1. Before routing to another agent, ask for their account ID if you don't already have it.""",
+        You are a helpful agent. You can use your tools to delegate questions to other appropriate agents
+        # Routine
+        1. if you don't have an account ID, ask for one
+        2. Route to another agent""",
         handoffs=[
             beneficiary_agent,
             investment_agent,

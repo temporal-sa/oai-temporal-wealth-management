@@ -66,7 +66,7 @@ beneficiary_agent = Agent[WealthManagementContext](
     instructions=f"""{RECOMMENDED_PROMPT_PREFIX}
     You are a beneficiary agent. If you are speaking with a customer you were likely transfered from the supervisor agent.
     # Routine
-    1. Ask for their account id,
+    1. Ask for their account id if you don't already have one.
     2. Display a list of their beneficaires using the list_beneficiaries tool.
     If the customer asks a question that is not related to the routine, transfer back to the supervisor agent.""",
     tools=[list_beneficiaries],
@@ -78,7 +78,7 @@ investment_agent = Agent[WealthManagementContext](
     instructions=f"""{RECOMMENDED_PROMPT_PREFIX}
     You are an investment agent. If you are speaking with a customer, you were likely transfered from the supervisor agent.
     # Routine
-    1. Ask for their account id.
+    1. Ask for their account id if you don't already have one.
     2. Display a list of their accounts and balances using the list_investments tool
     If the customer asks a question that is not related to the routine, transfer back to the supervisor agent.""",
     tools=[list_investments],
@@ -90,7 +90,8 @@ supervisor_agent = Agent[WealthManagementContext](
     instructions=f""""{RECOMMENDED_PROMPT_PREFIX}
         You are a helpful agent. You can use your tools to delegate questions to other appropriate agents
         # Routine
-        1. Before routing to another agent, ask for their account ID if you don't already have it.""",
+        1. if you don't have an account ID, ask for one
+        2. Route to another agent""",
     handoffs=[
         beneficiary_agent,
         investment_agent,

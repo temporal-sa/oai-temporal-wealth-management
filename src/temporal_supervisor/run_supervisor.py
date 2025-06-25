@@ -9,14 +9,14 @@ from temporalio.client import (
 from temporalio.common import QueryRejectCondition, WorkflowIDReusePolicy
 from temporalio.service import RPCError, RPCStatusCode, TLSConfig
 
-from temporal_supervisor.client_helper import ClientHelper
+from client_helper import ClientHelper
 
 with workflow.unsafe.imports_passed_through():
     from temporalio.contrib.openai_agents.open_ai_data_converter import (
         open_ai_data_converter,
     )
 
-    from temporal_supervisor.supervisor_workflow import (
+    from supervisor_workflow import (
         WealthManagementWorkflow,
         ProcessUserMessageInput,
     )

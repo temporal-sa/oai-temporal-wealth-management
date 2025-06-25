@@ -64,12 +64,15 @@ export TEMPORAL_KEY_PATH="/path/to/key.key"
 ```
 ### Start the Worker
 ```bash
+cd src/temporal_supervisor
 ./startcloudworker.sh
 ```
+In a new terminal, run the the UX, passing in a Workflow ID 
 
 ### Start the Command Line UX
 ```bash
-./startcloudux.sh
+cd src/temporal_supervisor
+./startcloudux.sh <Workflow ID>
 ```
 
 You can ask for your beneficiaries or investment accounts. In either case, you will be prompted to enter in an account ID which at this time can be anything

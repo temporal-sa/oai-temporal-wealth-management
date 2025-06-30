@@ -1,5 +1,6 @@
 import asyncio
 import concurrent.futures
+import logging
 from datetime import timedelta
 
 from temporalio import workflow
@@ -7,8 +8,11 @@ from temporalio.contrib.openai_agents.invoke_model_activity import ModelActivity
 from temporalio.contrib.openai_agents.open_ai_data_converter import (
     open_ai_data_converter,
 )
+
 from temporalio.worker import Worker
 
+from temporal_supervisor.activities.beneficiaries import Beneficiaries
+from temporal_supervisor.activities.investments import Investments
 from temporal_supervisor.client_helper import ClientHelper
 
 with workflow.unsafe.imports_passed_through():
@@ -21,6 +25,8 @@ from temporalio.contrib.openai_agents.temporal_openai_agents import (
 )
 
 async def main():
+    logging.basicConfig(level=logging.INFO,
+                        format="%(asctime)s | %(levelname)s | %(filename)s:%(lineno)s | %(message)s")
     with set_open_ai_agent_temporal_overrides(
         start_to_close_timeout=timedelta(seconds=60),
     ):
@@ -34,6 +40,8 @@ async def main():
                 task_queue=client_helper.taskQueue,
                 workflows=[WealthManagementWorkflow],
                 activities=[
+                    Beneficiaries.list_beneficiaries,
+                    Investments.list_investments,
                     model_activity.invoke_model_activity
                 ],
                 activity_executor=activity_executor,

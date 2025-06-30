@@ -20,13 +20,14 @@ from agents import (
 )
 from agents.extensions.handoff_prompt import RECOMMENDED_PROMPT_PREFIX
 
-class WealthManagementContext(BaseModel):
-    account_id: str | None = None
+from common.account_context import AccountContext
+from common.beneficiaries_manager import BeneficiariesManager
+from common.investment_account_manager import InvestmentAccountManager
 
 
 @function_tool
 async def list_beneficiaries(
-        context: RunContextWrapper[WealthManagementContext], account_id: str
+        context: RunContextWrapper[AccountContext], account_id: str
 ) -> dict:
     """
     List the beneficiaries for the given account id.
@@ -35,16 +36,15 @@ async def list_beneficiaries(
         account_id: The customer's account id
     """
     # update the context
-    context.account_id = account_id
-    return [
-        { "Fred", "son" },
-        { "Sandy", "daughter" },
-        { "Jessica", "daughter" },
-    ]
+    context.context.account_id = account_id
+    return beneficiaries_mgr.list_beneficiaries(account_id)
+
+investment_acct_mgr = InvestmentAccountManager()
+beneficiaries_mgr = BeneficiariesManager()
 
 @function_tool
 async def list_investments(
-        context: RunContextWrapper[WealthManagementContext], account_id: str
+        context: RunContextWrapper[AccountContext], account_id: str
 ) -> dict:
     """
     List the investment accounts and balances for the given account id.
@@ -53,14 +53,11 @@ async def list_investments(
         account_id: The customer's account id'
     """
     # update the context
-    context.account_id = account_id
-    return [
-        { "Checking", 203.45 },
-        { "Savings", 375.81 },
-        { "Retirement", 24648.63 },
-    ]
+    context.context.account_id = account_id
+    return investment_acct_mgr.list_investment_accounts(account_id)
 
-beneficiary_agent = Agent[WealthManagementContext](
+
+beneficiary_agent = Agent[AccountContext](
     name="Beneficiary Agent",
     handoff_description="A helpful agent that handles changes to a customers beneficiaries.",
     instructions=f"""{RECOMMENDED_PROMPT_PREFIX}
@@ -72,7 +69,7 @@ beneficiary_agent = Agent[WealthManagementContext](
     tools=[list_beneficiaries],
 )
 
-investment_agent = Agent[WealthManagementContext](
+investment_agent = Agent[AccountContext](
     name="Investment Agent",
     handoff_description="A helpful agent that handles a customers's investment accounts.",
     instructions=f"""{RECOMMENDED_PROMPT_PREFIX}
@@ -84,7 +81,7 @@ investment_agent = Agent[WealthManagementContext](
     tools=[list_investments],
 )
 
-supervisor_agent = Agent[WealthManagementContext](
+supervisor_agent = Agent[AccountContext](
     name="Supervisor Agent",
     handoff_description="A supervisor agent that can delegate customer's requests to the appropriate agent",
     instructions=f""""{RECOMMENDED_PROMPT_PREFIX}
@@ -102,9 +99,9 @@ beneficiary_agent.handoffs.append(supervisor_agent)
 investment_agent.handoffs.append(supervisor_agent)
 
 async def main():
-    current_agent: Agent[WealthManagementContext] = supervisor_agent
+    current_agent: Agent[AccountContext] = supervisor_agent
     input_items: list[TResponseInputItem] = []
-    context = WealthManagementContext()
+    context = AccountContext()
 
     conversation_id = uuid.uuid4().hex[:16]
 

@@ -1,4 +1,10 @@
+from datetime import timedelta
+
 from temporalio import workflow
+from temporalio.contrib.openai_agents.temporal_tools import activity_as_tool
+
+from temporal_supervisor.activities.beneficiaries import Beneficiaries
+from temporal_supervisor.activities.investments import Investments
 
 with workflow.unsafe.imports_passed_through():
     from agents import (
@@ -25,24 +31,6 @@ class WealthManagementContext(BaseModel):
 
 
 ### Tools
-
-@function_tool
-async def list_beneficiaries(
-        context: RunContextWrapper[WealthManagementContext], account_id: str
-) -> dict:
-    """
-    List the beneficiaries for the given account id.
-
-    Args:
-        account_id: The customer's account id
-    """
-    # update the context
-    context.context.account_id = account_id
-    return [
-        { "Fred", "son" },
-        { "Sandy", "daughter" },
-        { "Jessica", "daughter" },
-    ]
 
 @function_tool
 async def list_investments(
@@ -79,7 +67,9 @@ def init_agents() -> Agent[WealthManagementContext]:
         1. Ask for their account id if you don't already have one.
         2. Display a list of their beneficaires using the list_beneficiaries tool.
         If the customer asks a question that is not related to the routine, transfer back to the supervisor agent.""",
-        tools=[list_beneficiaries],
+        tools=[activity_as_tool(Beneficiaries.list_beneficiaries,
+                                start_to_close_timeout=timedelta(seconds=10))
+               ],
     )
 
     investment_agent = Agent[WealthManagementContext](
@@ -91,7 +81,8 @@ def init_agents() -> Agent[WealthManagementContext]:
         1. Ask for their account id if you don't already have one.
         2. Display a list of their accounts and balances using the list_investments tool
         If the customer asks a question that is not related to the routine, transfer back to the supervisor agent.""",
-        tools=[list_investments],
+        tools=[activity_as_tool(Investments.list_investments,
+                                start_to_close_timeout=timedelta(seconds=10))],
     )
 
     supervisor_agent = Agent[WealthManagementContext](
@@ -133,6 +124,7 @@ class WealthManagementWorkflow:
             and workflow.all_handlers_finished())
         )
         if self.end_workflow:
+            workflow.logger.info("Ending workflow.")
             return
         workflow.continue_as_new(self.input_items)
 
@@ -146,6 +138,7 @@ class WealthManagementWorkflow:
 
     @workflow.update
     async def process_user_message(self, input: ProcessUserMessageInput) -> list[str]:
+        workflow.logger.info("processing user message")
         length = len(self.chat_history)
         self.chat_history.append(f"User: {input.user_input}")
         with trace("wealth management", group_id=workflow.info().workflow_id):
@@ -164,8 +157,10 @@ class WealthManagementWorkflow:
                 elif isinstance(new_item, HandoffOutputItem):
                     self.chat_history.append(f"Handed off from {new_item.source_agent.name} to {new_item.target_agent.name}")
                 elif isinstance(new_item, ToolCallItem):
+                    workflow.logger.info(f"{agent_name}: Calling a tool")
                     self.chat_history.append(f"{agent_name}: Calling a tool")
                 elif isinstance(new_item, ToolCallOutputItem):
+                    workflow.logger.info(f"{agent_name}: Tool call output: {new_item.output}")
                     self.chat_history.append(f"{agent_name}: Tool call output: {new_item.output}")
                 else:
                     self.chat_history.append(f"{agent_name}: Skipping item: {new_item.__class__.__name__}")

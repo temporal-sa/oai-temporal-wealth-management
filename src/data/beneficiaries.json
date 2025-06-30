@@ -1,0 +1,42 @@
+{
+    "123": [
+        {
+            "beneficiary_id": "b-1b011a72",
+            "first_name": "John",
+            "last_name": "Doe",
+            "relationship": "son"
+        },
+        {
+            "beneficiary_id": "b-3bc09dd2",
+            "first_name": "Jane",
+            "last_name": "Doe",
+            "relationship": "daughter"
+        },
+        {
+            "beneficiary_id": "b-14c4b7ec",
+            "first_name": "Joan",
+            "last_name": "Doe",
+            "relationship": "spouse"
+        }
+    ],
+    "234": [
+        {
+            "beneficiary_id": "b-97fba0db",
+            "first_name": "Fred",
+            "last_name": "Smith",
+            "relationship": "son"
+        },
+        {
+            "beneficiary_id": "b-c259e04f",
+            "first_name": "Sandy",
+            "last_name": "Smith",
+            "relationship": "daughter"
+        },
+        {
+            "beneficiary_id": "b-480b64e7",
+            "first_name": "Jessica",
+            "last_name": "Smith",
+            "relationship": "daughter"
+        }
+    ]
+}

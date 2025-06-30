@@ -1,0 +1,36 @@
+{
+  "123": [
+    {
+      "investment_id": "i-8f494d01",
+      "name": "Checking",
+      "balance": 1000.0
+    },
+    {
+      "investment_id": "i-1872ae24",
+      "name": "Savings",
+      "balance": 2312.08
+    },
+    {
+      "investment_id": "i-8846d0b8",
+      "name": "401K",
+      "balance": 11070.89
+    }
+  ],
+  "234": [
+    {
+      "investment_id": "i-6afa7b82",
+      "name": "Checking",
+      "balance": 203.45
+    },
+    {
+      "investment_id": "i-723c0a6f",
+      "name": "Savings",
+      "balance": 375.81
+    },
+    {
+      "investment_id": "i-e960edaf",
+      "name": "Retirement",
+      "balance": 24648.63
+    }
+  ]
+}

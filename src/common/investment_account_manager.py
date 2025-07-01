@@ -4,7 +4,7 @@ import uuid
 import argparse
 
 script_dir = os.path.dirname(__file__)
-relative_path = '../data/investments.json'
+relative_path = '../../data/investments.json'
 INVESTMENTS_FILE =  os.path.join(script_dir, relative_path)
 
 class InvestmentAccountManager:

@@ -7,7 +7,7 @@ from typing import List, Dict, Any
 
 # --- Configuration ---
 script_dir = os.path.dirname(__file__)
-relative_path = '../data/beneficiaries.json'
+relative_path = '../../data/beneficiaries.json'
 BENEFICIARIES_FILE =  os.path.join(script_dir, relative_path)
 # logging.basicConfig(level=logging.INFO,
 #                     format="%(asctime)s | %(levelname)s | %(filename)s:%(lineno)s | %(message)s")

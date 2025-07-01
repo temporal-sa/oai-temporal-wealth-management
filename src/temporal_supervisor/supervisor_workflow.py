@@ -67,7 +67,7 @@ def init_agents() -> Agent[WealthManagementContext]:
         instructions=BENE_INSTRUCTIONS,
         tools=[activity_as_tool(Beneficiaries.list_beneficiaries,
                                 start_to_close_timeout=timedelta(seconds=5)),
-               activity_as_tool(add_beneficiary,
+               activity_as_tool(Beneficiaries.add_beneficiary,
                                 start_to_close_timeout=timedelta(seconds=5)),
                activity_as_tool(Beneficiaries.delete_beneficiary,
                                 start_to_close_timeout=timedelta(seconds=5))

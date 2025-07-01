@@ -2,9 +2,11 @@ import asyncio
 import concurrent.futures
 import logging
 from datetime import timedelta
+from turtledemo.forest import start
 
 from temporalio import workflow
 from temporalio.contrib.openai_agents.invoke_model_activity import ModelActivity
+from temporalio.contrib.openai_agents.model_parameters import ModelActivityParameters
 from temporalio.contrib.openai_agents.open_ai_data_converter import (
     open_ai_data_converter,
 )
@@ -27,9 +29,10 @@ from temporalio.contrib.openai_agents.temporal_openai_agents import (
 async def main():
     logging.basicConfig(level=logging.INFO,
                         format="%(asctime)s | %(levelname)s | %(filename)s:%(lineno)s | %(message)s")
-    with set_open_ai_agent_temporal_overrides(
-        start_to_close_timeout=timedelta(seconds=60),
-    ):
+    model_params = ModelActivityParameters(
+        start_to_close_timeout=timedelta(seconds=60)
+    )
+    with set_open_ai_agent_temporal_overrides(model_params):
         client_helper = ClientHelper()
         client = await client_helper.get_client(open_ai_data_converter)
 
@@ -41,7 +44,7 @@ async def main():
                 workflows=[WealthManagementWorkflow],
                 activities=[
                     Beneficiaries.list_beneficiaries,
-                    add_beneficiary,
+                    Beneficiaries.add_beneficiary,
                     Beneficiaries.delete_beneficiary,
                     Investments.list_investments,
                     Investments.open_investment,

@@ -681,7 +681,7 @@ description = "Extensions to the standard Python datetime module"
 optional = false
 python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,>=2.7"
 groups = ["main"]
-markers = "python_full_version < \"3.11.0\""
+markers = "python_version < \"3.11\""
 files = [
     {file = "python-dateutil-2.9.0.post0.tar.gz", hash = "sha256:37dd54208da7e1cd875388217d5e00ebd4179249f90fb72437e91a35459a0ad3"},
     {file = "python_dateutil-2.9.0.post0-py2.py3-none-any.whl", hash = "sha256:a8b2bc7bffae282281c8140a97d3aa9c14da0b136dfe83f850eea9a5f7470427"},
@@ -748,7 +748,7 @@ description = "Python 2 and 3 compatibility utilities"
 optional = false
 python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,>=2.7"
 groups = ["main"]
-markers = "python_full_version < \"3.11.0\""
+markers = "python_version < \"3.11\""
 files = [
     {file = "six-1.17.0-py2.py3-none-any.whl", hash = "sha256:4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274"},
     {file = "six-1.17.0.tar.gz", hash = "sha256:ff70335d468e7eb6ec65b95b99d3a2836546063f63acc5171de367e834932a81"},
@@ -815,26 +815,26 @@ description = "Temporal.io Python SDK"
 optional = false
 python-versions = "~=3.9"
 groups = ["main"]
-files = [
-    {file = "temporalio-1.13.0-cp39-abi3-macosx_10_12_x86_64.whl", hash = "sha256:7ee14cab581352e77171d1e4ce01a899231abfe75c5f7233e3e260f361a344cc"},
-    {file = "temporalio-1.13.0-cp39-abi3-macosx_11_0_arm64.whl", hash = "sha256:575a0c57dbb089298b4775f3aca86ebaf8d58d5ba155e7fc5509877c25e6bb44"},
-    {file = "temporalio-1.13.0-cp39-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:6bf099a27f22c0dbc22f3d86dba76d59be5da812ff044ba3fa183e3e14bd5e9a"},
-    {file = "temporalio-1.13.0-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:f7e20c711f41c66877b9d54ab33c79a14ccaac9ed498a174274f6129110f4d84"},
-    {file = "temporalio-1.13.0-cp39-abi3-win_amd64.whl", hash = "sha256:9286cb84c1e078b2bcc6e8c6bd0be878d8ed395be991ac0d7cff555e3a82ac0b"},
-    {file = "temporalio-1.13.0.tar.gz", hash = "sha256:5a979eee5433da6ab5d8a2bcde25a1e7d454e91920acb0bf7ca93d415750828b"},
-]
+files = []
+develop = false
 
 [package.dependencies]
 protobuf = ">=3.20,<6"
-python-dateutil = {version = ">=2.8.2,<3", markers = "python_full_version < \"3.11.0\""}
+python-dateutil = {version = ">=2.8.2,<3", markers = "python_version < \"3.11\""}
 types-protobuf = ">=3.20"
 typing-extensions = ">=4.2.0,<5"
 
 [package.extras]
 grpc = ["grpcio (>=1.48.2,<2)"]
-openai-agents = ["openai-agents (>=0.0.19)"]
+openai-agents = ["eval-type-backport (>=0.2.2) ; python_version < \"3.10\"", "openai-agents (>=0.0.19,<0.1)"]
 opentelemetry = ["opentelemetry-api (>=1.11.1,<2)", "opentelemetry-sdk (>=1.11.1,<2)"]
 pydantic = ["pydantic (>=2.0.0,<3)"]
+
+[package.source]
+type = "git"
+url = "https://github.com/temporalio/sdk-python.git"
+reference = "HEAD"
+resolved_reference = "47027fc54deabc2f86da95ed0eddff4449c13a1e"
 
 [[package]]
 name = "tqdm"
@@ -965,4 +965,4 @@ standard = ["colorama (>=0.4) ; sys_platform == \"win32\"", "httptools (>=0.6.3)
 [metadata]
 lock-version = "2.1"
 python-versions = "~=3.9"
-content-hash = "356cce9cebde0912a6679af4ec18158c4db23d567b3492fc46e7f9449cbb91f0"
+content-hash = "76cde2cc3e7fa4069c668096c9719c58c97e2e544799fc8b5b04215a2f47d6b7"

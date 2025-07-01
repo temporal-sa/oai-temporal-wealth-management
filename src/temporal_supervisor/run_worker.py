@@ -11,7 +11,7 @@ from temporalio.contrib.openai_agents.open_ai_data_converter import (
 
 from temporalio.worker import Worker
 
-from temporal_supervisor.activities.beneficiaries import Beneficiaries
+from temporal_supervisor.activities.beneficiaries import Beneficiaries, add_beneficiary
 from temporal_supervisor.activities.investments import Investments
 from temporal_supervisor.client_helper import ClientHelper
 
@@ -41,7 +41,11 @@ async def main():
                 workflows=[WealthManagementWorkflow],
                 activities=[
                     Beneficiaries.list_beneficiaries,
+                    add_beneficiary,
+                    Beneficiaries.delete_beneficiary,
                     Investments.list_investments,
+                    Investments.open_investment,
+                    Investments.close_investment,
                     model_activity.invoke_model_activity
                 ],
                 activity_executor=activity_executor,

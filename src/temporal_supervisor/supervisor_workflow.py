@@ -3,7 +3,8 @@ from datetime import timedelta
 from temporalio import workflow
 from temporalio.contrib.openai_agents.temporal_tools import activity_as_tool
 
-from temporal_supervisor.activities.beneficiaries import Beneficiaries
+
+from temporal_supervisor.activities.beneficiaries import Beneficiaries, add_beneficiary
 from temporal_supervisor.activities.investments import Investments
 
 with workflow.unsafe.imports_passed_through():
@@ -21,8 +22,10 @@ with workflow.unsafe.imports_passed_through():
         function_tool,
         trace,
     )
-    from agents.extensions.handoff_prompt import RECOMMENDED_PROMPT_PREFIX
     from pydantic import BaseModel
+    from common.agent_constants import BENE_AGENT_NAME, BENE_HANDOFF, BENE_INSTRUCTIONS, INVEST_AGENT_NAME, \
+        INVEST_HANDOFF, \
+        INVEST_INSTRUCTIONS, SUPERVISOR_AGENT_NAME, SUPERVISOR_HANDOFF, SUPERVISOR_INSTRUCTIONS
 
 ### Context
 
@@ -59,40 +62,34 @@ def init_agents() -> Agent[WealthManagementContext]:
     Returns a supervisor agent
     """
     beneficiary_agent = Agent[WealthManagementContext](
-        name="Beneficiary Agent",
-        handoff_description="A helpful agent that handles changes to a customers beneficiaries.",
-        instructions=f"""{RECOMMENDED_PROMPT_PREFIX}
-        You are a beneficiary agent. If you are speaking with a customer you were likely transfered from the supervisor agent.
-        # Routine
-        1. Ask for their account id if you don't already have one.
-        2. Display a list of their beneficaires using the list_beneficiaries tool.
-        If the customer asks a question that is not related to the routine, transfer back to the supervisor agent.""",
+        name=BENE_AGENT_NAME,
+        handoff_description=BENE_HANDOFF,
+        instructions=BENE_INSTRUCTIONS,
         tools=[activity_as_tool(Beneficiaries.list_beneficiaries,
-                                start_to_close_timeout=timedelta(seconds=10))
+                                start_to_close_timeout=timedelta(seconds=5)),
+               activity_as_tool(add_beneficiary,
+                                start_to_close_timeout=timedelta(seconds=5)),
+               activity_as_tool(Beneficiaries.delete_beneficiary,
+                                start_to_close_timeout=timedelta(seconds=5))
                ],
     )
 
     investment_agent = Agent[WealthManagementContext](
-        name="Investment Agent",
-        handoff_description="A helpful agent that handles a customers's investment accounts.",
-        instructions=f"""{RECOMMENDED_PROMPT_PREFIX}
-        You are an investment agent. If you are speaking with a customer, you were likely transfered from the supervisor agent.
-        # Routine
-        1. Ask for their account id if you don't already have one.
-        2. Display a list of their accounts and balances using the list_investments tool
-        If the customer asks a question that is not related to the routine, transfer back to the supervisor agent.""",
+        name=INVEST_AGENT_NAME,
+        handoff_description=INVEST_HANDOFF,
+        instructions=INVEST_INSTRUCTIONS,
         tools=[activity_as_tool(Investments.list_investments,
-                                start_to_close_timeout=timedelta(seconds=10))],
+                                start_to_close_timeout=timedelta(seconds=5)),
+               activity_as_tool(Investments.open_investment,
+                                start_to_close_timeout=timedelta(seconds=5)),
+               activity_as_tool(Investments.close_investment,
+                                start_to_close_timeout=timedelta(seconds=5))],
     )
 
     supervisor_agent = Agent[WealthManagementContext](
-        name="Supervisor Agent",
-        handoff_description="A supervisor agent that can delegate customer's requests to the appropriate agent",
-        instructions=f""""{RECOMMENDED_PROMPT_PREFIX}
-        You are a helpful agent. You can use your tools to delegate questions to other appropriate agents
-        # Routine
-        1. if you don't have an account ID, ask for one
-        2. Route to another agent""",
+        name=SUPERVISOR_AGENT_NAME,
+        handoff_description=SUPERVISOR_HANDOFF,
+        instructions=SUPERVISOR_INSTRUCTIONS,
         handoffs=[
             beneficiary_agent,
             investment_agent,

@@ -9,6 +9,8 @@ from typing import List, Dict, Any
 script_dir = os.path.dirname(__file__)
 relative_path = '../data/beneficiaries.json'
 BENEFICIARIES_FILE =  os.path.join(script_dir, relative_path)
+# logging.basicConfig(level=logging.INFO,
+#                     format="%(asctime)s | %(levelname)s | %(filename)s:%(lineno)s | %(message)s")
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 

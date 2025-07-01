@@ -1,8 +1,6 @@
 import asyncio
-import random
 import uuid
-
-from pydantic import BaseModel
+import logging
 
 from agents import (
     Agent,
@@ -18,17 +16,40 @@ from agents import (
     handoff,
     trace,
 )
-from agents.extensions.handoff_prompt import RECOMMENDED_PROMPT_PREFIX
 
 from common.account_context import AccountContext
+from common.agent_constants import BENE_AGENT_NAME, BENE_HANDOFF, BENE_INSTRUCTIONS, INVEST_AGENT_NAME, INVEST_HANDOFF, \
+    INVEST_INSTRUCTIONS, SUPERVISOR_AGENT_NAME, SUPERVISOR_HANDOFF, SUPERVISOR_INSTRUCTIONS
 from common.beneficiaries_manager import BeneficiariesManager
 from common.investment_account_manager import InvestmentAccountManager
 
+### Logging Configuration
+# logging.basicConfig(level=logging.INFO,
+#                     filename="oai_supervisor.log",
+#                     format="%(asctime)s | %(levelname)s | %(filename)s:%(lineno)s | %(message)s")
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+logger.info("OpenAI Agent SDK Example Starting")
+
+### Managers
+
+investment_acct_mgr = InvestmentAccountManager()
+beneficiaries_mgr = BeneficiariesManager()
+
+### Tools
+
+@function_tool
+async def add_beneficiaries(
+        context: RunContextWrapper[AccountContext], account_id: str,
+        first_name: str, last_name: str, relationship: str
+):
+    context.context.account_id = account_id
+    beneficiaries_mgr.add_beneficiary(account_id, first_name, last_name, relationship)
 
 @function_tool
 async def list_beneficiaries(
         context: RunContextWrapper[AccountContext], account_id: str
-) -> dict:
+) -> list:
     """
     List the beneficiaries for the given account id.
 
@@ -39,8 +60,19 @@ async def list_beneficiaries(
     context.context.account_id = account_id
     return beneficiaries_mgr.list_beneficiaries(account_id)
 
-investment_acct_mgr = InvestmentAccountManager()
-beneficiaries_mgr = BeneficiariesManager()
+@function_tool
+async def delete_beneficiaries(
+        context: RunContextWrapper[AccountContext], account_id: str, beneficiary_id: str
+):
+        context.context.account_id = account_id
+        logger.info(f"Tool: Deleting beneficiary {beneficiary_id} from account {account_id}")
+        beneficiaries_mgr.delete_beneficiary(account_id, beneficiary_id)
+
+
+@function_tool
+async def open_investment(context: RunContextWrapper[AccountContext], account_id: str, name: str, balance: str):
+    context.context.account_id = account_id
+    investment_acct_mgr.add_investment_account(account_id, name, balance)
 
 @function_tool
 async def list_investments(
@@ -56,39 +88,30 @@ async def list_investments(
     context.context.account_id = account_id
     return investment_acct_mgr.list_investment_accounts(account_id)
 
+@function_tool
+async def close_investment(context: RunContextWrapper[AccountContext], account_id: str, investment_id: str):
+    context.context.account_id = account_id
+    # Note a real close investment would be much more complex and would not delete the actual account
+    investment_acct_mgr.delete_investment_account(account_id, investment_id)
 
 beneficiary_agent = Agent[AccountContext](
-    name="Beneficiary Agent",
-    handoff_description="A helpful agent that handles changes to a customers beneficiaries.",
-    instructions=f"""{RECOMMENDED_PROMPT_PREFIX}
-    You are a beneficiary agent. If you are speaking with a customer you were likely transfered from the supervisor agent.
-    # Routine
-    1. Ask for their account id if you don't already have one.
-    2. Display a list of their beneficaires using the list_beneficiaries tool.
-    If the customer asks a question that is not related to the routine, transfer back to the supervisor agent.""",
-    tools=[list_beneficiaries],
+    name=BENE_AGENT_NAME,
+    handoff_description=BENE_HANDOFF,
+    instructions=BENE_INSTRUCTIONS,
+    tools=[list_beneficiaries, add_beneficiaries, delete_beneficiaries],
 )
 
 investment_agent = Agent[AccountContext](
-    name="Investment Agent",
-    handoff_description="A helpful agent that handles a customers's investment accounts.",
-    instructions=f"""{RECOMMENDED_PROMPT_PREFIX}
-    You are an investment agent. If you are speaking with a customer, you were likely transfered from the supervisor agent.
-    # Routine
-    1. Ask for their account id if you don't already have one.
-    2. Display a list of their accounts and balances using the list_investments tool
-    If the customer asks a question that is not related to the routine, transfer back to the supervisor agent.""",
-    tools=[list_investments],
+    name=INVEST_AGENT_NAME,
+    handoff_description=INVEST_HANDOFF,
+    instructions=INVEST_INSTRUCTIONS,
+    tools=[list_investments, open_investment, close_investment],
 )
 
 supervisor_agent = Agent[AccountContext](
-    name="Supervisor Agent",
-    handoff_description="A supervisor agent that can delegate customer's requests to the appropriate agent",
-    instructions=f""""{RECOMMENDED_PROMPT_PREFIX}
-        You are a helpful agent. You can use your tools to delegate questions to other appropriate agents
-        # Routine
-        1. if you don't have an account ID, ask for one
-        2. Route to another agent""",
+    name=SUPERVISOR_AGENT_NAME,
+    handoff_description=SUPERVISOR_HANDOFF,
+    instructions=SUPERVISOR_INSTRUCTIONS,
     handoffs=[
         beneficiary_agent,
         investment_agent,

@@ -13,7 +13,6 @@ from agents import (
     ToolCallOutputItem,
     TResponseInputItem,
     function_tool,
-    handoff,
     trace,
 )
 
@@ -94,6 +93,8 @@ async def close_investment(context: RunContextWrapper[AccountContext], account_i
     # Note a real close investment would be much more complex and would not delete the actual account
     investment_acct_mgr.delete_investment_account(account_id, investment_id)
 
+### Agents
+
 beneficiary_agent = Agent[AccountContext](
     name=BENE_AGENT_NAME,
     handoff_description=BENE_HANDOFF,
@@ -137,7 +138,6 @@ async def main():
         with trace("wealth management", group_id=conversation_id):
             input_items.append({"content": user_input, "role": "user"})
             result = await Runner.run(current_agent, input_items, context=context)
-            # print(f"Account ID: {context.account_id}")
 
             for new_item in result.new_items:
                 agent_name = new_item.agent.name

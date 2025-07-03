@@ -2,7 +2,6 @@ import asyncio
 import concurrent.futures
 import logging
 from datetime import timedelta
-from turtledemo.forest import start
 
 from temporalio import workflow
 from temporalio.contrib.openai_agents.invoke_model_activity import ModelActivity
@@ -13,9 +12,9 @@ from temporalio.contrib.openai_agents.open_ai_data_converter import (
 
 from temporalio.worker import Worker
 
-from temporal_supervisor.activities.beneficiaries import Beneficiaries, add_beneficiary
+from temporal_supervisor.activities.beneficiaries import Beneficiaries
 from temporal_supervisor.activities.investments import Investments
-from temporal_supervisor.client_helper import ClientHelper
+from common.client_helper import ClientHelper
 
 with workflow.unsafe.imports_passed_through():
     from temporal_supervisor.supervisor_workflow import (

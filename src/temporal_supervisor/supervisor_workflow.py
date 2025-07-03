@@ -3,8 +3,8 @@ from datetime import timedelta
 from temporalio import workflow
 from temporalio.contrib.openai_agents.temporal_tools import activity_as_tool
 
-
-from temporal_supervisor.activities.beneficiaries import Beneficiaries, add_beneficiary
+from common.user_message import ProcessUserMessageInput
+from temporal_supervisor.activities.beneficiaries import Beneficiaries
 from temporal_supervisor.activities.investments import Investments
 
 with workflow.unsafe.imports_passed_through():
@@ -100,9 +100,6 @@ def init_agents() -> Agent[WealthManagementContext]:
     investment_agent.handoffs.append(supervisor_agent)
     return supervisor_agent
 
-class ProcessUserMessageInput(BaseModel):
-    user_input: str
-    chat_length: int
 
 @workflow.defn
 class WealthManagementWorkflow:
@@ -169,9 +166,13 @@ class WealthManagementWorkflow:
 
     @process_user_message.validator
     def validate_process_user_message(self, input: ProcessUserMessageInput) -> None:
+        workflow.logger.info(f"validating user message {input}")
         if not input.user_input:
+            workflow.logger.error("Input cannot be empty")
             raise ValueError("Input cannot be empty")
         if len(input.user_input) > 1000:
+            workflow.logger.error("Input is too long. Please limit to 1000 characters")
             raise ValueError("Input is too long. Please limit to 1000 characters")
         if input.chat_length != len(self.chat_history):
+            workflow.logger.error(f"Stale chat history length does not match {input.chat_length} != {len(self.chat_history)}")
             raise ValueError("Stale chat history. Please refresh the chat history.")

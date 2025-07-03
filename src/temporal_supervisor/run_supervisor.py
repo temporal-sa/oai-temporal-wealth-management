@@ -7,9 +7,9 @@ from temporalio.client import (
     WorkflowUpdateFailedError,
 )
 from temporalio.common import QueryRejectCondition, WorkflowIDReusePolicy
-from temporalio.service import RPCError, RPCStatusCode, TLSConfig
+from temporalio.service import RPCError, RPCStatusCode
 
-from client_helper import ClientHelper
+from common.client_helper import ClientHelper
 
 with workflow.unsafe.imports_passed_through():
     from temporalio.contrib.openai_agents.open_ai_data_converter import (
@@ -18,8 +18,8 @@ with workflow.unsafe.imports_passed_through():
 
     from supervisor_workflow import (
         WealthManagementWorkflow,
-        ProcessUserMessageInput,
     )
+    from common.user_message import ProcessUserMessageInput
 
 
 async def main():

@@ -80,11 +80,15 @@ async def main():
             chat_length=len(history),
         )
         try:
+            # Returns a list of chat interactions
             new_history = await handle.execute_update(
                 WealthManagementWorkflow.process_user_message, message_input
             )
             history.extend(new_history)
-            print(*new_history, sep="\n")
+            # only want to print out the text response
+            index = len(new_history)-1 if len(new_history) == 0 else 0
+            last_item = new_history[index]
+            print(last_item.text_response)
         except WorkflowUpdateFailedError:
             print("** Stale conversation. Reloading..")
             length = len(history)
@@ -92,7 +96,10 @@ async def main():
                 WealthManagementWorkflow.get_chat_history,
                 reject_condition=QueryRejectCondition.NOT_OPEN,
             )
-            print(*history[length:], sep="\n")
+            # only want to print out the text response
+            index = len(history)-1 if len(history) == 0 else 0
+            last_item = history[index]
+            print(last_item.text_response)
 
 if __name__ == "__main__":
     asyncio.run(main())

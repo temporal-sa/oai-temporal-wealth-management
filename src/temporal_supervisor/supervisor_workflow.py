@@ -131,7 +131,6 @@ class WealthManagementWorkflow:
             json_response = ""
             agent_trace = ""
 
-
             for new_item in result.new_items:
                 agent_name = new_item.agent.name
                 if isinstance(new_item, MessageOutputItem):

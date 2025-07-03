@@ -44,12 +44,12 @@ curl -X POST 'http://127.0.0.1:8000/send-prompt?prompt=Who%20are%20my%20benefici
 
 Respond with an account ID
 ```bash
-curl -X POST 'http://127.0.0.1:8000/send-prompt?prompt=123&chat_len=2'
+curl -X POST 'http://127.0.0.1:8000/send-prompt?prompt=123&chat_len=1'
 ```
 
 Ask about investment accounts
 ```bash
-curl -X POST 'http://127.0.0.1:8000/send-prompt?prompt=What%20investment%20accounts%20do%20I%20have%3F&chat_len=8'
+curl -X POST 'http://127.0.0.1:8000/send-prompt?prompt=What%20investment%20accounts%20do%20I%20have%3F&chat_len=2'
 ```
 
 Query the chat history

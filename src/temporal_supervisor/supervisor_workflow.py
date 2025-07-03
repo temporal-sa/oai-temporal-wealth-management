@@ -3,7 +3,7 @@ from datetime import timedelta
 from temporalio import workflow
 from temporalio.contrib.openai_agents.temporal_tools import activity_as_tool
 
-from common.user_message import ProcessUserMessageInput
+from common.user_message import ProcessUserMessageInput, ChatInteraction
 from temporal_supervisor.activities.beneficiaries import Beneficiaries
 from temporal_supervisor.activities.investments import Investments
 
@@ -31,28 +31,6 @@ with workflow.unsafe.imports_passed_through():
 
 class WealthManagementContext(BaseModel):
     account_id: str | None = None
-
-
-### Tools
-
-@function_tool
-async def list_investments(
-        context: RunContextWrapper[WealthManagementContext], account_id: str
-) -> dict:
-    """
-    List the investment accounts and balances for the given account id.
-
-    Args:
-        account_id: The customer's account id'
-    """
-    # update the context
-    context.context.account_id = account_id
-    return [
-        { "Checking", 203.45 },
-        { "Savings", 375.81 },
-        { "Retirement", 24648.63 },
-    ]
-
 
 ### Agents
 def init_agents() -> Agent[WealthManagementContext]:
@@ -105,7 +83,7 @@ def init_agents() -> Agent[WealthManagementContext]:
 class WealthManagementWorkflow:
     def __init__(self, input_items: list[TResponseInputItem] | None = None ):
         self.run_config = RunConfig()
-        self.chat_history: list[str] = []
+        self.chat_history: list[ChatInteraction] = []
         self.current_agent: Agent[WealthManagementContext] = init_agents()
         self.context = WealthManagementContext()
         self.input_items = [] if input_items is None else input_items
@@ -123,7 +101,7 @@ class WealthManagementWorkflow:
         workflow.continue_as_new(self.input_items)
 
     @workflow.query
-    def get_chat_history(self) -> list[str]:
+    def get_chat_history(self) -> list[ChatInteraction]:
         return self.chat_history
 
     @workflow.signal
@@ -131,10 +109,15 @@ class WealthManagementWorkflow:
         self.end_workflow = True
 
     @workflow.update
-    async def process_user_message(self, input: ProcessUserMessageInput) -> list[str]:
+    async def process_user_message(self, input: ProcessUserMessageInput) -> list[ChatInteraction]:
         workflow.logger.info("processing user message")
         length = len(self.chat_history)
-        self.chat_history.append(f"User: {input.user_input}")
+        # build the interaction
+        chat_interaction = ChatInteraction(
+            user_prompt=input.user_input,
+            text_response = ""
+        )
+        # self.chat_history.append(f"User: {input.user_input}")
         with trace("wealth management", group_id=workflow.info().workflow_id):
             self.input_items.append({"content": input.user_input, "role": "user"})
             result = await Runner.run(
@@ -144,24 +127,46 @@ class WealthManagementWorkflow:
                 run_config=self.run_config,
             )
 
+            text_response = ""
+            json_response = ""
+            agent_trace = ""
+
+
             for new_item in result.new_items:
                 agent_name = new_item.agent.name
                 if isinstance(new_item, MessageOutputItem):
-                    self.chat_history.append(f"{agent_name} {ItemHelpers.text_message_output(new_item)}")
+                    workflow.logger.info(f"{agent_name} {ItemHelpers.text_message_output(new_item)}")
+                    text_response += f"{ItemHelpers.text_message_output(new_item)}\n"
+                    # self.chat_history.append(f"{agent_name} {ItemHelpers.text_message_output(new_item)}")
                 elif isinstance(new_item, HandoffOutputItem):
-                    self.chat_history.append(f"Handed off from {new_item.source_agent.name} to {new_item.target_agent.name}")
+                    workflow.logger.info(f"Handed off from {new_item.source_agent.name} to {new_item.target_agent.name}")
+                    agent_trace += f"Handed off from {new_item.source_agent.name} to {new_item.target_agent.name}\n"
+                    # self.chat_history.append(f"Handed off from {new_item.source_agent.name} to {new_item.target_agent.name}")
                 elif isinstance(new_item, ToolCallItem):
                     workflow.logger.info(f"{agent_name}: Calling a tool")
-                    self.chat_history.append(f"{agent_name}: Calling a tool")
+                    agent_trace += f"{agent_name}: Calling a tool\n"
+                    # self.chat_history.append(f"{agent_name}: Calling a tool")
                 elif isinstance(new_item, ToolCallOutputItem):
                     workflow.logger.info(f"{agent_name}: Tool call output: {new_item.output}")
-                    self.chat_history.append(f"{agent_name}: Tool call output: {new_item.output}")
+                    # this might be problematic... TODO: validate
+                    json_response += new_item.output + "\n"
+                    # self.chat_history.append(f"{agent_name}: Tool call output: {new_item.output}")
                 else:
-                    self.chat_history.append(f"{agent_name}: Skipping item: {new_item.__class__.__name__}")
+                    agent_trace += f"{agent_name}: Skipping item: {new_item.__class__.__name__}\n"
+                    # self.chat_history.append(f"{agent_name}: Skipping item: {new_item.__class__.__name__}")
             self.input_items = result.to_input_list()
             self.current_agent = result.last_agent
 
-        workflow.set_current_details("\n\n".join(self.chat_history))
+            chat_interaction.text_response = text_response
+            chat_interaction.json_response = json_response
+            chat_interaction.agent_trace = agent_trace
+            self.chat_history.append(chat_interaction)
+
+            current_details = "\n\n"
+            for item in self.chat_history:
+                current_details.join(str(item))
+
+        workflow.set_current_details(current_details)
         return self.chat_history[length:]
 
     @process_user_message.validator

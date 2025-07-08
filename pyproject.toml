@@ -11,10 +11,10 @@ dependencies = [
     "asyncio (>=3.4.3,<4.0.0)",
     "uuid (>=1.30,<2.0)",
     "pydantic (>=2.11.7,<3.0.0)",
-    "openai-agents >= 0.0.19",
-    "temporalio @ git+https://github.com/temporalio/sdk-python.git",
     "fastapi (>=0.115.14,<0.116.0)",
     "uvicorn (>=0.35.0,<0.36.0)",
+    "temporalio (>=1.14.0,<2.0.0)",
+    "openai-agents (>=0.1.0,<0.2.0)",
 ]
 
 [tool.poetry]

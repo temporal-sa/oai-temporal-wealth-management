@@ -177,6 +177,4 @@ class WealthManagementWorkflow:
         if len(input.user_input) > 1000:
             workflow.logger.error("Input is too long. Please limit to 1000 characters")
             raise ValueError("Input is too long. Please limit to 1000 characters")
-        if input.chat_length != len(self.chat_history):
-            workflow.logger.error(f"Stale chat history length does not match {input.chat_length} != {len(self.chat_history)}")
-            raise ValueError("Stale chat history. Please refresh the chat history.")
+

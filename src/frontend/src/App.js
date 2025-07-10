@@ -7,7 +7,6 @@ function App() {
   const [input, setInput] = useState('');
   const [sessionId, setSessionId] = useState(null);
   const [isChatActive, setIsChatActive] = useState(false);
-  const [chatLen, setChatLen] = useState(0);
   const chatWindowRef = useRef(null);
 
   useEffect(() => {
@@ -29,22 +28,23 @@ function App() {
     }
   };
 
-  const fetchChatHistory = async () => {
-    if (!sessionId) return;
-    try {
-      const response = await fetch(`${API_BASE_URL}/get-chat-history?session_id=${sessionId}`);
-      const data = await response.json();
-      // Assuming the history is a list of strings.
-      // We need to format it into our message structure.
-      const formattedHistory = data.history.map((msg, index) => ({
-        text: msg,
-        type: index % 2 === 0 ? 'user' : 'bot' // This is a guess, adjust if needed
-      }));
-      setMessages(formattedHistory);
-    } catch (error) {
-      console.error('Error fetching chat history:', error);
-    }
-  };
+  // Commented out as it is not currently being used
+  // const fetchChatHistory = async () => {
+  //   if (!sessionId) return;
+  //   try {
+  //     const response = await fetch(`${API_BASE_URL}/get-chat-history?session_id=${sessionId}`);
+  //     const data = await response.json();
+  //     // Assuming the history is a list of strings.
+  //     // We need to format it into our message structure.
+  //     const formattedHistory = data.history.map((msg, index) => ({
+  //       text: msg,
+  //       type: index % 2 === 0 ? 'user' : 'bot' // This is a guess, adjust if needed
+  //     }));
+  //     setMessages(formattedHistory);
+  //   } catch (error) {
+  //     console.error('Error fetching chat history:', error);
+  //   }
+  // };
 
 
   const handleSend = async () => {
@@ -59,7 +59,7 @@ function App() {
 
     try {
       const encodedInput = encodeURIComponent(input);
-      const response = await fetch(`${API_BASE_URL}/send-prompt?prompt=${encodedInput}&chat_len=${chatLen}`, {
+      const response = await fetch(`${API_BASE_URL}/send-prompt?prompt=${encodedInput}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
       });
@@ -68,7 +68,6 @@ function App() {
         const botMessage = { text: data.response[0].text_response, type: 'bot' };
         setMessages(prev => [...prev, botMessage]);
       }
-      setChatLen(prevLen => prevLen + 1);
     } catch (error) {
       console.error('Error sending message:', error);
       const errorMessage = { text: 'Failed to get response from bot.', type: 'bot' };
@@ -89,7 +88,6 @@ function App() {
       setMessages(prev => [...prev, { text: 'Chat session ended.', type: 'bot' }]);
       setSessionId(null);
       setIsChatActive(false);
-      setChatLen(0);
     } catch (error) {
         console.error('Error ending chat session:', error);
     }

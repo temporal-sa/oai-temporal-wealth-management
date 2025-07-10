@@ -28,7 +28,7 @@ from common.investment_account_manager import InvestmentAccountManager
 #                     format="%(asctime)s | %(levelname)s | %(filename)s:%(lineno)s | %(message)s")
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
-logger.info("OpenAI Agent SDK Example Starting")
+logger.info("Wealth Management Chatbot Example Starting")
 
 ### Managers
 

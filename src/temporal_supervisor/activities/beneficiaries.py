@@ -20,12 +20,6 @@ class Beneficiary:
 class BeneficiaryInput:
     beneficiary: Beneficiary
 
-@activity.defn
-async def add_beneficiary(account_id: str, first_name: str, last_name: str, relationship: str):
-    activity.logger.info(f"add_beneficiary: input: {account_id}, {first_name}, {last_name}, {relationship}")
-    beneficiaries_mgr = BeneficiariesManager()
-    beneficiaries_mgr.add_beneficiary(account_id, first_name, last_name, relationship)
-
 class Beneficiaries:
     # Note for this demo, it references a file
     # a production level version would point to a data store

@@ -95,7 +95,7 @@ async def get_chat_history():
             )
 
 @app.post("/send-prompt")
-async def send_prompt(prompt: str, chat_len: int ):
+async def send_prompt(prompt: str):
     # Start or update the workflow
     start_op = WithStartWorkflowOperation(
         WealthManagementWorkflow.run,
@@ -104,11 +104,10 @@ async def send_prompt(prompt: str, chat_len: int ):
         id_conflict_policy=WorkflowIDConflictPolicy.USE_EXISTING,
     )
 
-    print(f"Received prompt {prompt} and chat_len {chat_len}")
+    print(f"Received prompt {prompt}")
 
     message = ProcessUserMessageInput(
         user_input = prompt,
-        chat_length = chat_len,
     )
 
     try:

@@ -40,19 +40,22 @@ temporal server start-dev
 ```
 
 ### Start the Worker
+This assumes you are already in the src/temporal_supervisor folder. 
 ```bash
+cd src/temporal_supervisor
 ./startlocalworker.sh
 ```
 
-In another terminal, start the UX
+In another terminal, start the Console UX
 ### Start the Command Line UX
 ```bash
+cd src/temporal_supervisor
 ./startlocalux.sh
 ```
 
 ## Running the Demo in Temporal Cloud
 
-Copy the setcloudenv.example to setcloudenv.sh
+Copy the setcloudenv.example to setcloudenv.sh in the src/temporal_supervisor folder.
 
 ```bash
 cp setcloundenv.sh setcloudenv.sh
@@ -72,7 +75,7 @@ cd src/temporal_supervisor
 ```
 In a new terminal, run the the UX, passing in a Workflow ID 
 
-### Start the Command Line UX
+### Start the Console UX
 ```bash
 cd src/temporal_supervisor
 ./startcloudux.sh <Workflow ID>
@@ -121,3 +124,7 @@ Enter your message: end
 ```
 
 You can also add and delete beneficiaries and open and close investment accounts.
+
+Here is a sample event history shown in the Temporal UX
+
+![](../../images/temporal-event-history.png)

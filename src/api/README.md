@@ -18,12 +18,14 @@ poetry install
 
 #### Connect locally
 ```bash
+cd src/api
 ./startlocalapi.sh
 ```
 
 #### Connect to Temporal Cloud
 Be sure to have created / updated ../../setcloudenv.sh. See [README](../temporal_supervisor/README.md) for more details.
 ```bash
+cd src/api
 ./startcloudapi.sh
 ```
 

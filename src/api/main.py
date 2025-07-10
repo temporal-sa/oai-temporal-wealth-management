@@ -34,7 +34,7 @@ app = FastAPI(lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -137,15 +137,20 @@ async def end_chat():
 
 @app.post("/start-workflow")
 async def start_workflow():
-    # start the workflow
-    await temporal_client.start_workflow(
-        WealthManagementWorkflow.run,
-        id=WORKFLOW_ID,
-        task_queue=client_helper.taskQueue,
-        id_reuse_policy=WorkflowIDReusePolicy.ALLOW_DUPLICATE
-    )
+    try:
+        # start the workflow
+        await temporal_client.start_workflow(
+            WealthManagementWorkflow.run,
+            id=WORKFLOW_ID,
+            task_queue=client_helper.taskQueue,
+            id_reuse_policy=WorkflowIDReusePolicy.ALLOW_DUPLICATE
+        )
 
-    return {
-        "message": f"Workflow started."
-    }
-
+        return {
+            "message": f"Workflow started."
+        }
+    except Exception as e:
+        print(f"Exception occurred starting workflow {e}")
+        return {
+            "message": f"An error occurred starting the workflow {e}"
+        }

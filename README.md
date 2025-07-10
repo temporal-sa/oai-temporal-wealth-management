@@ -12,10 +12,15 @@ Scenarios currently implemented include
 * List Investments - shows a list of accounts and their current balances
 * Close Investment Account - closes an investment account
 
+There are two ways to run through the scenarios: Using Web Application or using a console application. 
+
+Details on the Web Application can be found [here](src/frontend/README.md)
+Details on the Console Application can be found [here](src/temporal_supervisor/README.md)
+
 ## Prerequisites
 
 * [Poetry](https://python-poetry.org/docs/) - Python Dependency Management
-* [OpenAI API Key] (https://platform.openai.com/api-keys) -
+* [OpenAI API Key] (https://platform.openai.com/api-keys) - Your key to accessing OpenAI's LLM
 
 ## Set up Python Environment
 ```bash

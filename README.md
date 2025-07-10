@@ -1,8 +1,12 @@
 # Wealth Management Agent Example using OpenAI Agents SDK
-Demonstrates how to use OpenAI Agents SDK using handoffs to other agents. 
+Demonstrates how to use [OpenAI Agents SDK](https://openai.github.io/openai-agents-python/) using handoffs to other agents. 
+Shows an example of just using OpenAI Agents SDK and another version that leverages [Temporal](https://temporal.io) to 
+wrap the agentic flow with Temporal.
 
-The OpenAI Agents SDK version of this example is located [here](src/oai_supervisor/README.md)
-The Temporal version of this example is located [here](src/temporal_supervisor/README.md) 
+![](images/architecture.png)
+
+The vanilla OpenAI Agents SDK version of this example is located [here](src/oai_supervisor/README.md).
+The Temporal version of this example is located [here](src/temporal_supervisor/README.md).
 
 Scenarios currently implemented include
 * Add Beneficiary - add a new beneficiary to your account
@@ -12,15 +16,15 @@ Scenarios currently implemented include
 * List Investments - shows a list of accounts and their current balances
 * Close Investment Account - closes an investment account
 
-There are two ways to run through the scenarios: Using Web Application or using a console application. 
-
-Details on the Web Application can be found [here](src/frontend/README.md)
-Details on the Console Application can be found [here](src/temporal_supervisor/README.md)
+There are two ways to run through the scenarios with the Temporal version
+* Using a [Web Application](src/frontend/README.md) or 
+* Using a [Console Application](src/temporal_supervisor/README.md)
 
 ## Prerequisites
 
 * [Poetry](https://python-poetry.org/docs/) - Python Dependency Management
 * [OpenAI API Key] (https://platform.openai.com/api-keys) - Your key to accessing OpenAI's LLM
+* [Temporal CLI](https://docs.temporal.io/cli#install) - Local Temporal service
 
 ## Set up Python Environment
 ```bash
@@ -43,4 +47,3 @@ export OPENAI_API_KEY=sk-proj-....
 See the OpenAI Agents SDK Version [here](src/oai_supervisor/README.md)
 And the Temporal version of this example is located [here](src/temporal_supervisor/README.md)
 
-![](images/architecture.png)

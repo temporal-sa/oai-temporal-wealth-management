@@ -13,8 +13,8 @@ dependencies = [
     "pydantic (>=2.11.7,<3.0.0)",
     "fastapi (>=0.115.14,<0.116.0)",
     "uvicorn (>=0.35.0,<0.36.0)",
-    "temporalio (>=1.14.0,<2.0.0)",
     "openai-agents (>=0.1.0,<0.2.0)",
+    "temporalio (>=1.14.1,<2.0.0)",
 ]
 
 [tool.poetry]

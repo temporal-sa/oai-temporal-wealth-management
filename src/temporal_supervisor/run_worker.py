@@ -4,11 +4,9 @@ import logging
 from datetime import timedelta
 
 from temporalio import workflow
-from temporalio.contrib.openai_agents.invoke_model_activity import ModelActivity
-from temporalio.contrib.openai_agents.model_parameters import ModelActivityParameters
-from temporalio.contrib.openai_agents.open_ai_data_converter import (
-    open_ai_data_converter,
-)
+from temporalio.contrib.openai_agents import ModelActivity
+from temporalio.contrib.openai_agents import ModelActivityParameters
+from temporalio.contrib.pydantic import pydantic_data_converter
 
 from temporalio.worker import Worker
 
@@ -33,7 +31,7 @@ async def main():
     )
     with set_open_ai_agent_temporal_overrides(model_params):
         client_helper = ClientHelper()
-        client = await client_helper.get_client(open_ai_data_converter)
+        client = await client_helper.get_client(pydantic_data_converter)
 
         model_activity = ModelActivity(model_provider=None)
         with concurrent.futures.ThreadPoolExecutor(max_workers=20) as activity_executor:

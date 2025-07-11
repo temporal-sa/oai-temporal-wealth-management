@@ -1,7 +1,7 @@
 from datetime import timedelta
 
 from temporalio import workflow
-from temporalio.contrib.openai_agents.temporal_tools import activity_as_tool
+from temporalio.contrib import openai_agents
 
 from common.user_message import ProcessUserMessageInput, ChatInteraction
 from temporal_supervisor.activities.beneficiaries import Beneficiaries
@@ -43,11 +43,11 @@ def init_agents() -> Agent[WealthManagementContext]:
         name=BENE_AGENT_NAME,
         handoff_description=BENE_HANDOFF,
         instructions=BENE_INSTRUCTIONS,
-        tools=[activity_as_tool(Beneficiaries.list_beneficiaries,
+        tools=[openai_agents.workflow.activity_as_tool(Beneficiaries.list_beneficiaries,
                                 start_to_close_timeout=timedelta(seconds=5)),
-               activity_as_tool(Beneficiaries.add_beneficiary,
+               openai_agents.workflow.activity_as_tool(Beneficiaries.add_beneficiary,
                                 start_to_close_timeout=timedelta(seconds=5)),
-               activity_as_tool(Beneficiaries.delete_beneficiary,
+               openai_agents.workflow.activity_as_tool(Beneficiaries.delete_beneficiary,
                                 start_to_close_timeout=timedelta(seconds=5))
                ],
     )
@@ -56,11 +56,11 @@ def init_agents() -> Agent[WealthManagementContext]:
         name=INVEST_AGENT_NAME,
         handoff_description=INVEST_HANDOFF,
         instructions=INVEST_INSTRUCTIONS,
-        tools=[activity_as_tool(Investments.list_investments,
+        tools=[openai_agents.workflow.activity_as_tool(Investments.list_investments,
                                 start_to_close_timeout=timedelta(seconds=5)),
-               activity_as_tool(Investments.open_investment,
+               openai_agents.workflow.activity_as_tool(Investments.open_investment,
                                 start_to_close_timeout=timedelta(seconds=5)),
-               activity_as_tool(Investments.close_investment,
+               openai_agents.workflow.activity_as_tool(Investments.close_investment,
                                 start_to_close_timeout=timedelta(seconds=5))],
     )
 

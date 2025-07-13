@@ -12,9 +12,7 @@ from temporalio.service import RPCError, RPCStatusCode
 from common.client_helper import ClientHelper
 
 with workflow.unsafe.imports_passed_through():
-    from temporalio.contrib.openai_agents.open_ai_data_converter import (
-        open_ai_data_converter,
-    )
+    from temporalio.contrib.pydantic import pydantic_data_converter
 
     from supervisor_workflow import (
         WealthManagementWorkflow,
@@ -28,7 +26,7 @@ async def main():
     args = parser.parse_args()
 
     clientHelper = ClientHelper()
-    client = await clientHelper.get_client(open_ai_data_converter)
+    client = await clientHelper.get_client(pydantic_data_converter)
 
     handle = client.get_workflow_handle(args.conversation_id)
 

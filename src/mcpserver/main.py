@@ -10,9 +10,13 @@ mcp = FastMCP(
     log_level="INFO",
     on_duplicate_tools="warn")
 
-from passlib.context import CryptContext
+import bcrypt
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    return bcrypt.checkpw(plain_password.encode("utf-8"), hashed_password.encode("utf-8"))
+
+def get_password_hash(password: str) -> str:
+    return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
 
 # --- Configuration ---
 script_dir = os.path.dirname(__file__)
@@ -33,46 +37,45 @@ def create_user(username: str, password: str, account_id: str) -> str:
                 if user["username"] == username:
                     return "User already exists"
 
-            hashed_password = pwd_context.hash(password)
+            hashed_password = get_password_hash(password)
             users.append({"username": username, "password": hashed_password, "account_id": account_id})
 
             f.seek(0)
             json.dump(users, f, indent=4)
             f.truncate()
-        return "User created successfully"
+        return f"User {username}, account id {account_id} created successfully"
     except Exception as e:
-        return f"Unexpected error adding a user: {e}"
+        return f"Unexpected error adding a user {username}, id {account_id}: {e}"
 
 @mcp.tool
-def validate_account(username: str, password: str) -> str:
+def validate_user_account(username: str, password: str) -> dict:
     """
-    Validates a user's account and returns their account ID if valid.
+    Validates (or logins into) a user's account and returns their account ID if valid.
     """
     try:
         with open(USERS_FILE, "r") as f:
             users = json.load(f)
         for user in users:
-            if user["username"] == username and pwd_context.verify(password, user["password"]):
-                return user["account_id"]
-        return "Invalid credentials"
+            if user["username"] == username and verify_password(password, user["password"]):
+                return { "account_id" : user["account_id"] }
+        return { "error": f"Invalid credentials for {username}" }
     except Exception as e:
-        return "Exception validating account {e}"
+        return { "error": f"Exception validating user {username} account {e}"}
 
-
-@mcp.resource("account://{account_id}/info")
-def get_account_info(account_id: str) -> dict:
+@mcp.tool
+def get_user_account_info(account_id: str) -> dict:
     """
-    Retrieves a user's account information.
+    Retrieves or displays the user's account information.
     """
     try:
         with open(ACCOUNTS_FILE, "r") as f:
             accounts = json.load(f)
-        return accounts.get(account_id, {"error": "Account not found"})
+        return accounts.get(account_id, {"error": f"User account {account_id} not found"})
     except Exception as e:
-        return { "error": f"Exception occurred while retrieving account information: {e}" }
+        return { "error": f"Exception occurred while retrieving user account {account_id} information: {e}" }
 
 @mcp.tool
-def add_account_info(account_id: str, first_name: str, last_name: str, address: str, phone: str, email: str, marital_status: str) -> str:
+def add_user_account_info(account_id: str, first_name: str, last_name: str, address: str, phone: str, email: str, marital_status: str) -> str:
     """
     Adds a user's account information
     """
@@ -99,26 +102,13 @@ def add_account_info(account_id: str, first_name: str, last_name: str, address: 
             f.truncate()
             return "Account information added successfully."
     except Exception as e:
-        return f"Exception occurred while adding account information: {e}"
+        return f"Exception occurred while adding user account {account_id} information: {e}"
+
 
 @mcp.tool
-def view_account_info(account_id: str) -> dict:
+def edit_user_account_info(account_id: str, new_info: dict) -> str:
     """
-    Returns the users account information.
-    """
-    try:
-        with open(ACCOUNTS_FILE, "r") as f:
-            accounts = json.load(f)
-            if account_id in accounts:
-                return accounts[account_id]
-            return { "error": "Account not found" }
-    except Exception as e:
-        return { "error": f"Exception occurred while retrieving account information: {e}" }
-
-@mcp.tool
-def edit_account_info(account_id: str, new_info: dict) -> str:
-    """
-    Edits a user's account information.
+    Allows a user to modify or change their existing account information.
     """
     try:
         with open(ACCOUNTS_FILE, "r+") as f:
@@ -129,10 +119,10 @@ def edit_account_info(account_id: str, new_info: dict) -> str:
                 f.seek(0)
                 json.dump(accounts, f, indent=4)
                 f.truncate()
-                return "Account information updated successfully."
-            return "Account not found."
+                return "User account information updated successfully."
+            return "User account not found."
     except Exception as e:
-        return f"Error while editing account information. {e}"
+        return f"Error while editing user account information. {e}"
 
 if __name__ == "__main__":
     mcp.run()

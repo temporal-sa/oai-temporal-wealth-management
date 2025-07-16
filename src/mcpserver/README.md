@@ -3,10 +3,10 @@
 Provides additional capabilities for managing wealth management accounts. Operations include:
 
 * Create User - Adds a new user record
-* Validate Account - Allows a user to log in and returns their account id
-* Add Account Info - Adds a user's account information (e.g. name, address, phone, etc)
-* View Account Info - Retrieves a user's account information
-* Edit Account Info - Provides a way to update account information
+* Validate User Account - Allows a user to log in and returns their account id
+* Add User Account Info - Adds a user's account information (e.g. name, address, phone, etc)
+* Get User Account Info - Retrieves a user's account information
+* Edit User Account Info - Provides a way to update account information
 
 ## Prerequisites
 

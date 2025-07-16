@@ -1,13 +1,13 @@
+import asyncio
 import json
 import os
+import argparse
 
 from fastmcp import FastMCP
 from datetime import datetime
 
 mcp = FastMCP(
     name="My Wealth Management MCP Server",
-    port=7070,
-    log_level="INFO",
     on_duplicate_tools="warn")
 
 import bcrypt
@@ -124,5 +124,35 @@ def edit_user_account_info(account_id: str, new_info: dict) -> str:
     except Exception as e:
         return f"Error while editing user account information. {e}"
 
+def main():
+    parser = argparse.ArgumentParser(description="MCPServer with selectable transport")
+    parser.add_argument(
+        "--mode",
+        choices=["stdio", "http"],
+        default="stdio",
+        help="Select transport mode: stdio or http",
+    )
+    parser.add_argument(
+        "--host",
+        default="0.0.0.0",
+        help="Host for HTTP server (default: 0.0.0.0)"
+    )
+    parser.add_argument(
+        "--port",
+        type=int,
+        default=8080,
+        help="Port for HTTP server (default: 8080)"
+    )
+    args = parser.parse_args()
+
+    if args.mode == "stdio":
+        print("Running MCPServer in stdio mode.")
+        mcp.run()
+    else:
+        print(f"Running MCPServer in HTTP mode on {args.host}:{args.port}")
+        mcp.run(transport="http",
+                host=args.host,
+                port=args.port)
+
 if __name__ == "__main__":
-    mcp.run()
+    main()

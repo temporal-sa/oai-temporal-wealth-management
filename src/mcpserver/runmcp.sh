@@ -15,5 +15,5 @@ SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
 # go up two levels to where our .venv folder is located
 cd "$SCRIPT_DIR/../.."
 source .venv/bin/activate
-/Users/rickross/.local/bin/poetry run python src/mcpserver/main.py
+/Users/rickross/.local/bin/poetry run python src/mcpserver/main.py "$@"
 

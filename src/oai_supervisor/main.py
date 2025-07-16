@@ -118,7 +118,6 @@ supervisor_agent = Agent[AccountContext](
     name=SUPERVISOR_AGENT_NAME,
     handoff_description=SUPERVISOR_HANDOFF,
     instructions=SUPERVISOR_INSTRUCTIONS,
-    # tools=[login],
     handoffs=[
         beneficiary_agent,
         investment_agent,

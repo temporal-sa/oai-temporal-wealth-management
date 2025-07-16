@@ -98,17 +98,6 @@ async def close_investment(context: RunContextWrapper[AccountContext], account_i
     # Note a real close investment would be much more complex and would not delete the actual account
     investment_acct_mgr.delete_investment_account(account_id, investment_id)
 
-# @function_tool
-# async def login(username: str, password: str) -> dict:
-#     if "foo" == username and "bar" == password:
-#         return {
-#             "account_id": "123"
-#         }
-#     else:
-#         return {
-#             "error": "invalid credentials"
-#         }
-
 ### Agents
 
 beneficiary_agent = Agent[AccountContext](

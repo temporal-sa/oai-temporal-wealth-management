@@ -17,35 +17,51 @@ function App() {
 
   const handleStartChat = async () => {
     try {
-      await fetch(`${API_BASE_URL}/start-workflow`, { method: 'POST' });
-      const newSessionId = Math.random().toString(36).substring(2, 15);
-      setSessionId(newSessionId);
-      setMessages([{ text: 'Chat session started.', type: 'bot' }]);
-      setIsChatActive(true);
+      let response;
+      response = await fetch(`${API_BASE_URL}/start-workflow`, { method: 'POST' });
+      if (response.ok) {
+        const result = await response.json();
+        // check to see if it has truely been started
+        if (result.message === 'Workflow started.') {
+          const newSessionId = Math.random().toString(36).substring(2, 15);
+          setSessionId(newSessionId);
+          setMessages([{text: 'Chat session started.', type: 'bot'}]);
+          setIsChatActive(true);
+        } else {
+          // assume that the workflow is still running
+          await fetchChatHistory();
+          setIsChatActive(true);
+        }
+      } else {
+        setMessages( [{text: `Bad/invalid response from API: ${response.status}`, type: 'bot'}]);
+      }
     } catch (error) {
       console.error('Error starting chat session:', error);
       setMessages([{ text: 'Failed to start chat session.', type: 'bot' }]);
     }
   };
 
-  // Commented out as it is not currently being used
-  // const fetchChatHistory = async () => {
-  //   if (!sessionId) return;
-  //   try {
-  //     const response = await fetch(`${API_BASE_URL}/get-chat-history?session_id=${sessionId}`);
-  //     const data = await response.json();
-  //     // Assuming the history is a list of strings.
-  //     // We need to format it into our message structure.
-  //     const formattedHistory = data.history.map((msg, index) => ({
-  //       text: msg,
-  //       type: index % 2 === 0 ? 'user' : 'bot' // This is a guess, adjust if needed
-  //     }));
-  //     setMessages(formattedHistory);
-  //   } catch (error) {
-  //     console.error('Error fetching chat history:', error);
-  //   }
-  // };
 
+  const fetchChatHistory = async () => {
+    // if (!sessionId) return;
+    try {
+      const response = await fetch(`${API_BASE_URL}/get-chat-history`);
+      const data = await response.json();
+      // data is an array of
+      // { "user_prompt": "what the user typed", "text_response": "resulting text" }
+      // We need to format it into our message structure.
+      // which looks like this:
+      // { text: 'Text goes here', type: 'either user or bot' }
+      let headerArray = [{text: 'Previous history', type: 'bot'}];
+      const formattedHistory = headerArray.concat(data.flatMap(item => [
+            { text: item.user_prompt, type: 'user' },
+            { text: item.text_response, type: 'bot' }
+         ]));
+      setMessages(formattedHistory);
+    } catch (error) {
+      console.error('Error fetching chat history:', error);
+    }
+  };
 
   const handleSend = async () => {
     if (!input.trim() || !sessionId) {

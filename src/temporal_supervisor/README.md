@@ -57,6 +57,45 @@ export REDIS_PORT=6379
 
 Save the file and be sure that you have Redis running. 
 
+## Run Codec Server for Claim Check (optional)
+If you have decided to set up the Claim Check above, you will 
+most likely want to also run a Codec Server to be able to see the actual sent to 
+the workflow and activities. 
+
+Be sure you have updated the setclaimcheck.sh as mentioned above.
+
+To run the Codec Server:
+```bash
+./startcodecserver.sh
+```
+
+And of course, make sure that your Redis Server is up and running. 
+
+Once it's up and running, the default endpoint is http://127.0.0.1:8081.
+
+Open up your browser and navigate to the Temporal UI. Locally that is usually localhost:8233. 
+For Temporal Cloud that will be https://cloud.temporal.io
+
+In the upper right, there is an icon that looks like glasses. Click on that and you 
+can configure your codec server. 
+
+Change the drop down to "Use my browser setting and ignore Cluster-level setting".
+
+Use the endpoint of your codec server (default is http://127.0.0.1:8081). Be sure there are no 
+extra spaces at the end of the URL or it will not work. You can turn off the two options - Pass the 
+user access token and Include cross-origin credentials. Click on apply and you have configured 
+the codec server. 
+
+![](../../images/config-codec-server.png)
+
+As you run through different scenarios, you'll be able to see the decoded values in the browser.
+
+![](../../images/decoded-input.png)
+
+If you remove the codec server settings, you won't be able to see anything other than a BASE64 Encoded ID.
+
+![](../../images/encoded-input.png)
+
 ## Running the Demo Locally
 Start Temporal Locally.
 

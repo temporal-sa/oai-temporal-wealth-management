@@ -37,7 +37,6 @@ class ClaimCheckCodec(PayloadCodec):
 
             redis_id = p.data.decode("utf-8")
             value = await self.redis_client.get(redis_id)
-            # TODO: check to see if this is valid
             new_payload = Payload.FromString(value)
             out.append(new_payload)
         return out

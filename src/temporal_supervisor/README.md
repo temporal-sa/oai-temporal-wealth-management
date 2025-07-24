@@ -13,6 +13,7 @@ Scenarios currently implemented include
 ## Prerequisites
 
 * [Poetry](https://python-poetry.org/docs/) - Python Dependency Management
+* [Redis](https://redis.io/downloads/) - Redis - Optional. Only needed if you want to use the Claim Check pattern. 
 
 ## Set up Python Environment
 ```bash
@@ -31,6 +32,30 @@ It should look something like this:
 ```bash
 export OPENAI_API_KEY=sk-proj-....
 ```
+
+## Set up Claim Check / Redis (optional)
+
+An optional configuration is to substitute the data sent to Temporal (e.g. function/method parameters and return values)
+with an ID. This is known as the [Claim Check Pattern](https://www.enterpriseintegrationpatterns.com/patterns/messaging/StoreInLibrary.html). 
+The original data is stored in Redis. This uses a 
+[Custom Payload Codec](https://docs.temporal.io/develop/python/converters-and-encryption#custom-payload-codec) 
+that intercepts data going to Temporal Cloud, replaces it with a GUID. When the data is retrieved, it looks up the GUID 
+replaces it with the data stored in Redis.
+
+```bash
+cp setclaimcheck.example setclaimcheck.sh
+chmod +x setclaimcheck.sh
+```
+
+Now edit the setclaimcheck.sh file and fill in the location of Redis
+It should look something like this:
+```bash
+export USE_CLAIM_CHECK=true
+export REDIS_HOST=localhost
+export REDIS_PORT=6379
+```
+
+Save the file and be sure that you have Redis running. 
 
 ## Running the Demo Locally
 Start Temporal Locally.
@@ -68,6 +93,7 @@ export TEMPORAL_NAMESPACE=<namespace>.<accountID>
 export TEMPORAL_CERT_PATH="/path/to/cert.pem"
 export TEMPORAL_KEY_PATH="/path/to/key.key"
 ```
+
 ### Start the Worker
 ```bash
 cd src/temporal_supervisor

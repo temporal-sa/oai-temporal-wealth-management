@@ -3,3 +3,4 @@ __pycache__
 /setcloudenv.sh
 .idea
 .DS_Store
+dump.rdb

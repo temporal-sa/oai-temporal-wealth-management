@@ -21,10 +21,9 @@ function App() {
       response = await fetch(`${API_BASE_URL}/start-workflow`, { method: 'POST' });
       if (response.ok) {
         const result = await response.json();
+        const newSessionId = Math.random().toString(36).substring(2, 15);
         // check to see if it has truely been started
         if (result.message === 'Workflow started.') {
-          const newSessionId = Math.random().toString(36).substring(2, 15);
-          setSessionId(newSessionId);
           setMessages([{text: 'Chat session started.', type: 'bot'}]);
           setIsChatActive(true);
         } else {
@@ -32,6 +31,7 @@ function App() {
           await fetchChatHistory();
           setIsChatActive(true);
         }
+        setSessionId(newSessionId);
       } else {
         setMessages( [{text: `Bad/invalid response from API: ${response.status}`, type: 'bot'}]);
       }
@@ -81,6 +81,7 @@ function App() {
       });
       const data = await response.json();
       if (data.response && data.response.length > 0) {
+        console.log("data coming back is ", data.response[0].text_response)
         const botMessage = { text: data.response[0].text_response, type: 'bot' };
         setMessages(prev => [...prev, botMessage]);
       }
@@ -92,6 +93,7 @@ function App() {
   };
 
   const handleEndChat = async () => {
+    console.log("Session id is ", sessionId);
     if (!sessionId) {
       return;
     }

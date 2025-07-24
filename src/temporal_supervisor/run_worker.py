@@ -10,6 +10,7 @@ from temporalio.contrib.pydantic import pydantic_data_converter
 
 from temporalio.worker import Worker
 
+from common.data_converter_helper import DataConverterHelper
 from temporal_supervisor.activities.beneficiaries import Beneficiaries
 from temporal_supervisor.activities.investments import Investments
 from common.client_helper import ClientHelper
@@ -31,7 +32,8 @@ async def main():
     )
     with set_open_ai_agent_temporal_overrides(model_params):
         client_helper = ClientHelper()
-        client = await client_helper.get_client(pydantic_data_converter)
+        data_converter = DataConverterHelper().get_data_converter()
+        client = await client_helper.get_client(data_converter)
 
         model_activity = ModelActivity(model_provider=None)
         with concurrent.futures.ThreadPoolExecutor(max_workers=20) as activity_executor:

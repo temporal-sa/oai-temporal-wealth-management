@@ -22,9 +22,8 @@ function App() {
       if (response.ok) {
         const result = await response.json();
         // check to see if it has truely been started
+        const newSessionId = Math.random().toString(36).substring(2, 15);
         if (result.message === 'Workflow started.') {
-          const newSessionId = Math.random().toString(36).substring(2, 15);
-          setSessionId(newSessionId);
           setMessages([{text: 'Chat session started.', type: 'bot'}]);
           setIsChatActive(true);
         } else {
@@ -32,6 +31,7 @@ function App() {
           await fetchChatHistory();
           setIsChatActive(true);
         }
+        setSessionId(newSessionId);
       } else {
         setMessages( [{text: `Bad/invalid response from API: ${response.status}`, type: 'bot'}]);
       }

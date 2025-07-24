@@ -36,9 +36,7 @@ class ClaimCheckCodec(PayloadCodec):
                 continue
 
             redis_id = p.data.decode("utf-8")
-            print(f"the redis id is {redis_id}")
             value = await self.redis_client.get(redis_id)
-            print(f"the value is {value}")
             # TODO: check to see if this is valid
             new_payload = Payload.FromString(value)
             out.append(new_payload)
@@ -47,7 +45,6 @@ class ClaimCheckCodec(PayloadCodec):
     async def encode_payload(self, payload: Payload) -> Payload:
         id = str(uuid.uuid4())
         value = payload.SerializeToString()
-        print(f"encoding payload {id}, {value}")
         await self.redis_client.set(id, value)
         out = Payload(
             metadata= {

@@ -11,6 +11,7 @@ from temporalio.converter import DataConverter
 from temporalio.exceptions import TemporalError
 
 from common.client_helper import ClientHelper
+from common.data_converter_helper import DataConverterHelper
 from common.user_message import ProcessUserMessageInput
 from temporal_supervisor.supervisor_workflow import WealthManagementWorkflow
 
@@ -26,7 +27,8 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     global temporal_client
     global client_helper
     client_helper = ClientHelper()
-    temporal_client = await client_helper.get_client(DataConverter.default)
+    data_converter = DataConverterHelper().get_data_converter()
+    temporal_client = await client_helper.get_client(data_converter)
     yield
     print("API is shutting down...")
     # app teardown
@@ -116,6 +118,7 @@ async def send_prompt(prompt: str):
             message,
             start_workflow_operation=start_op,
         )
+        print(f"the response is {response}")
     except WorkflowUpdateFailedError as e:
         response = f"Error: {e}"
 

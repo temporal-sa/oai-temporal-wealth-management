@@ -13,6 +13,7 @@ Scenarios currently implemented include
 ## Prerequisites
 
 * [Poetry](https://python-poetry.org/docs/) - Python Dependency Management
+* [Redis](https://redis.io/downloads/) - Redis - Optional. Only needed if you want to use the Claim Check pattern. 
 
 ## Set up Python Environment
 ```bash
@@ -31,6 +32,69 @@ It should look something like this:
 ```bash
 export OPENAI_API_KEY=sk-proj-....
 ```
+
+## Set up Claim Check / Redis (optional)
+
+An optional configuration is to substitute the data sent to Temporal (e.g. function/method parameters and return values)
+with an ID. This is known as the [Claim Check Pattern](https://www.enterpriseintegrationpatterns.com/patterns/messaging/StoreInLibrary.html). 
+The original data is stored in Redis. This uses a 
+[Custom Payload Codec](https://docs.temporal.io/develop/python/converters-and-encryption#custom-payload-codec) 
+that intercepts data going to Temporal Cloud, replaces it with a GUID. When the data is retrieved, it looks up the GUID 
+replaces it with the data stored in Redis.
+
+```bash
+cp setclaimcheck.example setclaimcheck.sh
+chmod +x setclaimcheck.sh
+```
+
+Now edit the setclaimcheck.sh file and fill in the location of Redis
+It should look something like this:
+```bash
+export USE_CLAIM_CHECK=true
+export REDIS_HOST=localhost
+export REDIS_PORT=6379
+```
+
+Save the file and be sure that you have Redis running. 
+
+## Run Codec Server for Claim Check (optional)
+If you have decided to set up the Claim Check above, you will 
+most likely want to also run a Codec Server to be able to see the actual sent to 
+the workflow and activities. 
+
+Be sure you have updated the setclaimcheck.sh as mentioned above.
+
+To run the Codec Server:
+```bash
+./startcodecserver.sh
+```
+
+And of course, make sure that your Redis Server is up and running. 
+
+Once it's up and running, the default endpoint is http://127.0.0.1:8081.
+
+Open up your browser and navigate to the Temporal UI. Locally that is usually localhost:8233. 
+For Temporal Cloud that will be https://cloud.temporal.io
+
+In the upper right, there is an icon that looks like glasses. Click on that and you 
+can configure your codec server. 
+
+Change the drop down to "Use my browser setting and ignore Cluster-level setting".
+
+Use the endpoint of your codec server (default is http://127.0.0.1:8081). Be sure there are no 
+extra spaces at the end of the URL or it will not work. You can turn off the two options - Pass the 
+user access token and Include cross-origin credentials. Click on apply and you have configured 
+the codec server. 
+
+![](../../images/config-codec-server.png)
+
+As you run through different scenarios, you'll be able to see the decoded values in the browser.
+
+![](../../images/decoded-input.png)
+
+If you remove the codec server settings, you won't be able to see anything other than a BASE64 Encoded ID.
+
+![](../../images/encoded-input.png)
 
 ## Running the Demo Locally
 Start Temporal Locally.
@@ -68,6 +132,7 @@ export TEMPORAL_NAMESPACE=<namespace>.<accountID>
 export TEMPORAL_CERT_PATH="/path/to/cert.pem"
 export TEMPORAL_KEY_PATH="/path/to/key.key"
 ```
+
 ### Start the Worker
 ```bash
 cd src/temporal_supervisor

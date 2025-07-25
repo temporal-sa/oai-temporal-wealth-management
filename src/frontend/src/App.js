@@ -21,6 +21,7 @@ function App() {
       response = await fetch(`${API_BASE_URL}/start-workflow`, { method: 'POST' });
       if (response.ok) {
         const result = await response.json();
+        const newSessionId = Math.random().toString(36).substring(2, 15);
         // check to see if it has truely been started
         const newSessionId = Math.random().toString(36).substring(2, 15);
         if (result.message === 'Workflow started.') {
@@ -81,6 +82,7 @@ function App() {
       });
       const data = await response.json();
       if (data.response && data.response.length > 0) {
+        console.log("data coming back is ", data.response[0].text_response)
         const botMessage = { text: data.response[0].text_response, type: 'bot' };
         setMessages(prev => [...prev, botMessage]);
       }
@@ -92,6 +94,7 @@ function App() {
   };
 
   const handleEndChat = async () => {
+    console.log("Session id is ", sessionId);
     if (!sessionId) {
       return;
     }

@@ -25,3 +25,6 @@ Here's an example screenshot of the web application running:
 
 ![](../../images/webui.png)
 
+## Comments
+
+This example uses a fixed Workflow ID to simplify some of the functionality for a demo.

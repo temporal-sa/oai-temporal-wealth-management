@@ -22,8 +22,7 @@ function App() {
       if (response.ok) {
         const result = await response.json();
         const newSessionId = Math.random().toString(36).substring(2, 15);
-        // check to see if it has truely been started
-        const newSessionId = Math.random().toString(36).substring(2, 15);
+        // check to see if it has truly been started
         if (result.message === 'Workflow started.') {
           setMessages([{text: 'Chat session started.', type: 'bot'}]);
           setIsChatActive(true);

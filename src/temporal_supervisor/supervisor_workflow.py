@@ -21,6 +21,9 @@ with workflow.unsafe.imports_passed_through():
         TResponseInputItem,
         function_tool,
         trace,
+        input_guardrail,
+        GuardrailFunctionOutput,
+        InputGuardrailTripwireTriggered,
     )
     from pydantic import BaseModel
     from common.agent_constants import BENE_AGENT_NAME, BENE_HANDOFF, BENE_INSTRUCTIONS, INVEST_AGENT_NAME, \
@@ -32,13 +35,68 @@ with workflow.unsafe.imports_passed_through():
 class WealthManagementContext(BaseModel):
     account_id: str | None = None
 
+class RoutingGuardrailOutput(BaseModel):
+    is_wealth_management_question: bool
+    reasoning: str
+
+routing_guardrail_agent = Agent(
+    name="Routing Guardrail",
+    instructions="""Analyze the user's question and determine if it's about wealth management topics (beneficiaries or investments). 
+    
+    Wealth management keywords: beneficiary, beneficiaries, add beneficiary, delete beneficiary, list beneficiaries, family member, son, daughter, spouse, child, children, inheritance, estate, investment, investments, account, accounts, balance, balances, open account, close account, list accounts, portfolio, money, funds, savings, checking, retirement, wealth, financial, finance
+    
+    IMPORTANT: If the question is about ANYTHING other than wealth management (geography, animals, science, history, general knowledge, personal questions, etc.), set is_wealth_management_question to FALSE.
+    
+    Examples of questions that should be BLOCKED (is_wealth_management_question = false):
+    - "What is a cheetah?" (animal question)
+    - "What is the capital of Florida?" (geography question)
+    - "What is your name?" (personal question)
+    - "How does photosynthesis work?" (science question)
+    - "What is the weather like?" (general question)
+    
+    Examples of questions that should be ALLOWED (is_wealth_management_question = true):
+    - "Who are my beneficiaries?" (beneficiary question)
+    - "What investment accounts do I have?" (investment question)
+    - "Add a beneficiary to my account" (beneficiary question)
+    - "Show me my portfolio" (investment question)
+    
+    Be very strict - only allow questions that are clearly about wealth management topics.""",
+    output_type=RoutingGuardrailOutput,
+)
+
+@input_guardrail
+async def routing_guardrail(
+        ctx: RunContextWrapper[WealthManagementContext], agent: Agent, input: str | list[TResponseInputItem]
+) -> GuardrailFunctionOutput:
+    workflow.logger.info(f"Guardrail triggered with input: {input}")
+    
+    if isinstance(input, list) and len(input) > 0:
+        last_message = input[-1].get("content", "") if isinstance(input[-1], dict) else str(input[-1])
+        workflow.logger.info(f"Analyzing message: {last_message}")
+    else:
+        last_message = str(input)
+        workflow.logger.info(f"Analyzing message: {last_message}")
+    
+    result = await Runner.run(routing_guardrail_agent, input, context=ctx.context)
+    
+    workflow.logger.info(f"Guardrail result: {result.final_output}")
+    should_block = not result.final_output.is_wealth_management_question
+    workflow.logger.info(f"Should block: {should_block}")
+    workflow.logger.info(f"Question is wealth management: {result.final_output.is_wealth_management_question}")
+    workflow.logger.info(f"Reasoning: {result.final_output.reasoning}")
+    
+    if should_block:
+        workflow.logger.info(f"Guardrail tripwire triggered! Blocking non-wealth-management question.")
+    else:
+        workflow.logger.info(f"Guardrail allowing wealth management question to pass through.")
+    
+    return GuardrailFunctionOutput(
+        output_info=result.final_output,
+        tripwire_triggered=should_block,
+    )
+
 ### Agents
 def init_agents() -> Agent[WealthManagementContext]:
-    """
-    Initialize the agents for the Wealth Management Workflow
-
-    Returns a supervisor agent
-    """
     beneficiary_agent = Agent[WealthManagementContext](
         name=BENE_AGENT_NAME,
         handoff_description=BENE_HANDOFF,
@@ -50,6 +108,7 @@ def init_agents() -> Agent[WealthManagementContext]:
                openai_agents.workflow.activity_as_tool(Beneficiaries.delete_beneficiary,
                                 start_to_close_timeout=timedelta(seconds=5))
                ],
+        input_guardrails=[routing_guardrail],
     )
 
     investment_agent = Agent[WealthManagementContext](
@@ -62,6 +121,7 @@ def init_agents() -> Agent[WealthManagementContext]:
                                 start_to_close_timeout=timedelta(seconds=5)),
                openai_agents.workflow.activity_as_tool(Investments.close_investment,
                                 start_to_close_timeout=timedelta(seconds=5))],
+        input_guardrails=[routing_guardrail],
     )
 
     supervisor_agent = Agent[WealthManagementContext](
@@ -71,7 +131,8 @@ def init_agents() -> Agent[WealthManagementContext]:
         handoffs=[
             beneficiary_agent,
             investment_agent,
-        ]
+        ],
+        input_guardrails=[routing_guardrail],
     )
 
     beneficiary_agent.handoffs.append(supervisor_agent)
@@ -111,15 +172,23 @@ class WealthManagementWorkflow:
     @workflow.update
     async def process_user_message(self, input: ProcessUserMessageInput) -> list[ChatInteraction]:
         workflow.logger.info("processing user message")
+        workflow.logger.info(f"Current agent: {self.current_agent.name}")
+        workflow.logger.info(f"Agent has guardrails: {hasattr(self.current_agent, 'input_guardrails') and self.current_agent.input_guardrails}")
+        
         length = len(self.chat_history)
-        # build the interaction
         chat_interaction = ChatInteraction(
             user_prompt=input.user_input,
             text_response = ""
         )
-        # self.chat_history.append(f"User: {input.user_input}")
-        with trace("wealth management", group_id=workflow.info().workflow_id):
-            self.input_items.append({"content": input.user_input, "role": "user"})
+        
+        self.input_items.append({"content": input.user_input, "role": "user"})
+        workflow.logger.info(f"Running agent with {len(self.input_items)} input items")
+        
+        text_response = ""
+        json_response = ""
+        agent_trace = ""
+        
+        try:
             result = await Runner.run(
                 self.current_agent,
                 self.input_items,
@@ -127,43 +196,48 @@ class WealthManagementWorkflow:
                 run_config=self.run_config,
             )
 
-            text_response = ""
-            json_response = ""
-            agent_trace = ""
+            workflow.logger.info(f"Agent run completed. New items: {len(result.new_items)}")
 
             for new_item in result.new_items:
                 agent_name = new_item.agent.name
                 if isinstance(new_item, MessageOutputItem):
                     workflow.logger.info(f"{agent_name} {ItemHelpers.text_message_output(new_item)}")
                     text_response += f"{ItemHelpers.text_message_output(new_item)}\n"
-                    # self.chat_history.append(f"{agent_name} {ItemHelpers.text_message_output(new_item)}")
                 elif isinstance(new_item, HandoffOutputItem):
                     workflow.logger.info(f"Handed off from {new_item.source_agent.name} to {new_item.target_agent.name}")
                     agent_trace += f"Handed off from {new_item.source_agent.name} to {new_item.target_agent.name}\n"
-                    # self.chat_history.append(f"Handed off from {new_item.source_agent.name} to {new_item.target_agent.name}")
                 elif isinstance(new_item, ToolCallItem):
                     workflow.logger.info(f"{agent_name}: Calling a tool")
                     agent_trace += f"{agent_name}: Calling a tool\n"
-                    # self.chat_history.append(f"{agent_name}: Calling a tool")
                 elif isinstance(new_item, ToolCallOutputItem):
                     workflow.logger.info(f"{agent_name}: Tool call output: {new_item.output}")
-                    # this might be problematic... TODO: validate
                     json_response += new_item.output + "\n"
-                    # self.chat_history.append(f"{agent_name}: Tool call output: {new_item.output}")
                 else:
                     agent_trace += f"{agent_name}: Skipping item: {new_item.__class__.__name__}\n"
-                    # self.chat_history.append(f"{agent_name}: Skipping item: {new_item.__class__.__name__}")
+                    
             self.input_items = result.to_input_list()
             self.current_agent = result.last_agent
+            workflow.logger.info(f"Current agent after run: {self.current_agent.name}")
 
-            chat_interaction.text_response = text_response
-            chat_interaction.json_response = json_response
-            chat_interaction.agent_trace = agent_trace
-            self.chat_history.append(chat_interaction)
+        except InputGuardrailTripwireTriggered as e:
+            workflow.logger.info(f"Guardrail tripwire triggered: {e}")
+            text_response = "I'm sorry, but I can only help with wealth management questions related to beneficiaries and investments. Please ask me about your beneficiaries, investment accounts, or other wealth management topics."
+            agent_trace = f"Guardrail blocked non-wealth-management question: {e}"
+            
+            if hasattr(e, 'result') and hasattr(e.result, 'output_info'):
+                guardrail_output = e.result.output_info
+                if hasattr(guardrail_output, 'reasoning'):
+                    workflow.logger.info(f"Blocked question reasoning: {guardrail_output.reasoning}")
+                    agent_trace += f" - Reasoning: {guardrail_output.reasoning}"
 
-            current_details = "\n\n"
-            for item in self.chat_history:
-                current_details.join(str(item))
+        chat_interaction.text_response = text_response
+        chat_interaction.json_response = json_response
+        chat_interaction.agent_trace = agent_trace
+        self.chat_history.append(chat_interaction)
+
+        current_details = "\n\n"
+        for item in self.chat_history:
+            current_details.join(str(item))
 
         workflow.set_current_details(current_details)
         return self.chat_history[length:]

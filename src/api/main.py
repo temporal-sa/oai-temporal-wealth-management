@@ -7,16 +7,16 @@ from fastapi.middleware.cors import CORSMiddleware
 from temporalio.client import Client, WithStartWorkflowOperation, WorkflowUpdateFailedError
 from temporalio.api.enums.v1 import WorkflowExecutionStatus
 from temporalio.common import WorkflowIDReusePolicy, WorkflowIDConflictPolicy
-from temporalio.converter import DataConverter
 from temporalio.exceptions import TemporalError
+from temporalio.contrib.openai_agents import OpenAIAgentsPlugin
 
 from common.client_helper import ClientHelper
-from common.data_converter_helper import DataConverterHelper
 from common.user_message import ProcessUserMessageInput
+from temporal_supervisor.claim_check_plugin import ClaimCheckPlugin
 from temporal_supervisor.supervisor_workflow import WealthManagementWorkflow
 
 temporal_client: Optional[Client] = None
-client_helper: Optional[ClientHelper] = None
+task_queue: Optional[str] = None
 
 WORKFLOW_ID = "oai-temporal-agent"
 
@@ -25,10 +25,18 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     # app startup
     print("API is starting up...")
     global temporal_client
-    global client_helper
+    global task_queue
     client_helper = ClientHelper()
-    data_converter = DataConverterHelper().get_data_converter()
-    temporal_client = await client_helper.get_client(data_converter)
+    task_queue = client_helper.taskQueue
+    temporal_client = await Client.connect(
+        target_host=client_helper.address,
+        namespace=client_helper.namespace,
+        tls=client_helper.get_tls_config(),
+        plugins=[
+            OpenAIAgentsPlugin(),
+            ClaimCheckPlugin(),
+        ]
+    )
     yield
     print("API is shutting down...")
     # app teardown
@@ -102,7 +110,7 @@ async def send_prompt(prompt: str):
     start_op = WithStartWorkflowOperation(
         WealthManagementWorkflow.run,
         id=WORKFLOW_ID,
-        task_queue=client_helper.taskQueue,
+        task_queue=task_queue,
         id_conflict_policy=WorkflowIDConflictPolicy.USE_EXISTING,
     )
 
@@ -144,7 +152,7 @@ async def start_workflow():
         await temporal_client.start_workflow(
             WealthManagementWorkflow.run,
             id=WORKFLOW_ID,
-            task_queue=client_helper.taskQueue,
+            task_queue=task_queue,
             id_reuse_policy=WorkflowIDReusePolicy.ALLOW_DUPLICATE
         )
 

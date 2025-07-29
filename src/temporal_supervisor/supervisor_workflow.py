@@ -3,9 +3,12 @@ from datetime import timedelta
 from temporalio import workflow
 from temporalio.contrib import openai_agents
 
-from common.user_message import ProcessUserMessageInput, ChatInteraction
 from temporal_supervisor.activities.beneficiaries import Beneficiaries
 from temporal_supervisor.activities.investments import Investments
+from common.user_message import ProcessUserMessageInput, ChatInteraction
+from common.agent_constants import BENE_AGENT_NAME, BENE_HANDOFF, BENE_INSTRUCTIONS, INVEST_AGENT_NAME, \
+    INVEST_HANDOFF, \
+    INVEST_INSTRUCTIONS, SUPERVISOR_AGENT_NAME, SUPERVISOR_HANDOFF, SUPERVISOR_INSTRUCTIONS
 
 with workflow.unsafe.imports_passed_through():
     from agents import (
@@ -14,18 +17,14 @@ with workflow.unsafe.imports_passed_through():
         ItemHelpers,
         MessageOutputItem,
         RunConfig,
-        RunContextWrapper,
         Runner,
         ToolCallItem,
         ToolCallOutputItem,
         TResponseInputItem,
-        function_tool,
         trace,
     )
     from pydantic import BaseModel
-    from common.agent_constants import BENE_AGENT_NAME, BENE_HANDOFF, BENE_INSTRUCTIONS, INVEST_AGENT_NAME, \
-        INVEST_HANDOFF, \
-        INVEST_INSTRUCTIONS, SUPERVISOR_AGENT_NAME, SUPERVISOR_HANDOFF, SUPERVISOR_INSTRUCTIONS
+
 
 ### Context
 
@@ -118,52 +117,52 @@ class WealthManagementWorkflow:
             text_response = ""
         )
         # self.chat_history.append(f"User: {input.user_input}")
-        with trace("wealth management", group_id=workflow.info().workflow_id):
-            self.input_items.append({"content": input.user_input, "role": "user"})
-            result = await Runner.run(
-                self.current_agent,
-                self.input_items,
-                context=self.context,
-                run_config=self.run_config,
-            )
 
-            text_response = ""
-            json_response = ""
-            agent_trace = ""
+        self.input_items.append({"content": input.user_input, "role": "user"})
+        result = await Runner.run(
+            self.current_agent,
+            self.input_items,
+            context=self.context,
+            run_config=self.run_config,
+        )
 
-            for new_item in result.new_items:
-                agent_name = new_item.agent.name
-                if isinstance(new_item, MessageOutputItem):
-                    workflow.logger.info(f"{agent_name} {ItemHelpers.text_message_output(new_item)}")
-                    text_response += f"{ItemHelpers.text_message_output(new_item)}\n"
-                    # self.chat_history.append(f"{agent_name} {ItemHelpers.text_message_output(new_item)}")
-                elif isinstance(new_item, HandoffOutputItem):
-                    workflow.logger.info(f"Handed off from {new_item.source_agent.name} to {new_item.target_agent.name}")
-                    agent_trace += f"Handed off from {new_item.source_agent.name} to {new_item.target_agent.name}\n"
-                    # self.chat_history.append(f"Handed off from {new_item.source_agent.name} to {new_item.target_agent.name}")
-                elif isinstance(new_item, ToolCallItem):
-                    workflow.logger.info(f"{agent_name}: Calling a tool")
-                    agent_trace += f"{agent_name}: Calling a tool\n"
-                    # self.chat_history.append(f"{agent_name}: Calling a tool")
-                elif isinstance(new_item, ToolCallOutputItem):
-                    workflow.logger.info(f"{agent_name}: Tool call output: {new_item.output}")
-                    # this might be problematic... TODO: validate
-                    json_response += new_item.output + "\n"
-                    # self.chat_history.append(f"{agent_name}: Tool call output: {new_item.output}")
-                else:
-                    agent_trace += f"{agent_name}: Skipping item: {new_item.__class__.__name__}\n"
-                    # self.chat_history.append(f"{agent_name}: Skipping item: {new_item.__class__.__name__}")
-            self.input_items = result.to_input_list()
-            self.current_agent = result.last_agent
+        text_response = ""
+        json_response = ""
+        agent_trace = ""
 
-            chat_interaction.text_response = text_response
-            chat_interaction.json_response = json_response
-            chat_interaction.agent_trace = agent_trace
-            self.chat_history.append(chat_interaction)
+        for new_item in result.new_items:
+            agent_name = new_item.agent.name
+            if isinstance(new_item, MessageOutputItem):
+                workflow.logger.info(f"{agent_name} {ItemHelpers.text_message_output(new_item)}")
+                text_response += f"{ItemHelpers.text_message_output(new_item)}\n"
+                # self.chat_history.append(f"{agent_name} {ItemHelpers.text_message_output(new_item)}")
+            elif isinstance(new_item, HandoffOutputItem):
+                workflow.logger.info(f"Handed off from {new_item.source_agent.name} to {new_item.target_agent.name}")
+                agent_trace += f"Handed off from {new_item.source_agent.name} to {new_item.target_agent.name}\n"
+                # self.chat_history.append(f"Handed off from {new_item.source_agent.name} to {new_item.target_agent.name}")
+            elif isinstance(new_item, ToolCallItem):
+                workflow.logger.info(f"{agent_name}: Calling a tool")
+                agent_trace += f"{agent_name}: Calling a tool\n"
+                # self.chat_history.append(f"{agent_name}: Calling a tool")
+            elif isinstance(new_item, ToolCallOutputItem):
+                workflow.logger.info(f"{agent_name}: Tool call output: {new_item.output}")
+                # this might be problematic... TODO: validate
+                json_response += new_item.output + "\n"
+                # self.chat_history.append(f"{agent_name}: Tool call output: {new_item.output}")
+            else:
+                agent_trace += f"{agent_name}: Skipping item: {new_item.__class__.__name__}\n"
+                # self.chat_history.append(f"{agent_name}: Skipping item: {new_item.__class__.__name__}")
+        self.input_items = result.to_input_list()
+        self.current_agent = result.last_agent
 
-            current_details = "\n\n"
-            for item in self.chat_history:
-                current_details.join(str(item))
+        chat_interaction.text_response = text_response
+        chat_interaction.json_response = json_response
+        chat_interaction.agent_trace = agent_trace
+        self.chat_history.append(chat_interaction)
+
+        current_details = "\n\n"
+        for item in self.chat_history:
+            current_details.join(str(item))
 
         workflow.set_current_details(current_details)
         return self.chat_history[length:]

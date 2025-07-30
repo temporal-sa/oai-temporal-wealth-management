@@ -1,5 +1,6 @@
 from datetime import timedelta
 
+import asyncio
 from temporalio import workflow
 from temporalio.contrib import openai_agents
 
@@ -21,7 +22,6 @@ with workflow.unsafe.imports_passed_through():
         ToolCallItem,
         ToolCallOutputItem,
         TResponseInputItem,
-        trace,
     )
     from pydantic import BaseModel
 
@@ -81,6 +81,9 @@ def init_agents() -> Agent[WealthManagementContext]:
 @workflow.defn
 class WealthManagementWorkflow:
     def __init__(self, input_items: list[TResponseInputItem] | None = None ):
+        self.pending_messages: asyncio.Queue[str] = asyncio.Queue()
+        self.message_processed = False
+        self.processed_response: list[ChatInteraction] | None = None
         self.run_config = RunConfig()
         self.chat_history: list[ChatInteraction] = []
         self.current_agent: Agent[WealthManagementContext] = init_agents()
@@ -90,35 +93,46 @@ class WealthManagementWorkflow:
 
     @workflow.run
     async def run(self, input_items: list[TResponseInputItem] | None = None):
-        await workflow.wait_condition(
-            lambda: self.end_workflow or (workflow.info().is_continue_as_new_suggested()
-            and workflow.all_handlers_finished())
-        )
-        if self.end_workflow:
-            workflow.logger.info("Ending workflow.")
-            return
-        workflow.continue_as_new(self.input_items)
+        while True:
+            # Wait for queue item or end workflow
+            await workflow.wait_condition(
+                lambda: not self.pending_messages.empty() or self.end_workflow
+            )
 
-    @workflow.query
-    def get_chat_history(self) -> list[ChatInteraction]:
-        return self.chat_history
+            if self.end_workflow:
+                workflow.logger.info("Ending workflow.")
+                return
 
-    @workflow.signal
-    async def end_workflow(self):
-        self.end_workflow = True
+            # Get the message, process it, save the response, and
+            # change the flag to indicate that it was processed.
+            workflow.logger.info("Changing message processed flag to false")
+            self.message_processed = False
+            # clear the previous response, if any
+            self.processed_response = None
+            message = self.pending_messages.get_nowait()
+            self.processed_response = await self._process_chat_message(message)
+            workflow.logger.info("message processed. setting flag to true")
+            self.message_processed = True
 
-    @workflow.update
-    async def process_user_message(self, input: ProcessUserMessageInput) -> list[ChatInteraction]:
+            # do we need to do a continue as new?
+            if workflow.info().is_continue_as_new_suggested():
+                # wait until everything finishes before doing Continue As New
+                await workflow.wait_condition(
+                    lambda: workflow.all_handlers_finished()
+                )
+                workflow.continue_as_new(self.input_items)
+
+    async def _process_chat_message(self, message: str) -> list[ChatInteraction]:
         workflow.logger.info("processing user message")
         length = len(self.chat_history)
         # build the interaction
         chat_interaction = ChatInteraction(
-            user_prompt=input.user_input,
-            text_response = ""
+            user_prompt=message,
+            text_response=""
         )
         # self.chat_history.append(f"User: {input.user_input}")
 
-        self.input_items.append({"content": input.user_input, "role": "user"})
+        self.input_items.append({"content": message, "role": "user"})
         result = await Runner.run(
             self.current_agent,
             self.input_items,
@@ -167,13 +181,38 @@ class WealthManagementWorkflow:
         workflow.set_current_details(current_details)
         return self.chat_history[length:]
 
+    @workflow.query
+    def get_chat_history(self) -> list[ChatInteraction]:
+        return self.chat_history
+
+    @workflow.signal
+    async def end_workflow(self):
+        self.end_workflow = True
+
+    @workflow.update
+    async def process_user_message(self, message_input: ProcessUserMessageInput) -> list[ChatInteraction]:
+        workflow.logger.info(f"processing user message {message_input}")
+        await self.pending_messages.put(message_input.user_input)
+        self.message_processed = False
+        workflow.logger.info("waiting for the message to be processed")
+        await workflow.wait_condition(
+            self.is_message_processed
+        )
+        workflow.logger.info(f"message has been processed. Processed? {self.message_processed}, Response = {self.processed_response} ")
+        return self.processed_response
+
+    def is_message_processed(self) -> bool:
+        return_value = self.message_processed and self.processed_response is not None
+        workflow.logger.info(f"is message processed? {return_value}")
+        return return_value
+
     @process_user_message.validator
-    def validate_process_user_message(self, input: ProcessUserMessageInput) -> None:
-        workflow.logger.info(f"validating user message {input}")
-        if not input.user_input:
+    def validate_process_user_message(self, message_input: ProcessUserMessageInput) -> None:
+        workflow.logger.info(f"validating user message {message_input}")
+        if not message_input.user_input:
             workflow.logger.error("Input cannot be empty")
             raise ValueError("Input cannot be empty")
-        if len(input.user_input) > 1000:
+        if len(message_input.user_input) > 1000:
             workflow.logger.error("Input is too long. Please limit to 1000 characters")
             raise ValueError("Input is too long. Please limit to 1000 characters")
 

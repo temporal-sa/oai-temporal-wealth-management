@@ -14,7 +14,7 @@ class Investments:
 
     @staticmethod
     @activity.defn
-    async def open_investment(client_id: str, name: str, balance: str) -> dict:
+    async def open_investment(client_id: str, name: str, balance: float) -> dict:
         activity.logger.info(f"Opening an investment account for {client_id}, Name: {name}, Balance: {balance}")
         investment_acct_mgr = InvestmentManager()
         return investment_acct_mgr.add_investment_account(client_id, name, balance)

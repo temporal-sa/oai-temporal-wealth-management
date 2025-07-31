@@ -43,14 +43,13 @@ class InvestmentManager:
 
         return self.data.get(client_id, [])
 
-    def add_investment_account(self, client_id, name, balance):
+    def add_investment_account(self, client_id: str, name: str, balance: float):
         """
         Adds a new investment account to a client's portfolio.
         Automatically generates a unique investment_id.
         Creates the client_id if it doesn't exist.
         """
         try:
-            balance = float(balance)
             if balance < 0:
                 print("Error: Balance cannot be negative.")
                 return None

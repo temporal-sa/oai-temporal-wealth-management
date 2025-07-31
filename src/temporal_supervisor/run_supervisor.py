@@ -3,32 +3,37 @@ import asyncio
 
 from temporalio import workflow
 from temporalio.client import (
+    Client,
     WorkflowQueryRejectedError,
     WorkflowUpdateFailedError,
 )
 from temporalio.common import QueryRejectCondition, WorkflowIDReusePolicy
 from temporalio.service import RPCError, RPCStatusCode
+from temporalio.contrib.openai_agents import OpenAIAgentsPlugin
 
+from temporal_supervisor.claim_check_plugin import ClaimCheckPlugin
 from common.client_helper import ClientHelper
-from common.data_converter_helper import DataConverterHelper
+from common.user_message import ProcessUserMessageInput
 
 with workflow.unsafe.imports_passed_through():
-    from temporalio.contrib.pydantic import pydantic_data_converter
-
     from supervisor_workflow import (
         WealthManagementWorkflow,
     )
-    from common.user_message import ProcessUserMessageInput
-
 
 async def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--conversation-id", type=str, required=True)
     args = parser.parse_args()
 
-    clientHelper = ClientHelper()
-    data_converter = DataConverterHelper().get_data_converter()
-    client = await clientHelper.get_client(data_converter)
+    client_helper = ClientHelper()
+    print(f"address is {client_helper.address}")
+    client = await Client.connect(target_host=client_helper.address,
+                                  namespace=client_helper.namespace,
+                                  tls=client_helper.get_tls_config(),
+                                  plugins=[
+                                      OpenAIAgentsPlugin(),
+                                      ClaimCheckPlugin()
+                                  ])
 
     handle = client.get_workflow_handle(args.conversation_id)
 
@@ -56,7 +61,7 @@ async def main():
         handle = await client.start_workflow(
             WealthManagementWorkflow.run,
             id=args.conversation_id,
-            task_queue=clientHelper.taskQueue,
+            task_queue=client_helper.taskQueue,
             id_reuse_policy=WorkflowIDReusePolicy.ALLOW_DUPLICATE
         )
         history = []

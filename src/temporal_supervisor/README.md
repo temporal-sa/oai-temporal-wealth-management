@@ -148,43 +148,33 @@ cd src/temporal_supervisor
 
 Example output:
 ```text
-Using mTLS authentication
+address is 127.0.0.1:7233
 Checking to see if the workflow is already running...
-Workflow is not currently running. Will start it.
-Starting workflow using WMAgent43
+Got NOT FOUND. Will start it
+Starting workflow using agent1
 
 Welcome to ABC Wealth Management. How can I help you?
-Enter your message: Who are my beneficiaries?
-User: Who are my beneficiaries?
-Supervisor Agent Could you please provide your account ID so I can assist you further?
+Enter your message: who are my beneficiaries?
+Could you please provide your account ID so I can assist you with that?
+
 Enter your message: 123
-User: 123
-Supervisor Agent: Skipping item: HandoffCallItem
-Handed off from Supervisor Agent to Beneficiary Agent
-Beneficiary Agent: Calling a tool
-Beneficiary Agent: Tool call output: [{'beneficiary_id': 'b-1b011a72', 'first_name': 'John', 'last_name': 'Doe', 'relationship': 'son'}, {'beneficiary_id': 'b-3bc09dd2', 'first_name': 'Jane', 'last_name': 'Doe', 'relationship': 'daughter'}, {'beneficiary_id': 'b-14c4b7ec', 'first_name': 'Joan', 'last_name': 'Doe', 'relationship': 'spouse'}]
-Beneficiary Agent Here are your current beneficiaries:
+Here are your current beneficiaries:
 
 1. **John Doe** - Son
 2. **Jane Doe** - Daughter
 3. **Joan Doe** - Spouse
 
-Would you like to add, delete, or make any other changes to your beneficiaries?
+Would you like to add, delete, or simply list your beneficiaries?
+
 Enter your message: what investment accounts do I have?
-User: what investment accounts do I have?
-Beneficiary Agent: Skipping item: HandoffCallItem
-Handed off from Beneficiary Agent to Supervisor Agent
-Supervisor Agent: Skipping item: HandoffCallItem
-Handed off from Supervisor Agent to Investment Agent
-Investment Agent: Calling a tool
-Investment Agent: Tool call output: [{'investment_id': 'i-8f494d01', 'name': 'Checking', 'balance': 1000.0}, {'investment_id': 'i-1872ae24', 'name': 'Savings', 'balance': 2312.08}, {'investment_id': 'i-8846d0b8', 'name': '401K', 'balance': 11070.89}]
-Investment Agent Here are your current investment accounts and their balances:
+Here are your current investment accounts:
 
-1. **Checking** - $1,000.00
-2. **Savings** - $2,312.08
-3. **401K** - $11,070.89
+1. **Checking**: $1,000.00
+2. **Savings**: $2,312.08
+3. **401K**: $11,070.89
 
-Would you like to open a new account, close an existing one, or perform any other actions?
+Would you like to open, close, or manage any of these accounts?
+
 Enter your message: end
 ```
 

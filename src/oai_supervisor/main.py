@@ -16,11 +16,11 @@ from agents import (
     trace,
 )
 
-from common.account_context import AccountContext
+from common.account_context import ClientContext
 from common.agent_constants import BENE_AGENT_NAME, BENE_HANDOFF, BENE_INSTRUCTIONS, INVEST_AGENT_NAME, INVEST_HANDOFF, \
     INVEST_INSTRUCTIONS, SUPERVISOR_AGENT_NAME, SUPERVISOR_HANDOFF, SUPERVISOR_INSTRUCTIONS
 from common.beneficiaries_manager import BeneficiariesManager
-from common.investment_account_manager import InvestmentAccountManager
+from common.investment_manager import InvestmentManager
 
 ### Logging Configuration
 # logging.basicConfig(level=logging.INFO,
@@ -32,84 +32,84 @@ logger.info("Wealth Management Chatbot Example Starting")
 
 ### Managers
 
-investment_acct_mgr = InvestmentAccountManager()
+investment_acct_mgr = InvestmentManager()
 beneficiaries_mgr = BeneficiariesManager()
 
 ### Tools
 
 @function_tool
 async def add_beneficiaries(
-        context: RunContextWrapper[AccountContext], account_id: str,
+        context: RunContextWrapper[ClientContext], client_id: str,
         first_name: str, last_name: str, relationship: str
 ):
-    context.context.account_id = account_id
-    beneficiaries_mgr.add_beneficiary(account_id, first_name, last_name, relationship)
+    context.context.client_id = client_id
+    beneficiaries_mgr.add_beneficiary(client_id, first_name, last_name, relationship)
 
 @function_tool
 async def list_beneficiaries(
-        context: RunContextWrapper[AccountContext], account_id: str
+        context: RunContextWrapper[ClientContext], client_id: str
 ) -> list:
     """
-    List the beneficiaries for the given account id.
+    List the beneficiaries for the given client id.
 
     Args:
-        account_id: The customer's account id
+        client_id: The customer's client id
     """
     # update the context
-    context.context.account_id = account_id
-    return beneficiaries_mgr.list_beneficiaries(account_id)
+    context.context.client_id = client_id
+    return beneficiaries_mgr.list_beneficiaries(client_id)
 
 @function_tool
 async def delete_beneficiaries(
-        context: RunContextWrapper[AccountContext], account_id: str, beneficiary_id: str
+        context: RunContextWrapper[ClientContext], client_id: str, beneficiary_id: str
 ):
-        context.context.account_id = account_id
-        logger.info(f"Tool: Deleting beneficiary {beneficiary_id} from account {account_id}")
-        beneficiaries_mgr.delete_beneficiary(account_id, beneficiary_id)
+        context.context.client_id = client_id
+        logger.info(f"Tool: Deleting beneficiary {beneficiary_id} from account {client_id}")
+        beneficiaries_mgr.delete_beneficiary(client_id, beneficiary_id)
 
 
 @function_tool
-async def open_investment(context: RunContextWrapper[AccountContext], account_id: str, name: str, balance: str):
-    context.context.account_id = account_id
-    investment_acct_mgr.add_investment_account(account_id, name, balance)
+async def open_investment(context: RunContextWrapper[ClientContext], client_id: str, name: str, balance: str):
+    context.context.client_id = client_id
+    investment_acct_mgr.add_investment_account(client_id, name, balance)
 
 @function_tool
 async def list_investments(
-        context: RunContextWrapper[AccountContext], account_id: str
+        context: RunContextWrapper[ClientContext], client_id: str
 ) -> dict:
     """
-    List the investment accounts and balances for the given account id.
+    List the investment accounts and balances for the given client id.
 
     Args:
-        account_id: The customer's account id'
+        client_id: The customer's client id'
     """
     # update the context
-    context.context.account_id = account_id
-    return investment_acct_mgr.list_investment_accounts(account_id)
+    context.context.client_id = client_id
+    return investment_acct_mgr.list_investment_accounts(client_id)
 
 @function_tool
-async def close_investment(context: RunContextWrapper[AccountContext], account_id: str, investment_id: str):
-    context.context.account_id = account_id
+async def close_investment(context: RunContextWrapper[ClientContext], client_id: str, investment_id: str):
+    context.context.client_id = client_id
     # Note a real close investment would be much more complex and would not delete the actual account
-    investment_acct_mgr.delete_investment_account(account_id, investment_id)
+    investment_acct_mgr.delete_investment_account(client_id, investment_id)
 
 ### Agents
 
-beneficiary_agent = Agent[AccountContext](
+beneficiary_agent = Agent[ClientContext](
     name=BENE_AGENT_NAME,
     handoff_description=BENE_HANDOFF,
     instructions=BENE_INSTRUCTIONS,
     tools=[list_beneficiaries, add_beneficiaries, delete_beneficiaries],
 )
 
-investment_agent = Agent[AccountContext](
+investment_agent = Agent[ClientContext](
     name=INVEST_AGENT_NAME,
     handoff_description=INVEST_HANDOFF,
     instructions=INVEST_INSTRUCTIONS,
     tools=[list_investments, open_investment, close_investment],
 )
 
-supervisor_agent = Agent[AccountContext](
+supervisor_agent = Agent[ClientContext](
     name=SUPERVISOR_AGENT_NAME,
     handoff_description=SUPERVISOR_HANDOFF,
     instructions=SUPERVISOR_INSTRUCTIONS,
@@ -123,9 +123,9 @@ beneficiary_agent.handoffs.append(supervisor_agent)
 investment_agent.handoffs.append(supervisor_agent)
 
 async def main():
-    current_agent: Agent[AccountContext] = supervisor_agent
+    current_agent: Agent[ClientContext] = supervisor_agent
     input_items: list[TResponseInputItem] = []
-    context = AccountContext()
+    context = ClientContext()
 
     conversation_id = uuid.uuid4().hex[:16]
 

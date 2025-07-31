@@ -29,7 +29,7 @@ with workflow.unsafe.imports_passed_through():
 ### Context
 
 class WealthManagementContext(BaseModel):
-    account_id: str | None = None
+    client_id: str | None = None
 
 ### Agents
 def init_agents() -> Agent[WealthManagementContext]:

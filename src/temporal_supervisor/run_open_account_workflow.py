@@ -37,17 +37,31 @@ async def main():
         id="testing-open-investment-account-workflow",
         task_queue=client_helper.taskQueue)
 
+    the_state = await handle.query(OpenInvestmentAccountWorkflow.get_current_state)
+    print(f"The current state is {the_state}")
+
     # give a pause before continuing
     await asyncio.sleep(1)
+
+    the_state = await handle.query(OpenInvestmentAccountWorkflow.get_current_state)
+    print(f"After sleeping, the current state is {the_state}")
 
     # verify KYC
     await handle.signal(OpenInvestmentAccountWorkflow.verify_kyc)
 
+    the_state = await handle.query(OpenInvestmentAccountWorkflow.get_current_state)
+    print(f"After verifying KYC, the current state is {the_state}")
+
     # give a pause before continuing
     await asyncio.sleep(1)
 
+    the_state = await handle.query(OpenInvestmentAccountWorkflow.get_current_state)
+    print(f"Before signaling compliance approved, the current state is {the_state}")
+
     # signal compliance approved
     await handle.signal(OpenInvestmentAccountWorkflow.compliance_approved)
+
+    print(f"After compliance approved, the current state is {the_state}")
 
     # get the result
     result = await handle.result()

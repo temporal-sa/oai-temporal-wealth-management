@@ -26,6 +26,7 @@ class OpenInvestmentAccountWorkflow:
         self.sched_to_close_timeout = timedelta(seconds=5)
         self.kyc_verified = False
         self.compliance_reviewed = False
+        self.current_state = "Initializing"
 
     @workflow.run
     async def run(self, inputs: OpenInvestmentAccountInput) -> OpenInvestmentAccountOutput:
@@ -40,15 +41,20 @@ class OpenInvestmentAccountWorkflow:
                          retry_policy=ClientActivities.retry_policy)
 
         self.initialized = True
+        self.current_state = "Waiting KYC"
 
         # wait until the user has validated their information is correct
         workflow.logger.info("Waiting for KYC Verification")
         await workflow.wait_condition(lambda: self.kyc_verified)
 
+        self.current_state = "Waiting Compliance Reviewed"
+
         # wait until compliance review is complete
         # consider implementing a timeout condition
         workflow.logger.info("Waiting for compliance review")
         await workflow.wait_condition(lambda: self.compliance_reviewed)
+
+        self.current_state = "Creating Investment Account"
 
         # finally, let's create/open the account
         workflow.logger.info("Creating a new investment account")
@@ -58,12 +64,19 @@ class OpenInvestmentAccountWorkflow:
             schedule_to_close_timeout=self.sched_to_close_timeout,
             retry_policy=ClientActivities.retry_policy)
 
+        self.current_state = "Complete"
+
         return_value = OpenInvestmentAccountOutput()
         return_value.account_created = investment_account is not None
         return_value.message = "investment account created" if investment_account is not None \
                                     else "An unexpected error occurred creating investment account"
 
         return return_value
+
+    @workflow.query
+    async def get_current_state(self) -> str:
+        workflow.logger.info(f"Returning current state {self.current_state}")
+        return self.current_state
 
     @workflow.query
     async def get_client_details(self) -> Client:

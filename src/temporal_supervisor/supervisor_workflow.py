@@ -91,6 +91,7 @@ def init_agents() -> Agent[WealthManagementContext]:
 
     beneficiary_agent.handoffs.append(supervisor_agent)
     investment_agent.handoffs.append(supervisor_agent)
+    open_account_agent.handoffs.append(investment_agent)
     return supervisor_agent
 
 

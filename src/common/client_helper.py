@@ -1,6 +1,8 @@
 import os
 
 from temporalio.service import TLSConfig
+from common.util import str_to_bool
+
 
 class ClientHelper:
     def __init__(self):
@@ -9,6 +11,8 @@ class ClientHelper:
         self.tlsCertPath = os.getenv("TEMPORAL_CERT_PATH","")
         self.tlsKeyPath = os.getenv("TEMPORAL_KEY_PATH","")
         self.taskQueue = os.getenv("TEMPORAL_TASK_QUEUE", "Supervisor")
+        self.skipOpenAIPlugin = str_to_bool(os.getenv("SKIP_OPENAI_PLUGIN", "False"))
+        print(f"******* Skip OpenAI Plugin? {self.skipOpenAIPlugin} *******")
 
     def get_tls_config(self) -> TLSConfig:
         tls = None

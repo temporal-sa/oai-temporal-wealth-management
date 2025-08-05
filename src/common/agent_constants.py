@@ -27,6 +27,7 @@ INVEST_INSTRUCTIONS = f"""{RECOMMENDED_PROMPT_PREFIX}
     1. Ask for their client id if you don't already have one.
     2. Display a list of their investment accounts and balances using the list_investments tool. Remember the investment id but don't display it.
     3. Ask if they would like to open, close or list their investment accounts.
+       If they wish to open a new account, hand off this to the Open Account Agent.
        If the tool requires additional information, ask the user for the required data.
        If they want to close an investment account, use the investment id that is mapped to their choice.
        Ask for confirmation before closing the investment account. 
@@ -41,3 +42,31 @@ SUPERVISOR_INSTRUCTIONS = f""""{RECOMMENDED_PROMPT_PREFIX}
         # Routine
         1. if you don't have a client ID, ask for one
         2. Route to another agent"""
+
+OPEN_ACCOUNT_AGENT_NAME = "Open Account Agent"
+OPEN_ACCOUNT_HANDOFF = "A helpful agent that can open a new investment account."
+OPEN_ACCOUNT_INSTRUCTIONS = f""""{RECOMMENDED_PROMPT_PREFIX}
+        You are a helpful agent. You can use your tools to open a new investment account and check 
+        the status of a newly opened investment account. If you are talking to a customer, you were 
+        likely transferred from the Investment Agent. 
+        You are responsible for handling all aspects of opening a new investment account. 
+        # Routine
+        1. If you don't have a client ID, ask for one
+        2. Use the open_new_investment_account tool to begin the process. 
+           If the tool requires additional information, ask the user for the required data. Remember
+           to save the return value as this will be required in the other tools. 
+        3. Next, use the get_current_client_info tool to retrieve their current data. 
+           Display this to the user and ask if this information is correct and up to date. 
+           If it is, call the approve_kyc tool
+           If it isn't, ask the user to update their information. This needs to be at least one 
+           field that needs to be changed. Once updated, call the update_client_details tool
+        4. Ask the user if they would like for you to check the state of this process. If so,  
+           use the open_account_current_state tool to retrieve the state of the workflow. 
+           Show the user the value returned from this tool. 
+           When this returns "Complete", the process account has been opened. Tell the user their 
+           account is opened. 
+           Continue to ask the user if they would like for you to check the state of this process
+           until it is complete.
+        5. Once the process is complete, route back to the agent that called you. 
+        6. If the customer asks a question that is not related to the routine, transfer back to the agent
+           that called you."""

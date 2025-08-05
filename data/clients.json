@@ -5,7 +5,7 @@
         "address": "123 Main Street",
         "phone": "999-555-1212",
         "email": "jd@someplace.com",
-        "marital_status": "married",
+        "marital_status": "married"
     },
     "234": {
         "first_name": "Frank",
@@ -13,6 +13,6 @@
         "address": "234 Main Street",
         "phone": "888-777-1212",
         "email": "fs@example.com",
-        "marital_status": "married",
+        "marital_status": "married"
     }
 }

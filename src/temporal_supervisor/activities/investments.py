@@ -1,8 +1,9 @@
 import json
 
-from temporalio import activity
+from temporalio import activity, workflow
 
-from common.investment_manager import InvestmentManager
+with workflow.unsafe.imports_passed_through():
+    from common.investment_manager import InvestmentManager
 
 class Investments:
     @staticmethod

@@ -1,23 +1,25 @@
 import asyncio
 import logging
-from datetime import timedelta
 
 from temporalio import workflow
 from temporalio.client import Client
 from temporalio.worker import Worker
 
-from temporalio.contrib.openai_agents import OpenAIAgentsPlugin
-
 from common.client_helper import ClientHelper
 from temporal_supervisor.activities.clients import ClientActivities
-from temporal_supervisor.claim_check_plugin import ClaimCheckPlugin
+from temporal_supervisor.activities.open_account import OpenAccount
+from temporalio.contrib.openai_agents import OpenAIAgentsPlugin
+from temporal_supervisor.claim_check.claim_check_plugin import ClaimCheckPlugin
+
 from temporal_supervisor.activities.beneficiaries import Beneficiaries
 from temporal_supervisor.activities.investments import Investments
-from temporal_supervisor.open_account_workflow import OpenInvestmentAccountWorkflow
 
 with workflow.unsafe.imports_passed_through():
     from temporal_supervisor.supervisor_workflow import (
         WealthManagementWorkflow
+    )
+    from temporal_supervisor.open_account_workflow import (
+        OpenInvestmentAccountWorkflow
     )
 
 async def main():
@@ -25,14 +27,17 @@ async def main():
                         format="%(asctime)s | %(levelname)s | %(filename)s:%(lineno)s | %(message)s")
 
     client_helper = ClientHelper()
-    print(f"address is {client_helper.address}")
+    # Normally we would just include the OpenAIAgentsPlugin and the
+    # ClaimCheckPlugin. But, when we want to just test the
+    # child open account workflow, we don't need the OpenAIAgentsPlugin
+    # plugins = [ ClaimCheckPlugin() ] if client_helper.skipOpenAIPlugin else [ OpenAIAgentsPlugin(), ClaimCheckPlugin() ]
+    # print(f"address is {client_helper.address} and plugins are {plugins}")
+    plugins = [ OpenAIAgentsPlugin(), ClaimCheckPlugin() ]
     client = await Client.connect(target_host=client_helper.address,
                                   namespace=client_helper.namespace,
                                   tls=client_helper.get_tls_config(),
-                                  plugins=[
-                                      # OpenAIAgentsPlugin(),
-                                      ClaimCheckPlugin()
-                                  ])
+                                  plugins=plugins)
+
     # for the demo, we're using the same task queue as
     # the agents and the child workflow. In a production
     # situation, this would likely be a different task queue
@@ -52,7 +57,11 @@ async def main():
             Investments.close_investment,
             ClientActivities.get_client,
             ClientActivities.add_client,
-            ClientActivities.update_client
+            ClientActivities.update_client,
+            OpenAccount.get_current_client_info,
+            OpenAccount.update_client_details,
+            OpenAccount.approve_kyc,
+            OpenAccount.current_state
         ],
     )
     print(f"Running worker on {client_helper.address}")

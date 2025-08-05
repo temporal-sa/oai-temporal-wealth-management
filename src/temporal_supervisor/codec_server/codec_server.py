@@ -5,7 +5,7 @@ from aiohttp import hdrs, web
 from google.protobuf import json_format
 from temporalio.api.common.v1 import Payload, Payloads
 
-from temporal_supervisor.claim_check_codec import ClaimCheckCodec
+from temporal_supervisor.claim_check.claim_check_codec import ClaimCheckCodec
 
 def build_codec_server() -> web.Application:
     # Cors handler

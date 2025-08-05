@@ -4,14 +4,17 @@ import asyncio
 from temporalio import workflow
 from temporalio.contrib import openai_agents
 
-from temporal_supervisor.activities.beneficiaries import Beneficiaries
-from temporal_supervisor.activities.investments import Investments
 from common.user_message import ProcessUserMessageInput, ChatInteraction
 from common.agent_constants import BENE_AGENT_NAME, BENE_HANDOFF, BENE_INSTRUCTIONS, INVEST_AGENT_NAME, \
     INVEST_HANDOFF, \
-    INVEST_INSTRUCTIONS, SUPERVISOR_AGENT_NAME, SUPERVISOR_HANDOFF, SUPERVISOR_INSTRUCTIONS
+    INVEST_INSTRUCTIONS, SUPERVISOR_AGENT_NAME, SUPERVISOR_HANDOFF, SUPERVISOR_INSTRUCTIONS, \
+    OPEN_ACCOUNT_AGENT_NAME, OPEN_ACCOUNT_HANDOFF, OPEN_ACCOUNT_INSTRUCTIONS
+
+from temporal_supervisor.activities.open_account import OpenAccount, open_new_investment_account
 
 with workflow.unsafe.imports_passed_through():
+    from temporal_supervisor.activities.beneficiaries import Beneficiaries
+    from temporal_supervisor.activities.investments import Investments
     from agents import (
         Agent,
         HandoffOutputItem,
@@ -24,7 +27,6 @@ with workflow.unsafe.imports_passed_through():
         TResponseInputItem,
     )
     from pydantic import BaseModel
-
 
 ### Context
 
@@ -51,16 +53,30 @@ def init_agents() -> Agent[WealthManagementContext]:
                ],
     )
 
+    open_account_agent = Agent[WealthManagementContext](
+        name=OPEN_ACCOUNT_AGENT_NAME,
+        handoff_description=OPEN_ACCOUNT_HANDOFF,
+        instructions=OPEN_ACCOUNT_INSTRUCTIONS,
+        tools=[
+            open_new_investment_account,
+            openai_agents.workflow.activity_as_tool(OpenAccount.get_current_client_info,start_to_close_timeout=timedelta(seconds=5)),
+            openai_agents.workflow.activity_as_tool(OpenAccount.approve_kyc,start_to_close_timeout=timedelta(seconds=5)),
+            openai_agents.workflow.activity_as_tool(OpenAccount.update_client_details,start_to_close_timeout=timedelta(seconds=5)),
+            openai_agents.workflow.activity_as_tool(OpenAccount.current_state,start_to_close_timeout=timedelta(seconds=5)),
+        ]
+    )
+
     investment_agent = Agent[WealthManagementContext](
         name=INVEST_AGENT_NAME,
         handoff_description=INVEST_HANDOFF,
         instructions=INVEST_INSTRUCTIONS,
         tools=[openai_agents.workflow.activity_as_tool(Investments.list_investments,
                                 start_to_close_timeout=timedelta(seconds=5)),
-               openai_agents.workflow.activity_as_tool(Investments.open_investment,
-                                start_to_close_timeout=timedelta(seconds=5)),
                openai_agents.workflow.activity_as_tool(Investments.close_investment,
                                 start_to_close_timeout=timedelta(seconds=5))],
+        handoffs=[
+            open_account_agent
+        ]
     )
 
     supervisor_agent = Agent[WealthManagementContext](
@@ -94,6 +110,7 @@ class WealthManagementWorkflow:
     @workflow.run
     async def run(self, input_items: list[TResponseInputItem] | None = None):
         while True:
+            workflow.logger.info("At top of loop - waiting for another message")
             # Wait for queue item or end workflow
             await workflow.wait_condition(
                 lambda: not self.pending_messages.empty() or self.end_workflow

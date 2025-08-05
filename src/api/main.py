@@ -12,7 +12,7 @@ from temporalio.contrib.openai_agents import OpenAIAgentsPlugin
 
 from common.client_helper import ClientHelper
 from common.user_message import ProcessUserMessageInput
-from temporal_supervisor.claim_check_plugin import ClaimCheckPlugin
+from temporal_supervisor.claim_check.claim_check_plugin import ClaimCheckPlugin
 from temporal_supervisor.supervisor_workflow import WealthManagementWorkflow
 
 temporal_client: Optional[Client] = None

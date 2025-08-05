@@ -14,8 +14,10 @@ class ClientManager:
 
     def get_client(self, client_id: str) -> dict:
         try:
+            print(f"looking for client {client_id} in {self.file_path}")
             with open(self.file_path, "r") as f:
                 clients = json.load(f)
+            print(f"clients is {clients}")
             return clients.get(client_id, {"error": f"Client {client_id} not found"})
         except Exception as e:
             return {"error": f"Exception occurred while retrieving Client {client_id} error: {e}"}

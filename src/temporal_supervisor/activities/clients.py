@@ -1,13 +1,14 @@
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from temporalio import activity, workflow
 from temporalio.common import RetryPolicy
 
-from common.client_manager import ClientManager
+with workflow.unsafe.imports_passed_through():
+    from common.client_manager import ClientManager
 
 @dataclass
-class Client:
+class WealthManagementClient:
     client_id: str
     first_name: str
     last_name: str
@@ -35,18 +36,19 @@ class ClientActivities:
 
     @staticmethod
     @activity.defn
-    async def get_client(client_id: str) -> Client | None:
+    async def get_client(client_id: str) -> WealthManagementClient | None:
         activity.logger.info(f"get_client. input: {client_id}")
         client_manager = ClientManager()
         client_dict = client_manager.get_client(client_id=client_id)
         activity.logger.info(f"client_dict is {client_dict}")
         if "error" in client_dict:
+            print(f"Error after trying to get client {client_id}. {client_dict['error']}")
             return None
 
         # add the client ID to the dictionary
         client_dict['client_id'] = client_id
         activity.logger.info(f"after adding client_id, client_dict is {client_dict}")
-        my_client = Client(**client_dict)
+        my_client = WealthManagementClient(**client_dict)
         activity.logger.info(f"The client is {my_client}")
         return my_client
 
@@ -63,5 +65,5 @@ class ClientActivities:
 if __name__ == '__main__':
     client_dict = {'first_name': 'Don', 'last_name': 'Doe', 'address': '123 Main Street', 'phone': '999-555-1212', 'email': 'jd@someplace.com', 'marital_status': 'married',  'client_id': '123'}
     print(f"client_dict is {client_dict}")
-    client = Client(**client_dict)
+    client = WealthManagementClient(**client_dict)
     print(f"Client is {client}")

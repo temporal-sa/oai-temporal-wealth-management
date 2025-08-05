@@ -3,7 +3,7 @@ from datetime import timedelta
 
 from temporalio import workflow
 
-from temporal_supervisor.activities.clients import Client, ClientActivities
+from temporal_supervisor.activities.clients import ClientActivities
 from temporal_supervisor.activities.investments import Investments
 
 @dataclass
@@ -16,6 +16,16 @@ class OpenInvestmentAccountInput:
 class OpenInvestmentAccountOutput:
     account_created: bool = False
     message : str = None
+
+@dataclass
+class WealthManagementClient:
+    first_name: str = None
+    last_name: str = None
+    address: str = None
+    phone: str = None
+    email: str = None
+    marital_status: str= None
+
 
 @workflow.defn
 class OpenInvestmentAccountWorkflow:
@@ -39,7 +49,7 @@ class OpenInvestmentAccountWorkflow:
                          self.inputs.client_id,
                          schedule_to_close_timeout=self.sched_to_close_timeout,
                          retry_policy=ClientActivities.retry_policy)
-
+        workflow.logger.info(f"Client {self.inputs.client_id} details {self.client}")
         self.initialized = True
         self.current_state = "Waiting KYC"
 
@@ -78,8 +88,8 @@ class OpenInvestmentAccountWorkflow:
         workflow.logger.info(f"Returning current state {self.current_state}")
         return self.current_state
 
-    @workflow.query
-    async def get_client_details(self) -> Client:
+    @workflow.update
+    async def get_client_details(self) -> WealthManagementClient:
         workflow.logger.info(f"Returning client information for {self.inputs.client_id}")
         await workflow.wait_condition(lambda: self.initialized)
         return self.client
@@ -92,6 +102,7 @@ class OpenInvestmentAccountWorkflow:
                     args=[self.inputs.client_id, client],
                     schedule_to_close_timeout=self.sched_to_close_timeout,
                     retry_policy=ClientActivities.retry_policy)
+        self.kyc_verified = True
         return result
 
     @workflow.signal

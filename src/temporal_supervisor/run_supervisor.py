@@ -16,7 +16,7 @@ from common.client_helper import ClientHelper
 from common.user_message import ProcessUserMessageInput
 
 with workflow.unsafe.imports_passed_through():
-    from supervisor_workflow import (
+    from temporal_supervisor.workflows.supervisor_workflow import (
         WealthManagementWorkflow,
     )
 

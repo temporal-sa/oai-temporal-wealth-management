@@ -19,6 +19,21 @@ cd src/frontend
 npm start
 ```
 
+Remember, if you are opening a new investment account, in another terminal
+select either 
+### Send the Compliance Reviewed Signal (Local)
+```bash
+cd src/temporal_supervisor
+./localsendcomplianceapproval.sh <Child Workflow ID>
+```
+
+or
+### Send the Compliance Reviewed Signal (Cloud)
+```bash
+cd src/temporal_supervisor
+./cloudsendcomplianceapproval.sh <Child Workflow ID>
+```
+
 ## Example
 
 Here's an example screenshot of the web application running:

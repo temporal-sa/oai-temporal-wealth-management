@@ -15,10 +15,10 @@ from temporal_supervisor.activities.beneficiaries import Beneficiaries
 from temporal_supervisor.activities.investments import Investments
 
 with workflow.unsafe.imports_passed_through():
-    from temporal_supervisor.supervisor_workflow import (
+    from temporal_supervisor.workflows.supervisor_workflow import (
         WealthManagementWorkflow
     )
-    from temporal_supervisor.open_account_workflow import (
+    from temporal_supervisor.workflows.open_account_workflow import (
         OpenInvestmentAccountWorkflow
     )
 

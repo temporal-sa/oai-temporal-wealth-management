@@ -5,7 +5,7 @@ from temporalio.client import Client
 from common.client_helper import ClientHelper
 
 from temporal_supervisor.claim_check.claim_check_plugin import ClaimCheckPlugin
-from temporal_supervisor.open_account_workflow import OpenInvestmentAccountWorkflow, OpenInvestmentAccountInput
+from temporal_supervisor.workflows.open_account_workflow import OpenInvestmentAccountWorkflow, OpenInvestmentAccountInput
 
 
 async def main():

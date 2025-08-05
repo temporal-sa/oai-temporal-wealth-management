@@ -6,7 +6,7 @@ Scenarios currently implemented include
 * Add Beneficiary - add a new beneficiary to your account
 * List Beneficiaries - shows a list of beneficiaries and their relationship to the account owner
 * Delete Beneficiary - delete a beneficiary from your account
-* Open Investment Account - opens a new investment account
+* Open Investment Account - opens a new investment account using a **Child Workflow**
 * List Investments - shows a list of accounts and their current balances
 * Close Investment Account - closes an investment account
 * 
@@ -117,6 +117,13 @@ cd src/temporal_supervisor
 ./startlocalux.sh
 ```
 
+If you are opening a new investment account, in another terminal
+### Send the Compliance Reviewed Signal 
+```bash
+cd src/temporal_supervisor
+./localsendcomplianceapproval.sh <Child Workflow ID>
+```
+
 ## Running the Demo in Temporal Cloud
 
 Copy the setcloudenv.example to setcloudenv.sh in the src/temporal_supervisor folder.
@@ -146,34 +153,70 @@ cd src/temporal_supervisor
 ./startcloudux.sh <Workflow ID>
 ```
 
+If you are opening a new investment account, in another terminal
+### Send the Compliance Reviewed Signal 
+```bash
+cd src/temporal_supervisor
+./cloudsendcomplianceapproval.sh <Child Workflow ID>
+```
+
+
 Example output:
 ```text
+******* Skip OpenAI Plugin? True *******
 address is 127.0.0.1:7233
 Checking to see if the workflow is already running...
 Got NOT FOUND. Will start it
-Starting workflow using agent1
+Starting workflow using mycoolagent9
 
 Welcome to ABC Wealth Management. How can I help you?
-Enter your message: who are my beneficiaries?
-Could you please provide your account ID so I can assist you with that?
+Enter your message: What investment accounts do I have?
+Could you please provide your client ID so I can assist you with your investment accounts?
 
 Enter your message: 123
-Here are your current beneficiaries:
-
-1. **John Doe** - Son
-2. **Jane Doe** - Daughter
-3. **Joan Doe** - Spouse
-
-Would you like to add, delete, or simply list your beneficiaries?
-
-Enter your message: what investment accounts do I have?
-Here are your current investment accounts:
+Here are your investment accounts and their balances:
 
 1. **Checking**: $1,000.00
 2. **Savings**: $2,312.08
 3. **401K**: $11,070.89
 
-Would you like to open, close, or manage any of these accounts?
+Would you like to open a new account, close an existing one, or see this list again?
+
+Enter your message: open a new account
+Could you please provide the name you would like for the new account and the initial amount for the deposit?
+
+Enter your message: Vacation with $893.45
+Here is your current information:
+
+- **First Name**: Don
+- **Last Name**: Doe
+- **Address**: 123 Main Street
+- **Phone**: 999-555-1212
+- **Email**: jd@someplace.com
+- **Marital Status**: Married
+
+Is this information correct and up to date?
+
+Enter your message: yes
+The information has been approved. Would you like me to check the status of your account opening process?
+
+Enter your message: yes
+The account opening process is currently in the "Waiting Compliance Reviewed" stage. Would you like me to check the status again later?
+
+Enter your message: yes         
+Your new "Vacation" investment account has been successfully opened with an initial amount of $893.45. Everything is complete!
+
+If you need further assistance, feel free to ask.
+
+Enter your message: show investment accounts
+Here are your updated investment accounts and their balances:
+
+1. **Checking**: $1,000.00
+2. **Savings**: $2,312.08
+3. **401K**: $11,070.89
+4. **Vacation**: $893.45
+
+If there's anything else you need, just let me know!
 
 Enter your message: end
 ```
@@ -182,4 +225,23 @@ You can also add and delete beneficiaries and open and close investment accounts
 
 Here is a sample event history shown in the Temporal UX
 
-![](../../images/temporal-event-history.png)
+![](../../images/temporal-event-history-timeline.png)
+![](../../images/temporal-event-history-events.png)
+
+## How the Open Account functionality works
+To demonstrate how to integrate other workflows within an Agentic system, when a user
+wants to open a new investment account, a child workflow (OpenInvestmentAccountWorkflow) is created. There is a special Open Account Agent
+which is designed specifically to create and interact with the OpenInvestmentAccountWorkflow. 
+This agent uses a @function_tool function that is responsible for creating the child workflow. 
+Remember that @function_tool functions run in the context of the workflow, which means we can 
+establish the parent/child relationship using the 
+
+    `workflow.start_child_workflow()` 
+
+All other tools are activities that provide the ability to retrieve information and 
+the current state of the child workflow along with sending information to the workflow
+
+One important thing to remember is to be sure you don't ask the agent to repeatedly 
+poll the workflow as it will most likely result in a Max Turns exceeded exception. It is 
+possible to change the value of Max Turns as a parameter to `Runner.Run`, just be very careful. 
+

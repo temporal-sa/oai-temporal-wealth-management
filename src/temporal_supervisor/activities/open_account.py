@@ -4,7 +4,7 @@ from temporalio import workflow, activity
 from temporalio.client import WorkflowHandle, Client
 from temporalio.workflow import ParentClosePolicy
 from common.client_helper import ClientHelper
-from temporal_supervisor.open_account_workflow import OpenInvestmentAccountWorkflow, OpenInvestmentAccountInput
+from temporal_supervisor.workflows.open_account_workflow import OpenInvestmentAccountWorkflow, OpenInvestmentAccountInput
 from temporal_supervisor.activities.clients import WealthManagementClient
 
 from temporal_supervisor.claim_check.claim_check_plugin import ClaimCheckPlugin

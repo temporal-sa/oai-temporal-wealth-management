@@ -12,7 +12,7 @@ Scenarios currently implemented include
 * Add Beneficiary - add a new beneficiary to your account
 * List Beneficiaries - shows a list of beneficiaries and their relationship to the account owner
 * Delete Beneficiary - delete a beneficiary from your account
-* Open Investment Account - opens a new investment account
+* Open Investment Account - opens a new investment account - using a **child workflow** in the Temporal version. 
 * List Investments - shows a list of accounts and their current balances
 * Close Investment Account - closes an investment account
 
@@ -46,4 +46,3 @@ export OPENAI_API_KEY=sk-proj-....
 
 See the OpenAI Agents SDK Version [here](src/oai_supervisor/README.md)
 And the Temporal version of this example is located [here](src/temporal_supervisor/README.md)
-

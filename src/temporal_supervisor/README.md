@@ -9,7 +9,7 @@ Scenarios currently implemented include
 * Open Investment Account - opens a new investment account using a **Child Workflow**
 * List Investments - shows a list of accounts and their current balances
 * Close Investment Account - closes an investment account
-* 
+
 ## Prerequisites
 
 * [Poetry](https://python-poetry.org/docs/) - Python Dependency Management

@@ -1,6 +1,11 @@
 import asyncio
 import logging
+import os
+from typing import Optional
 
+from agents import Model, ModelProvider, OpenAIChatCompletionsModel
+import httpx
+from openai import AsyncOpenAI
 from temporalio import workflow
 from temporalio.client import Client
 from temporalio.worker import Worker
@@ -14,13 +19,30 @@ from temporal_supervisor.claim_check.claim_check_plugin import ClaimCheckPlugin
 from temporal_supervisor.activities.beneficiaries import Beneficiaries
 from temporal_supervisor.activities.investments import Investments
 
-with workflow.unsafe.imports_passed_through():
-    from temporal_supervisor.workflows.supervisor_workflow import (
-        WealthManagementWorkflow
-    )
-    from temporal_supervisor.workflows.open_account_workflow import (
-        OpenInvestmentAccountWorkflow
-    )
+from temporal_supervisor.workflows.supervisor_workflow import (
+    WealthManagementWorkflow
+)
+from temporal_supervisor.workflows.open_account_workflow import (
+    OpenInvestmentAccountWorkflow
+)
+
+openai_client = AsyncOpenAI(
+    base_url="https://api.openai.com/v1",  # Override for alternate endpoint
+    api_key=os.getenv("OPENAI_API_KEY"),
+    http_client=httpx.AsyncClient(
+        verify=True,  # change to set client cert
+    ),
+)
+
+
+class CustomModelProvider(ModelProvider):
+    def get_model(self, model_name: Optional[str]) -> Model:
+        model = OpenAIChatCompletionsModel(
+            model=model_name if model_name else "gpt-4o",
+            openai_client=openai_client,
+        )
+        return model
+
 
 async def main():
     logging.basicConfig(level=logging.INFO,
@@ -32,7 +54,12 @@ async def main():
     # child open account workflow, we don't need the OpenAIAgentsPlugin
     # plugins = [ ClaimCheckPlugin() ] if client_helper.skipOpenAIPlugin else [ OpenAIAgentsPlugin(), ClaimCheckPlugin() ]
     # print(f"address is {client_helper.address} and plugins are {plugins}")
-    plugins = [ OpenAIAgentsPlugin(), ClaimCheckPlugin() ]
+    plugins = [
+        OpenAIAgentsPlugin(
+            model_provider=CustomModelProvider(),
+        ),
+        ClaimCheckPlugin(),
+    ]
     client = await Client.connect(target_host=client_helper.address,
                                   namespace=client_helper.namespace,
                                   tls=client_helper.get_tls_config(),

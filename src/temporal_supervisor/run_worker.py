@@ -52,14 +52,14 @@ async def main():
     # Normally we would just include the OpenAIAgentsPlugin and the
     # ClaimCheckPlugin. But, when we want to just test the
     # child open account workflow, we don't need the OpenAIAgentsPlugin
-    # plugins = [ ClaimCheckPlugin() ] if client_helper.skipOpenAIPlugin else [ OpenAIAgentsPlugin(), ClaimCheckPlugin() ]
-    # print(f"address is {client_helper.address} and plugins are {plugins}")
-    plugins = [
-        OpenAIAgentsPlugin(
+    plugins = [ ClaimCheckPlugin() ] if client_helper.skipOpenAIPlugin else \
+        [ OpenAIAgentsPlugin(
             model_provider=CustomModelProvider(),
-        ),
-        ClaimCheckPlugin(),
-    ]
+          ),
+         ClaimCheckPlugin()
+        ]
+    print(f"address is {client_helper.address} and plugins are {plugins}")
+    plugins = plugins
     client = await Client.connect(target_host=client_helper.address,
                                   namespace=client_helper.namespace,
                                   tls=client_helper.get_tls_config(),

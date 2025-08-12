@@ -11,6 +11,7 @@ from common.agent_constants import BENE_AGENT_NAME, BENE_HANDOFF, BENE_INSTRUCTI
     OPEN_ACCOUNT_AGENT_NAME, OPEN_ACCOUNT_HANDOFF, OPEN_ACCOUNT_INSTRUCTIONS
 
 from temporal_supervisor.activities.open_account import OpenAccount, open_new_investment_account
+from common.account_context import UpdateAccountOpeningStateInput
 
 with workflow.unsafe.imports_passed_through():
     from temporal_supervisor.activities.beneficiaries import Beneficiaries
@@ -124,10 +125,9 @@ def init_agents() -> Agent[WealthManagementContext]:
         instructions=OPEN_ACCOUNT_INSTRUCTIONS,
         tools=[
             open_new_investment_account,
-            openai_agents.workflow.activity_as_tool(OpenAccount.get_current_client_info,start_to_close_timeout=timedelta(seconds=5)),
-            openai_agents.workflow.activity_as_tool(OpenAccount.approve_kyc,start_to_close_timeout=timedelta(seconds=5)),
-            openai_agents.workflow.activity_as_tool(OpenAccount.update_client_details,start_to_close_timeout=timedelta(seconds=5)),
-            openai_agents.workflow.activity_as_tool(OpenAccount.current_state,start_to_close_timeout=timedelta(seconds=5)),
+            openai_agents.workflow.activity_as_tool(OpenAccount.get_current_client_info, start_to_close_timeout=timedelta(seconds=5)),
+            openai_agents.workflow.activity_as_tool(OpenAccount.approve_kyc, start_to_close_timeout=timedelta(seconds=5)),
+            openai_agents.workflow.activity_as_tool(OpenAccount.update_client_details, start_to_close_timeout=timedelta(seconds=5)),
         ],
         input_guardrails=[routing_guardrail],
     )
@@ -208,7 +208,7 @@ class WealthManagementWorkflow:
                 )
                 workflow.continue_as_new(self.input_items)
 
-    async def _process_chat_message(self, message: str) -> list[ChatInteraction]:
+    async def _process_chat_message(self, message: str, role: str = "user") -> list[ChatInteraction]:
         workflow.logger.info("processing user message")
         length = len(self.chat_history)
         # build the interaction
@@ -297,6 +297,10 @@ class WealthManagementWorkflow:
     @workflow.signal
     async def end_workflow(self):
         self.end_workflow = True
+        
+    @workflow.signal
+    async def update_account_opening_state(self, state_input: UpdateAccountOpeningStateInput):
+        await self.pending_messages.put(f"Updating account opening state for {state_input.account_name} to {state_input.state}")
 
     @workflow.update
     async def process_user_message(self, message_input: ProcessUserMessageInput) -> list[ChatInteraction]:

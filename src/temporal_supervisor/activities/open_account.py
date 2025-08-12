@@ -65,11 +65,3 @@ class OpenAccount:
         result = await handle.execute_update(OpenInvestmentAccountWorkflow.update_client_details,
                                              args=[client_details_dict])
         return result
-
-    @staticmethod
-    @activity.defn
-    async def current_state(workflow_id: str) -> str:
-        # get the handle from the workflow id
-        handle = await OpenAccount.get_workflow_handle(workflow_id)
-        result = await handle.query(OpenInvestmentAccountWorkflow.get_current_state)
-        return result

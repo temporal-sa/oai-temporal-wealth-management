@@ -88,7 +88,6 @@ async def main():
             OpenAccount.get_current_client_info,
             OpenAccount.update_client_details,
             OpenAccount.approve_kyc,
-            OpenAccount.current_state
         ],
     )
     print(f"Running worker on {client_helper.address}")

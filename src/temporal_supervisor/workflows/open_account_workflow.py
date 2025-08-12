@@ -5,6 +5,7 @@ from temporalio import workflow
 
 from temporal_supervisor.activities.clients import ClientActivities
 from temporal_supervisor.activities.investments import Investments
+from common.account_context import UpdateAccountOpeningStateInput
 
 @dataclass
 class OpenInvestmentAccountInput:
@@ -51,20 +52,20 @@ class OpenInvestmentAccountWorkflow:
                          retry_policy=ClientActivities.retry_policy)
         workflow.logger.info(f"Client {self.inputs.client_id} details {self.client}")
         self.initialized = True
-        self.current_state = "Waiting KYC"
+        await self._set_state("Waiting KYC")
 
         # wait until the user has validated their information is correct
         workflow.logger.info("Waiting for KYC Verification")
         await workflow.wait_condition(lambda: self.kyc_verified)
 
-        self.current_state = "Waiting Compliance Reviewed"
+        await self._set_state("Waiting Compliance Reviewed")
 
         # wait until compliance review is complete
         # consider implementing a timeout condition
         workflow.logger.info("Waiting for compliance review")
         await workflow.wait_condition(lambda: self.compliance_reviewed)
 
-        self.current_state = "Creating Investment Account"
+        await self._set_state("Creating Investment Account")
 
         # finally, let's create/open the account
         workflow.logger.info("Creating a new investment account")
@@ -74,7 +75,7 @@ class OpenInvestmentAccountWorkflow:
             schedule_to_close_timeout=self.sched_to_close_timeout,
             retry_policy=ClientActivities.retry_policy)
 
-        self.current_state = "Complete"
+        await self._set_state("Complete")
 
         return_value = OpenInvestmentAccountOutput()
         return_value.account_created = investment_account is not None
@@ -116,3 +117,11 @@ class OpenInvestmentAccountWorkflow:
         await workflow.wait_condition(lambda: self.initialized and self.kyc_verified)
         workflow.logger.info(f"Compliance has been approved")
         self.compliance_reviewed = True
+
+    async def _set_state(self, state: str) -> None:
+        self.current_state = state
+        await self._update_parent_state(state)
+
+    async def _update_parent_state(self, state: str) -> None:
+        parent_handle = workflow.get_external_workflow_handle(workflow.info().parent.workflow_id)
+        await parent_handle.signal("update_account_opening_state", UpdateAccountOpeningStateInput(account_name=self.inputs.account_name, state=state))

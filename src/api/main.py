@@ -1,16 +1,16 @@
 from contextlib import asynccontextmanager
 from typing import Optional, AsyncGenerator
 
-import asyncio
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from temporalio.client import Client, WithStartWorkflowOperation, WorkflowUpdateFailedError
-from temporalio.api.enums.v1 import WorkflowExecutionStatus
+from temporalio.client import Client, WithStartWorkflowOperation
 from temporalio.common import WorkflowIDReusePolicy, WorkflowIDConflictPolicy
 from temporalio.exceptions import TemporalError
 from temporalio.contrib.openai_agents import OpenAIAgentsPlugin
+from temporalio.service import RPCError
 
 from common.client_helper import ClientHelper
+from common.db_manager import DBManager
 from common.user_message import ProcessUserMessageInput
 from temporal_supervisor.claim_check.claim_check_plugin import ClaimCheckPlugin
 from temporal_supervisor.workflows.supervisor_workflow import WealthManagementWorkflow
@@ -56,53 +56,23 @@ def root():
 
 @app.get("/get-chat-history")
 async def get_chat_history():
-    """Calls the workflows get_chat_history query"""
+    """ Retrieves the chat history from Redis """
     try:
-        handle = temporal_client.get_workflow_handle(WORKFLOW_ID)
+        history = await DBManager().read(WORKFLOW_ID)
+        if history is None:
+            return ""
 
-        failed_states = [
-            WorkflowExecutionStatus.WORKFLOW_EXECUTION_STATUS_TERMINATED,
-            WorkflowExecutionStatus.WORKFLOW_EXECUTION_STATUS_CANCELED,
-            WorkflowExecutionStatus.WORKFLOW_EXECUTION_STATUS_FAILED,
-        ]
+        return history
 
-        description = await handle.describe()
-        if description.status in failed_states:
-            print("Workflow is in a failed state. Returning empty history.")
-            return []
-
-        # set a timeout for the query
-        try:
-            conversation_history = await asyncio.wait_for(
-                handle.query("get_chat_history"),
-                timeout=5, # Timeout after 5 seconds
-            )
-            return conversation_history
-        except asyncio.TimeoutError:
-            raise HTTPException(
-                status_code=404,
-                detail="Temporal query timed out (worker may be unavailable).",
-            )
-    except TemporalError as e:
+    except Exception as e:
         error_message = str(e)
-        print(f"Temporal error: {error_message}")
+        print(f"Redis error retrieving chat history: {error_message}")
 
-        # If worker is down or no poller is available, return a 404
-        if "no poller seen for task queue recently" in error_message:
-            raise HTTPException(
-                status_code=404,
-                detail="Workflow worker unavailable or not found.",
-            )
-
-        if "workflow not found" in error_message:
-            await start_workflow()
-            return []
-        else:
-            # For other Temporal errors, return a 500
-            raise HTTPException(
-                status_code=500,
-                detail="Internal server error while querying workflow."
-            )
+        # For other errors, return a 500
+        raise HTTPException(
+            status_code=500,
+            detail=f"Internal server error while querying workflow. {error_message}",
+        )
 
 @app.post("/send-prompt")
 async def send_prompt(prompt: str):
@@ -121,13 +91,12 @@ async def send_prompt(prompt: str):
     )
 
     try:
-        response = await temporal_client.execute_update_with_start_workflow(
-            WealthManagementWorkflow.process_user_message,
-            message,
-            start_workflow_operation=start_op,
-        )
-        print(f"the response is {response}")
-    except WorkflowUpdateFailedError as e:
+        handle = temporal_client.get_workflow_handle(workflow_id=WORKFLOW_ID)
+        await handle.signal(WealthManagementWorkflow.process_user_message,
+                            args=[message])
+        print(f"Sent message {message}")
+        response = "Message sent"
+    except RPCError as e:
         response = f"Error: {e}"
 
     return {"response": response}

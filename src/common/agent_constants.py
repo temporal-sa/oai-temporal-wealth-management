@@ -59,8 +59,8 @@ OPEN_ACCOUNT_INSTRUCTIONS = f""""{RECOMMENDED_PROMPT_PREFIX}
            to save the return value as this will be required in the other tools. 
         3. Next, check the conversation history to see if the account is waiting for KYC approval.
            Use the get_current_client_info tool to retrieve their current data.
-           Display this to the user and ask if this information is correct and up to date. 
-           If it is, call the approve_kyc tool
+           Display their current data and ask them if this information is correct and up to date. 
+           If the user says that it is correct, call the approve_kyc tool
            If it isn't, ask the user to update their information. This needs to be at least one 
            field that needs to be changed. Once updated, call the update_client_details tool
         4. Check the conversation history to see if the account is waiting for compliance review

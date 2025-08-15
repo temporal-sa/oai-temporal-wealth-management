@@ -58,14 +58,14 @@ class OpenInvestmentAccountWorkflow:
         workflow.logger.info("Waiting for KYC Verification")
         await workflow.wait_condition(lambda: self.kyc_verified)
 
-        await self._set_state("Waiting Compliance Reviewed")
+        await self._set_state("Waiting Compliance Review")
 
         # wait until compliance review is complete
         # consider implementing a timeout condition
         workflow.logger.info("Waiting for compliance review")
         await workflow.wait_condition(lambda: self.compliance_reviewed)
 
-        await self._set_state("Creating Investment Account")
+        await self._set_state("Compliance review has been approved. Creating Investment Account")
 
         # finally, let's create/open the account
         workflow.logger.info("Creating a new investment account")

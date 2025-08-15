@@ -1,14 +1,18 @@
+from dataclasses import dataclass
 from datetime import timedelta
+from enum import Enum
 
 import asyncio
 from temporalio import workflow
 from temporalio.contrib import openai_agents
+from temporalio.common import RetryPolicy
 
 from common.user_message import ProcessUserMessageInput, ChatInteraction
 from common.agent_constants import BENE_AGENT_NAME, BENE_HANDOFF, BENE_INSTRUCTIONS, INVEST_AGENT_NAME, \
     INVEST_HANDOFF, \
     INVEST_INSTRUCTIONS, SUPERVISOR_AGENT_NAME, SUPERVISOR_HANDOFF, SUPERVISOR_INSTRUCTIONS, \
     OPEN_ACCOUNT_AGENT_NAME, OPEN_ACCOUNT_HANDOFF, OPEN_ACCOUNT_INSTRUCTIONS
+from temporal_supervisor.activities.db_activities import DBActivities
 
 from temporal_supervisor.activities.open_account import OpenAccount, open_new_investment_account
 from common.account_context import UpdateAccountOpeningStateInput
@@ -116,7 +120,7 @@ def init_agents() -> Agent[WealthManagementContext]:
                openai_agents.workflow.activity_as_tool(Beneficiaries.delete_beneficiary,
                                 start_to_close_timeout=timedelta(seconds=5))
                ],
-        input_guardrails=[routing_guardrail],
+        # input_guardrails=[routing_guardrail],
     )
 
     open_account_agent = Agent[WealthManagementContext](
@@ -129,7 +133,7 @@ def init_agents() -> Agent[WealthManagementContext]:
             openai_agents.workflow.activity_as_tool(OpenAccount.approve_kyc, start_to_close_timeout=timedelta(seconds=5)),
             openai_agents.workflow.activity_as_tool(OpenAccount.update_client_details, start_to_close_timeout=timedelta(seconds=5)),
         ],
-        input_guardrails=[routing_guardrail],
+        # input_guardrails=[routing_guardrail],
     )
 
     investment_agent = Agent[WealthManagementContext](
@@ -143,7 +147,7 @@ def init_agents() -> Agent[WealthManagementContext]:
         handoffs=[
             open_account_agent
         ],
-        input_guardrails=[routing_guardrail],
+        # input_guardrails=[routing_guardrail],
     )
 
     supervisor_agent = Agent[WealthManagementContext](
@@ -154,7 +158,7 @@ def init_agents() -> Agent[WealthManagementContext]:
             beneficiary_agent,
             investment_agent,
         ],
-        input_guardrails=[routing_guardrail],
+        # input_guardrails=[routing_guardrail],
     )
 
     beneficiary_agent.handoffs.append(supervisor_agent)
@@ -162,12 +166,20 @@ def init_agents() -> Agent[WealthManagementContext]:
     open_account_agent.handoffs.append(investment_agent)
     return supervisor_agent
 
+class Source(Enum):
+    USER = 1
+    CHILD_WORKFLOW = 2
+
+@dataclass
+class Message:
+    message: str
+    source: Source
 
 @workflow.defn
 class WealthManagementWorkflow:
+
     def __init__(self, input_items: list[TResponseInputItem] | None = None ):
-        self.pending_messages: asyncio.Queue[str] = asyncio.Queue()
-        self.message_processed = False
+        self.pending_messages: asyncio.Queue = asyncio.Queue()
         self.processed_response: list[ChatInteraction] | None = None
         self.run_config = RunConfig()
         self.chat_history: list[ChatInteraction] = []
@@ -175,9 +187,23 @@ class WealthManagementWorkflow:
         self.context = WealthManagementContext()
         self.input_items = [] if input_items is None else input_items
         self.end_workflow = False
+        self.sched_to_close_timeout = timedelta(seconds=5)
+        self.retry_policy = RetryPolicy(initial_interval=timedelta(seconds=1),
+                               backoff_coefficient=2,
+                               maximum_interval=timedelta(seconds=30))
 
     @workflow.run
-    async def run(self, input_items: list[TResponseInputItem] | None = None):
+    async def run(self, input_items: list[TResponseInputItem] | None = None, is_continue_as_new: bool = False):
+
+        if not is_continue_as_new:
+            # save the conversation to the DB
+            wf_id = workflow.info().workflow_id
+            workflow.logger.info(f"Deleting any previous conversation {wf_id}")
+            await workflow.execute_activity(DBActivities.delete_conversation,
+                                            args=[wf_id,],
+                                            schedule_to_close_timeout=self.sched_to_close_timeout,
+                                            retry_policy=self.retry_policy)
+
         while True:
             workflow.logger.info("At top of loop - waiting for another message")
             # Wait for queue item or end workflow
@@ -189,16 +215,10 @@ class WealthManagementWorkflow:
                 workflow.logger.info("Ending workflow.")
                 return
 
-            # Get the message, process it, save the response, and
-            # change the flag to indicate that it was processed.
-            workflow.logger.info("Changing message processed flag to false")
-            self.message_processed = False
-            # clear the previous response, if any
-            self.processed_response = None
+            # Get the message, process it, save the response
             message = self.pending_messages.get_nowait()
             self.processed_response = await self._process_chat_message(message)
-            workflow.logger.info("message processed. setting flag to true")
-            self.message_processed = True
+            workflow.logger.info("message processed. ")
 
             # do we need to do a continue as new?
             if workflow.info().is_continue_as_new_suggested():
@@ -206,89 +226,124 @@ class WealthManagementWorkflow:
                 await workflow.wait_condition(
                     lambda: workflow.all_handlers_finished()
                 )
-                workflow.continue_as_new(self.input_items)
+                workflow.continue_as_new(args=[self.input_items, True])
 
-    async def _process_chat_message(self, message: str, role: str = "user") -> list[ChatInteraction]:
-        workflow.logger.info("processing user message")
+    async def _process_chat_message(self, message: Message) -> list[ChatInteraction]:
+        workflow.logger.info(f"processing user message {message}")
         length = len(self.chat_history)
-        # build the interaction
-        chat_interaction = ChatInteraction(
-            user_prompt=message,
-            text_response=""
-        )
-        # self.chat_history.append(f"User: {input.user_input}")
 
-        self.input_items.append({"content": message, "role": "user"})
-        try: 
-            result = await Runner.run(
-                self.current_agent,
-                self.input_items,
-                context=self.context,
-                run_config=self.run_config,
+        if message.source == Source.USER:
+            chat_interaction = ChatInteraction(
+                user_prompt=message.message,
+                text_response=""
             )
+            try:
+                await self._process_user_message(chat_interaction, message)
+            except InputGuardrailTripwireTriggered as e:
+                await self._handle_guardrail_failure(chat_interaction, e)
+                return self.chat_history[length:]
+        else:
+            workflow.logger.info(f"processing message of type {message.source}")
+            # handle messages from child workflow
+            # there are only a few messages we want to show to the user
+            if (("Compliance review has been approved" in message.message)
+                    or ("Complete" in message.message)):
+                # show the user a cleaner message
+                response = "Compliance review has been approved" \
+                    if "Compliance review has been approved" in message.message \
+                    else "Complete"
+                response = response + ". Please let me know if there is anything else you need help with."
+                chat_interaction = ChatInteraction(
+                    user_prompt="Notice",
+                    text_response=response,
+                )
+                self.chat_history.append(chat_interaction)
 
-            text_response = ""
-            json_response = ""
-            agent_trace = ""
 
-            for new_item in result.new_items:
-                agent_name = new_item.agent.name
-                if isinstance(new_item, MessageOutputItem):
-                    workflow.logger.info(f"{agent_name} {ItemHelpers.text_message_output(new_item)}")
-                    text_response += f"{ItemHelpers.text_message_output(new_item)}\n"
-                    # self.chat_history.append(f"{agent_name} {ItemHelpers.text_message_output(new_item)}")
-                elif isinstance(new_item, HandoffOutputItem):
-                    workflow.logger.info(f"Handed off from {new_item.source_agent.name} to {new_item.target_agent.name}")
-                    agent_trace += f"Handed off from {new_item.source_agent.name} to {new_item.target_agent.name}\n"
-                    # self.chat_history.append(f"Handed off from {new_item.source_agent.name} to {new_item.target_agent.name}")
-                elif isinstance(new_item, ToolCallItem):
-                    workflow.logger.info(f"{agent_name}: Calling a tool")
-                    agent_trace += f"{agent_name}: Calling a tool\n"
-                    # self.chat_history.append(f"{agent_name}: Calling a tool")
-                elif isinstance(new_item, ToolCallOutputItem):
-                    workflow.logger.info(f"{agent_name}: Tool call output: {new_item.output}")
-                    # this might be problematic... TODO: validate
-                    json_response += new_item.output + "\n"
-                    # self.chat_history.append(f"{agent_name}: Tool call output: {new_item.output}")
-                else:
-                    agent_trace += f"{agent_name}: Skipping item: {new_item.__class__.__name__}\n"
-                    # self.chat_history.append(f"{agent_name}: Skipping item: {new_item.__class__.__name__}")
-            self.input_items = result.to_input_list()
-            self.current_agent = result.last_agent
 
-            chat_interaction.text_response = text_response
-            chat_interaction.json_response = json_response
-            chat_interaction.agent_trace = agent_trace
-            self.chat_history.append(chat_interaction)
+        current_details = "\n\n"
+        for item in self.chat_history:
+            current_details.join(str(item))
 
-            current_details = "\n\n"
-            for item in self.chat_history:
-                current_details.join(str(item))
+        workflow.set_current_details(current_details)
 
-            workflow.set_current_details(current_details)
-            return self.chat_history[length:]
-        except InputGuardrailTripwireTriggered as e:
-            workflow.logger.info(f"Guardrail tripwire triggered: {e}")
-            text_response = "I'm sorry, but I can only help with wealth management questions related to beneficiaries and investments. Please ask me about your beneficiaries, investment accounts, or other wealth management topics."
-            agent_trace = f"Guardrail blocked non-wealth-management question: {e}"
-            
-            if hasattr(e, 'result') and hasattr(e.result, 'output_info'):
-                guardrail_output = e.result.output_info
-                if hasattr(guardrail_output, 'reasoning'):
-                    workflow.logger.info(f"Blocked question reasoning: {guardrail_output.reasoning}")
-                    agent_trace += f" - Reasoning: {guardrail_output.reasoning}"
-            
-            chat_interaction.text_response = text_response
-            chat_interaction.json_response = ""
-            chat_interaction.agent_trace = agent_trace
-            self.chat_history.append(chat_interaction)
-            
-            current_details = "\n\n"
-            for item in self.chat_history:
-                current_details.join(str(item))
-            
-            workflow.set_current_details(current_details)
-            return self.chat_history[length:]
+        # save the conversation to the DB
+        wf_id = workflow.info().workflow_id
+        workflow.logger.info(f"Saving the conversation ==> {self.chat_history}")
+        await workflow.execute_activity(DBActivities.save_conversation,
+                                        args=[wf_id, self.chat_history],
+                                        schedule_to_close_timeout=self.sched_to_close_timeout,
+                                        retry_policy=self.retry_policy)
+
+        return self.chat_history[length:]
+
+    async def _process_user_message(self, chat_interaction, message):
+
+        self.input_items.append({"content": message.message, "role": "user"})
+        result = await Runner.run(
+            self.current_agent,
+            self.input_items,
+            context=self.context,
+            run_config=self.run_config,
+        )
+
+        workflow.logger.info("Runner.run has exited.")
+        self.input_items = result.to_input_list()
+        self.current_agent = result.last_agent
+
+        agent_trace, json_response, text_response = await self._process_llm_response(result)
+
+        chat_interaction.text_response = text_response
+        chat_interaction.json_response = json_response
+        chat_interaction.agent_trace = agent_trace
+
+        self.chat_history.append(chat_interaction)
+
+    async def _handle_guardrail_failure(self, chat_interaction, e):
+        workflow.logger.info(f"Guardrail tripwire triggered: {e}")
+        text_response = "I'm sorry, but I can only help with wealth management questions related to beneficiaries and investments. Please ask me about your beneficiaries, investment accounts, or other wealth management topics."
+        agent_trace = f"Guardrail blocked non-wealth-management question: {e}"
+        if hasattr(e, 'result') and hasattr(e.result, 'output_info'):
+            guardrail_output = e.result.output_info
+            if hasattr(guardrail_output, 'reasoning'):
+                workflow.logger.info(f"Blocked question reasoning: {guardrail_output.reasoning}")
+                agent_trace += f" - Reasoning: {guardrail_output.reasoning}"
+        chat_interaction.text_response = text_response
+        chat_interaction.json_response = ""
+        chat_interaction.agent_trace = agent_trace
+        self.chat_history.append(chat_interaction)
+        current_details = "\n\n"
+        for item in self.chat_history:
+            current_details.join(str(item))
+        workflow.set_current_details(current_details)
+
+    async def _process_llm_response(self, result):
+        text_response = ""
+        json_response = ""
+        agent_trace = ""
+        for new_item in result.new_items:
+            agent_name = new_item.agent.name
+            if isinstance(new_item, MessageOutputItem):
+                workflow.logger.info(f"{agent_name} {ItemHelpers.text_message_output(new_item)}")
+                text_response += f"{ItemHelpers.text_message_output(new_item)}\n"
+                # self.chat_history.append(f"{agent_name} {ItemHelpers.text_message_output(new_item)}")
+            elif isinstance(new_item, HandoffOutputItem):
+                workflow.logger.info(f"Handed off from {new_item.source_agent.name} to {new_item.target_agent.name}")
+                agent_trace += f"Handed off from {new_item.source_agent.name} to {new_item.target_agent.name}\n"
+                # self.chat_history.append(f"Handed off from {new_item.source_agent.name} to {new_item.target_agent.name}")
+            elif isinstance(new_item, ToolCallItem):
+                workflow.logger.info(f"{agent_name}: Calling a tool")
+                agent_trace += f"{agent_name}: Calling a tool\n"
+                # self.chat_history.append(f"{agent_name}: Calling a tool")
+            elif isinstance(new_item, ToolCallOutputItem):
+                workflow.logger.info(f"{agent_name}: Tool call output: {new_item.output}")
+                # this might be problematic... TODO: validate
+                json_response += new_item.output + "\n"
+                # self.chat_history.append(f"{agent_name}: Tool call output: {new_item.output}")
+            else:
+                agent_trace += f"{agent_name}: Skipping item: {new_item.__class__.__name__}\n"
+                # self.chat_history.append(f"{agent_name}: Skipping item: {new_item.__class__.__name__}")
+        return agent_trace, json_response, text_response
 
     @workflow.query
     def get_chat_history(self) -> list[ChatInteraction]:
@@ -300,34 +355,17 @@ class WealthManagementWorkflow:
         
     @workflow.signal
     async def update_account_opening_state(self, state_input: UpdateAccountOpeningStateInput):
-        await self.pending_messages.put(f"Updating account opening state for {state_input.account_name} to {state_input.state}")
+        workflow.logger.info(f"Account Opening State changed {state_input.account_name} {state_input.state}")
+        message = Message(message=f"Updating account opening state for {state_input.account_name} to {state_input.state}",
+                          source=Source.CHILD_WORKFLOW
+                          )
+        await self.pending_messages.put(message)
 
-    @workflow.update
-    async def process_user_message(self, message_input: ProcessUserMessageInput) -> list[ChatInteraction]:
+    @workflow.signal
+    async def process_user_message(self, message_input: ProcessUserMessageInput):
         workflow.logger.info(f"processing user message {message_input}")
         workflow.logger.info(f"Agent has guardrails: {hasattr(self.current_agent, 'input_guardrails') and self.current_agent.input_guardrails}")
-
-        await self.pending_messages.put(message_input.user_input)
-        self.message_processed = False
-        workflow.logger.info("waiting for the message to be processed")
-        await workflow.wait_condition(
-            self.is_message_processed
-        )
-        workflow.logger.info(f"message has been processed. Processed? {self.message_processed}, Response = {self.processed_response} ")
-        return self.processed_response
-
-    def is_message_processed(self) -> bool:
-        return_value = self.message_processed and self.processed_response is not None
-        workflow.logger.info(f"is message processed? {return_value}")
-        return return_value
-
-    @process_user_message.validator
-    def validate_process_user_message(self, message_input: ProcessUserMessageInput) -> None:
-        workflow.logger.info(f"validating user message {message_input}")
-        if not message_input.user_input:
-            workflow.logger.error("Input cannot be empty")
-            raise ValueError("Input cannot be empty")
-        if len(message_input.user_input) > 1000:
-            workflow.logger.error("Input is too long. Please limit to 1000 characters")
-            raise ValueError("Input is too long. Please limit to 1000 characters")
+        message = Message(message=message_input.user_input,
+                          source=Source.USER)
+        await self.pending_messages.put(message)
 

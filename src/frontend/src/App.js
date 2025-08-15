@@ -8,12 +8,42 @@ function App() {
   const [sessionId, setSessionId] = useState(null);
   const [isChatActive, setIsChatActive] = useState(false);
   const chatWindowRef = useRef(null);
+  let [isPolling, setIsPolling] = useState(false);
 
   useEffect(() => {
     if (chatWindowRef.current) {
       chatWindowRef.current.scrollTop = chatWindowRef.current.scrollHeight;
     }
   }, [messages]);
+
+    // This useEffect hook manages the polling logic.
+  useEffect(() => {
+    let intervalId;
+
+    if (isPolling) {
+      // Define the polling function
+      const pollApi = async () => {
+        try {
+           await fetchChatHistory()
+        } catch (error) {
+          console.error('Error polling API:', error);
+        }
+      };
+
+      // Call the function immediately on start
+      pollApi();
+
+      // Set up the interval to poll every 2 second (1000 milliseconds)
+      intervalId = setInterval(pollApi, 2000);
+    }
+
+    // The cleanup function is crucial for preventing memory leaks
+    // It runs when the component unmounts or when the dependencies change
+    return () => {
+      clearInterval(intervalId);
+      console.log('Polling stopped.');
+    };
+  }, [isPolling]); // The effect re-runs whenever the isPolling state changes
 
   const handleStartChat = async () => {
     try {
@@ -45,8 +75,15 @@ function App() {
   const fetchChatHistory = async () => {
     // if (!sessionId) return;
     try {
+      console.log("Getting ready to get the chat history...")
       const response = await fetch(`${API_BASE_URL}/get-chat-history`);
       const data = await response.json();
+      if (data === null || data.length === 0) {
+        return;
+      }
+      // console.log("data is ", data);
+      // console.log("messages are ", messages)
+      // console.log("len of messages is ", messages.length, " length of data is ", data.length);
       // data is an array of
       // { "user_prompt": "what the user typed", "text_response": "resulting text" }
       // We need to format it into our message structure.
@@ -57,7 +94,10 @@ function App() {
             { text: item.user_prompt, type: 'user' },
             { text: item.text_response, type: 'bot' }
          ]));
-      setMessages(formattedHistory);
+      // console.log("formattedHistory is ", formattedHistory);
+      if (messages.length < formattedHistory.length) {
+         setMessages(formattedHistory);
+      }
     } catch (error) {
       console.error('Error fetching chat history:', error);
     }
@@ -72,19 +112,23 @@ function App() {
     const userMessage = { text: input, type: 'user' };
     setMessages(prev => [...prev, userMessage]);
     setInput('');
+    console.log("before sending the prompt, messages are ", messages);
 
     try {
+      setIsPolling(false);
       const encodedInput = encodeURIComponent(input);
       const response = await fetch(`${API_BASE_URL}/send-prompt?prompt=${encodedInput}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
       });
       const data = await response.json();
-      if (data.response && data.response.length > 0) {
-        console.log("data coming back is ", data.response[0].text_response)
-        const botMessage = { text: data.response[0].text_response, type: 'bot' };
-        setMessages(prev => [...prev, botMessage]);
-      }
+      setIsPolling(true);
+      // if (data.response && data.response.length > 0) {
+      //   console.log("data coming back is ", data.response[0].text_response)
+      //   // nothing to do
+      //   // const botMessage = { text: data.response[0].text_response, type: 'bot' };
+      //   // setMessages(prev => [...prev, botMessage]);
+      // }
     } catch (error) {
       console.error('Error sending message:', error);
       const errorMessage = { text: 'Failed to get response from bot.', type: 'bot' };
@@ -114,8 +158,10 @@ function App() {
   const handleToggleChatState = () => {
     if (isChatActive) {
       handleEndChat();
+      setIsPolling(false);
     } else {
       handleStartChat();
+      // won't start polling until we send the first message
     }
   };
 
@@ -126,10 +172,10 @@ function App() {
         {messages.map((msg, index) => (
           <div key={index} className={`message ${msg.type}`}>
             {msg.text.split('\n').map((line, i) => (
-              <span key={i}>
-                {line}
-                <br />
-              </span>
+                  <span key={i}>
+                    {line}
+                    <br />
+                  </span>
             ))}
           </div>
         ))}

@@ -122,7 +122,7 @@ def init_agents() -> Agent[WealthManagementContext]:
                openai_agents.workflow.activity_as_tool(Beneficiaries.delete_beneficiary,
                                 start_to_close_timeout=timedelta(seconds=5))
                ],
-        # input_guardrails=[routing_guardrail],
+        input_guardrails=[routing_guardrail],
     )
 
     open_account_agent = Agent[WealthManagementContext](
@@ -135,7 +135,7 @@ def init_agents() -> Agent[WealthManagementContext]:
             openai_agents.workflow.activity_as_tool(OpenAccount.approve_kyc, start_to_close_timeout=timedelta(seconds=5)),
             openai_agents.workflow.activity_as_tool(OpenAccount.update_client_details, start_to_close_timeout=timedelta(seconds=5)),
         ],
-        # input_guardrails=[routing_guardrail],
+        input_guardrails=[routing_guardrail],
     )
 
     investment_agent = Agent[WealthManagementContext](
@@ -160,7 +160,7 @@ def init_agents() -> Agent[WealthManagementContext]:
             beneficiary_agent,
             investment_agent,
         ],
-        # input_guardrails=[routing_guardrail],
+        input_guardrails=[routing_guardrail],
     )
 
     beneficiary_agent.handoffs.append(supervisor_agent)
@@ -243,8 +243,8 @@ class WealthManagementWorkflow:
             try:
                 await self._process_user_message(chat_interaction, message)
             except InputGuardrailTripwireTriggered as e:
+                workflow.logger.info(f"Guardrail Tripwire triggered {e}")
                 await self._handle_guardrail_failure(chat_interaction, e)
-                return self.chat_history[length:]
         else:
             workflow.logger.info(f"processing message of type {message.source}")
 
@@ -257,22 +257,6 @@ class WealthManagementWorkflow:
                                 retry_policy=self.retry_policy
             )
             workflow.logger.info(f"After updating the status, the result is {result}")
-
-
-            # handle messages from child workflow
-            # there are only a few messages we want to show to the user
-            # if (("Compliance review has been approved" in message.message)
-            #         or ("Complete" in message.message)):
-            #     # show the user a cleaner message
-            #     response = "Compliance review has been approved" \
-            #         if "Compliance review has been approved" in message.message \
-            #         else "Complete"
-            #     response = response + ". Please let me know if there is anything else you need help with."
-            #     chat_interaction = ChatInteraction(
-            #         user_prompt="Notice",
-            #         text_response=response,
-            #     )
-            #     self.chat_history.append(chat_interaction)
 
         current_details = "\n\n"
         for item in self.chat_history:
@@ -290,7 +274,7 @@ class WealthManagementWorkflow:
 
         return self.chat_history[length:]
 
-    async def _process_user_message(self, chat_interaction, message):
+    async def _process_user_message(self, chat_interaction: ChatInteraction, message: Message):
 
         self.input_items.append({"content": message.message, "role": "user"})
         result = await Runner.run(

@@ -94,6 +94,15 @@ body {
     background-color: #3700b3;
 }
 
+.status-area {
+    padding: 16px;
+    background-color: #7EBD01;
+    border-bottom: 1px solid #e0e0e0;
+    text-align: center;
+    font-size: 0.9em;
+    color: #000000;
+}
+
 .end-chat-button {
     margin-top: 10px;
     padding: 10px 15px;

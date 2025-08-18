@@ -17,7 +17,9 @@ from temporal_supervisor.activities.db_activities import DBActivities
 from temporal_supervisor.activities.open_account import OpenAccount, open_new_investment_account
 from common.account_context import UpdateAccountOpeningStateInput
 
+
 with workflow.unsafe.imports_passed_through():
+    from temporal_supervisor.activities.server_side_events import ServerSideEvents
     from temporal_supervisor.activities.beneficiaries import Beneficiaries
     from temporal_supervisor.activities.investments import Investments
     from agents import (
@@ -191,9 +193,10 @@ class WealthManagementWorkflow:
         self.retry_policy = RetryPolicy(initial_interval=timedelta(seconds=1),
                                backoff_coefficient=2,
                                maximum_interval=timedelta(seconds=30))
+        self.sse_endpoint = None
 
     @workflow.run
-    async def run(self, input_items: list[TResponseInputItem] | None = None, is_continue_as_new: bool = False):
+    async def run(self, sse_endpoint: str, input_items: list[TResponseInputItem] | None = None, is_continue_as_new: bool = False):
 
         if not is_continue_as_new:
             # save the conversation to the DB
@@ -203,7 +206,7 @@ class WealthManagementWorkflow:
                                             args=[wf_id,],
                                             schedule_to_close_timeout=self.sched_to_close_timeout,
                                             retry_policy=self.retry_policy)
-
+        self.sse_endpoint = sse_endpoint
         while True:
             workflow.logger.info("At top of loop - waiting for another message")
             # Wait for queue item or end workflow
@@ -244,22 +247,32 @@ class WealthManagementWorkflow:
                 return self.chat_history[length:]
         else:
             workflow.logger.info(f"processing message of type {message.source}")
+
+            # Update the status (e.g. use SSE to update the client)
+            # TODO: Consider filtering which messages we want to update the client
+            result = await workflow.execute_activity(
+                                ServerSideEvents.update_status,
+                                args=[self.sse_endpoint, message.message],
+                                schedule_to_close_timeout=self.sched_to_close_timeout,
+                                retry_policy=self.retry_policy
+            )
+            workflow.logger.info(f"After updating the status, the result is {result}")
+
+
             # handle messages from child workflow
             # there are only a few messages we want to show to the user
-            if (("Compliance review has been approved" in message.message)
-                    or ("Complete" in message.message)):
-                # show the user a cleaner message
-                response = "Compliance review has been approved" \
-                    if "Compliance review has been approved" in message.message \
-                    else "Complete"
-                response = response + ". Please let me know if there is anything else you need help with."
-                chat_interaction = ChatInteraction(
-                    user_prompt="Notice",
-                    text_response=response,
-                )
-                self.chat_history.append(chat_interaction)
-
-
+            # if (("Compliance review has been approved" in message.message)
+            #         or ("Complete" in message.message)):
+            #     # show the user a cleaner message
+            #     response = "Compliance review has been approved" \
+            #         if "Compliance review has been approved" in message.message \
+            #         else "Complete"
+            #     response = response + ". Please let me know if there is anything else you need help with."
+            #     chat_interaction = ChatInteraction(
+            #         user_prompt="Notice",
+            #         text_response=response,
+            #     )
+            #     self.chat_history.append(chat_interaction)
 
         current_details = "\n\n"
         for item in self.chat_history:
@@ -356,7 +369,7 @@ class WealthManagementWorkflow:
     @workflow.signal
     async def update_account_opening_state(self, state_input: UpdateAccountOpeningStateInput):
         workflow.logger.info(f"Account Opening State changed {state_input.account_name} {state_input.state}")
-        message = Message(message=f"Updating account opening state for {state_input.account_name} to {state_input.state}",
+        message = Message(message=f"New {state_input.account_name} account status changed: {state_input.state}",
                           source=Source.CHILD_WORKFLOW
                           )
         await self.pending_messages.put(message)

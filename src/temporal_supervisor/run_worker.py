@@ -15,6 +15,8 @@ from temporal_supervisor.activities.clients import ClientActivities
 from temporal_supervisor.activities.db_activities import DBActivities
 from temporal_supervisor.activities.open_account import OpenAccount
 from temporalio.contrib.openai_agents import OpenAIAgentsPlugin
+
+from temporal_supervisor.activities.server_side_events import ServerSideEvents
 from temporal_supervisor.claim_check.claim_check_plugin import ClaimCheckPlugin
 
 from temporal_supervisor.activities.beneficiaries import Beneficiaries
@@ -92,6 +94,7 @@ async def main():
             DBActivities.read_conversation,
             DBActivities.save_conversation,
             DBActivities.delete_conversation,
+            ServerSideEvents.update_status,
         ],
     )
     print(f"Running worker on {client_helper.address}")

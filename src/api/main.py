@@ -1,8 +1,12 @@
+import json
+
+import asyncio
 from contextlib import asynccontextmanager
 from typing import Optional, AsyncGenerator
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 from temporalio.client import Client, WithStartWorkflowOperation
 from temporalio.common import WorkflowIDReusePolicy, WorkflowIDConflictPolicy
 from temporalio.exceptions import TemporalError
@@ -114,12 +118,16 @@ async def end_chat():
         # Workflow not found; return an empty response
         return {}
 
+UPDATE_STATUS_NAME = "update_status"
+
 @app.post("/start-workflow")
-async def start_workflow():
+async def start_workflow(request: Request):
     try:
+        sse_url = str(request.url_for(UPDATE_STATUS_NAME))
         # start the workflow
         await temporal_client.start_workflow(
             WealthManagementWorkflow.run,
+            args=[sse_url],
             id=WORKFLOW_ID,
             task_queue=task_queue,
             id_reuse_policy=WorkflowIDReusePolicy.ALLOW_DUPLICATE
@@ -133,3 +141,33 @@ async def start_workflow():
         return {
             "message": f"An error occurred starting the workflow {e}"
         }
+
+# In-memory list to hold active SSE client connections
+# Note that this does not scale past one instance of the API
+connected_clients = []
+
+# SSE generator function
+async def event_generator(request: Request):
+    client_queue = asyncio.Queue()
+    connected_clients.append(client_queue)
+    try:
+        while True:
+            # Wait for a new message to be put in the queue
+            message = await client_queue.get()
+            yield f"data: {message}\n\n"
+    except asyncio.CancelledError:
+        connected_clients.remove(client_queue)
+        raise
+
+# Endpoint for clients to connect and receive events
+@app.get("/sse/status/stream")
+async def sse_endpoint(request: Request):
+    return StreamingResponse(event_generator(request), media_type="text/event-stream")
+
+# Endpoint for the Temporal Workflow to send updates
+@app.post("/sse/status/update", name=UPDATE_STATUS_NAME)
+async def update_status(data: dict):
+    message = json.dumps(data)
+    for queue in connected_clients:
+        await queue.put(message)
+    return {"message": "Status updated"}

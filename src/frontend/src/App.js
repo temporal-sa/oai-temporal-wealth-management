@@ -7,6 +7,7 @@ function App() {
   const [input, setInput] = useState('');
   const [sessionId, setSessionId] = useState(null);
   const [isChatActive, setIsChatActive] = useState(false);
+  const [statusContent, setStatusContent] = useState('');
   const chatWindowRef = useRef(null);
   let [isPolling, setIsPolling] = useState(false);
 
@@ -44,6 +45,31 @@ function App() {
       console.log('Polling stopped.');
     };
   }, [isPolling]); // The effect re-runs whenever the isPolling state changes
+
+  useEffect(() => {
+    // Create a new EventSource instance
+    const eventSource = new EventSource(`${API_BASE_URL}/sse/status/stream`);
+
+    // Listen for 'message' events from the server
+    eventSource.onmessage = (event) => {
+      // The data is a string, so parse it
+      console.log('SSE: The raw data is ', event.data)
+      const newStatus = JSON.parse(event.data);
+      console.log('SSE: The new status is ', newStatus);
+      setStatusContent(newStatus.status);
+    };
+
+    // Listen for errors
+    eventSource.onerror = (err) => {
+      console.error('EventSource failed:', err);
+      eventSource.close();
+    };
+
+    // Clean up the connection when the component unmounts
+    return () => {
+      eventSource.close();
+    };
+  }, []);
 
   const handleStartChat = async () => {
     try {
@@ -121,7 +147,8 @@ function App() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
       });
-      const data = await response.json();
+      // const data =
+      await response.json();
       setIsPolling(true);
       // if (data.response && data.response.length > 0) {
       //   console.log("data coming back is ", data.response[0].text_response)
@@ -161,13 +188,29 @@ function App() {
       setIsPolling(false);
     } else {
       handleStartChat();
+      setStatusContent('');
       // won't start polling until we send the first message
+    }
+  };
+
+  const handleUpdateStatus = () => {
+    // This is a mock function to simulate updating the status.
+    // In a real application, this would be triggered by some background process.
+    if (statusContent === '') {
+      setStatusContent('This is a sample status message.');
+    } else {
+      setStatusContent('');
     }
   };
 
   return (
     <div className="App">
       <div className="header">Wealth Management Chatbot</div>
+      {statusContent && (
+        <div className="status-area">
+          {statusContent}
+        </div>
+      )}
       <div className="chat-window" ref={chatWindowRef}>
         {messages.map((msg, index) => (
           <div key={index} className={`message ${msg.type}`}>
@@ -202,3 +245,4 @@ function App() {
 }
 
 export default App;
+

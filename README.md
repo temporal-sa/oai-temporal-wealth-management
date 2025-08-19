@@ -25,6 +25,7 @@ There are two ways to run through the scenarios with the Temporal version
 * [Poetry](https://python-poetry.org/docs/) - Python Dependency Management
 * [OpenAI API Key] (https://platform.openai.com/api-keys) - Your key to accessing OpenAI's LLM
 * [Temporal CLI](https://docs.temporal.io/cli#install) - Local Temporal service
+* [Redis](https://redis.io/downloads/) - Workflow writes conversation history, API reads from it
 
 ## Set up Python Environment
 ```bash

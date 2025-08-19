@@ -149,7 +149,7 @@ def init_agents() -> Agent[WealthManagementContext]:
         handoffs=[
             open_account_agent
         ],
-        # input_guardrails=[routing_guardrail],
+        input_guardrails=[routing_guardrail],
     )
 
     supervisor_agent = Agent[WealthManagementContext](
@@ -199,13 +199,14 @@ class WealthManagementWorkflow:
     async def run(self, sse_endpoint: str, input_items: list[TResponseInputItem] | None = None, is_continue_as_new: bool = False):
 
         if not is_continue_as_new:
-            # save the conversation to the DB
+            # delete any previous conversations
             wf_id = workflow.info().workflow_id
             workflow.logger.info(f"Deleting any previous conversation {wf_id}")
             await workflow.execute_activity(DBActivities.delete_conversation,
                                             args=[wf_id,],
                                             schedule_to_close_timeout=self.sched_to_close_timeout,
                                             retry_policy=self.retry_policy)
+
         self.sse_endpoint = sse_endpoint
         while True:
             workflow.logger.info("At top of loop - waiting for another message")

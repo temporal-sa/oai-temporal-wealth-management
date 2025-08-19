@@ -10,6 +10,24 @@ Scenarios currently implemented include
 * List Investments - shows a list of accounts and their current balances
 * Close Investment Account - closes an investment account
 
+## Application Architecture
+
+The overall application architecture looks like this:
+
+![](../../images/application-architecture.png)
+
+There is a React UX which is where the customer interacts with the application. 
+The React UX leverages an API which exposes endpoints to start a workflow, send a prompt,
+retrieving the chat history, ending the chat. It also implements Server Side Events (SSE)
+which the React UX registers with and allows the back end processes to notify the UX as 
+things change. SSE is leveraged as the Open Account child workflow progresses through the
+different steps. 
+
+The API in turn, communicates with Temporal to start workflows and send signals. Finally, 
+the worker contains the two workflows - supervisor and open account - which contain the 
+agents and business logic that drive the agentic application.
+
+
 ## Prerequisites
 
 * [Poetry](https://python-poetry.org/docs/) - Python Dependency Management

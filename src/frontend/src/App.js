@@ -10,6 +10,7 @@ function App() {
   const [statusContent, setStatusContent] = useState('');
   const chatWindowRef = useRef(null);
   let [isPolling, setIsPolling] = useState(false);
+  const defaultHeaderText = 'Chat session started.';
 
   useEffect(() => {
     if (chatWindowRef.current) {
@@ -25,7 +26,7 @@ function App() {
       // Define the polling function
       const pollApi = async () => {
         try {
-           await fetchChatHistory()
+           await fetchChatHistory(defaultHeaderText)
         } catch (error) {
           console.error('Error polling API:', error);
         }
@@ -80,11 +81,11 @@ function App() {
         const newSessionId = Math.random().toString(36).substring(2, 15);
         // check to see if it has truly been started
         if (result.message === 'Workflow started.') {
-          setMessages([{text: 'Chat session started.', type: 'bot'}]);
+          setMessages([{text: defaultHeaderText, type: 'bot'}]);
           setIsChatActive(true);
         } else {
           // assume that the workflow is still running
-          await fetchChatHistory();
+          await fetchChatHistory('Previous history');
           setIsChatActive(true);
         }
         setSessionId(newSessionId);
@@ -94,38 +95,6 @@ function App() {
     } catch (error) {
       console.error('Error starting chat session:', error);
       setMessages([{ text: 'Failed to start chat session.', type: 'bot' }]);
-    }
-  };
-
-
-  const fetchChatHistory = async () => {
-    // if (!sessionId) return;
-    try {
-      console.log("Getting ready to get the chat history...")
-      const response = await fetch(`${API_BASE_URL}/get-chat-history`);
-      const data = await response.json();
-      if (data === null || data.length === 0) {
-        return;
-      }
-      // console.log("data is ", data);
-      // console.log("messages are ", messages)
-      // console.log("len of messages is ", messages.length, " length of data is ", data.length);
-      // data is an array of
-      // { "user_prompt": "what the user typed", "text_response": "resulting text" }
-      // We need to format it into our message structure.
-      // which looks like this:
-      // { text: 'Text goes here', type: 'either user or bot' }
-      let headerArray = [{text: 'Previous history', type: 'bot'}];
-      const formattedHistory = headerArray.concat(data.flatMap(item => [
-            { text: item.user_prompt, type: 'user' },
-            { text: item.text_response, type: 'bot' }
-         ]));
-      // console.log("formattedHistory is ", formattedHistory);
-      if (messages.length < formattedHistory.length) {
-         setMessages(formattedHistory);
-      }
-    } catch (error) {
-      console.error('Error fetching chat history:', error);
     }
   };
 
@@ -193,15 +162,29 @@ function App() {
     }
   };
 
-  const handleUpdateStatus = () => {
-    // This is a mock function to simulate updating the status.
-    // In a real application, this would be triggered by some background process.
-    if (statusContent === '') {
-      setStatusContent('This is a sample status message.');
-    } else {
-      setStatusContent('');
+    const fetchChatHistory = async (headerText) => {
+    // if (!sessionId) return;
+    try {
+      console.log("Getting ready to get the chat history...")
+      const response = await fetch(`${API_BASE_URL}/get-chat-history`);
+      const data = await response.json();
+      if (data === null || data.length === 0) {
+        return;
+      }
+      let headerArray = [{text: headerText, type: 'bot'}];
+      const formattedHistory = headerArray.concat(data.flatMap(item => [
+            { text: item.user_prompt, type: 'user' },
+            { text: item.text_response, type: 'bot' }
+         ]));
+      // console.log("formattedHistory is ", formattedHistory);
+      if (messages.length < formattedHistory.length) {
+         setMessages(formattedHistory);
+      }
+    } catch (error) {
+      console.error('Error fetching chat history:', error);
     }
   };
+
 
   return (
     <div className="App">

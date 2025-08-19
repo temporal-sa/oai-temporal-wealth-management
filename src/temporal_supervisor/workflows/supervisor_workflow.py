@@ -11,7 +11,8 @@ from common.user_message import ProcessUserMessageInput, ChatInteraction
 from common.agent_constants import BENE_AGENT_NAME, BENE_HANDOFF, BENE_INSTRUCTIONS, INVEST_AGENT_NAME, \
     INVEST_HANDOFF, \
     INVEST_INSTRUCTIONS, SUPERVISOR_AGENT_NAME, SUPERVISOR_HANDOFF, SUPERVISOR_INSTRUCTIONS, \
-    OPEN_ACCOUNT_AGENT_NAME, OPEN_ACCOUNT_HANDOFF, OPEN_ACCOUNT_INSTRUCTIONS
+    OPEN_ACCOUNT_AGENT_NAME, OPEN_ACCOUNT_HANDOFF, OPEN_ACCOUNT_INSTRUCTIONS, ROUTING_GUARDRAIL_NAME, \
+    ROUTING_INSTRUCTIONS
 from temporal_supervisor.activities.db_activities import DBActivities
 
 from temporal_supervisor.activities.open_account import OpenAccount, open_new_investment_account
@@ -49,27 +50,8 @@ class RoutingGuardrailOutput(BaseModel):
     reasoning: str
 
 routing_guardrail_agent = Agent(
-    name="Routing Guardrail",
-    instructions="""Analyze the user's question and determine if it's about wealth management topics (beneficiaries or investments). 
-    
-    Wealth management keywords: beneficiary, beneficiaries, add beneficiary, delete beneficiary, list beneficiaries, family member, son, daughter, spouse, child, children, inheritance, estate, investment, investments, account, accounts, balance, balances, open account, close account, list accounts, portfolio, money, funds, savings, checking, retirement, wealth, financial, finance
-    
-    IMPORTANT: If the question is about ANYTHING other than wealth management (geography, animals, science, history, general knowledge, personal questions, etc.), set is_wealth_management_question to FALSE.
-    
-    Examples of questions that should be BLOCKED (is_wealth_management_question = false):
-    - "What is a cheetah?" (animal question)
-    - "What is the capital of Florida?" (geography question)
-    - "What is your name?" (personal question)
-    - "How does photosynthesis work?" (science question)
-    - "What is the weather like?" (general question)
-    
-    Examples of questions that should be ALLOWED (is_wealth_management_question = true):
-    - "Who are my beneficiaries?" (beneficiary question)
-    - "What investment accounts do I have?" (investment question)
-    - "Add a beneficiary to my account" (beneficiary question)
-    - "Show me my portfolio" (investment question)
-    
-    Be very strict - only allow questions that are clearly about wealth management topics.""",
+    name=ROUTING_GUARDRAIL_NAME,
+    instructions=ROUTING_INSTRUCTIONS,
     output_type=RoutingGuardrailOutput,
 )
 

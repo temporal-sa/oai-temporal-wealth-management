@@ -31,7 +31,7 @@ agents and business logic that drive the agentic application.
 ## Prerequisites
 
 * [Poetry](https://python-poetry.org/docs/) - Python Dependency Management
-* [Redis](https://redis.io/downloads/) - Redis - Optional. Only needed if you want to use the Claim Check pattern. 
+* [Redis](https://redis.io/downloads/) - Redis - Used to store the conversation history. Optional for the Claim Check pattern. 
 
 ## Set up Python Environment
 ```bash

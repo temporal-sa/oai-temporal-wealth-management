@@ -31,7 +31,7 @@ agents and business logic that drive the agentic application.
 ## Prerequisites
 
 * [Poetry](https://python-poetry.org/docs/) - Python Dependency Management
-* [Redis](https://redis.io/downloads/) - Redis - Used to store the conversation history. Optional for the Claim Check pattern. 
+* [Redis](https://redis.io/downloads/) - Redis - Required to store the conversation history and optional for the Claim Check pattern. 
 
 ## Set up Python Environment
 ```bash
@@ -50,8 +50,24 @@ It should look something like this:
 ```bash
 export OPENAI_API_KEY=sk-proj-....
 ```
+## Set up Redis for the conversation store
 
-## Set up Claim Check / Redis (optional)
+If you don't have an existing Redis server, you can run one locally after installing it. 
+In a new terminal / shell run the following command:
+
+```bash
+redis-server
+```
+
+By default it expects to find Redis running locally. You can override the location of redis
+by setting the environment variables:
+
+```bash
+export REDIS_HOST=localhost
+export REDIS_PORT=6379
+```
+
+## Set up Claim Check (optional)
 
 An optional configuration is to substitute the data sent to Temporal (e.g. function/method parameters and return values)
 with an ID. This is known as the [Claim Check Pattern](https://www.enterpriseintegrationpatterns.com/patterns/messaging/StoreInLibrary.html). 
@@ -73,7 +89,14 @@ export REDIS_HOST=localhost
 export REDIS_PORT=6379
 ```
 
-Save the file and be sure that you have Redis running. 
+Save the file and be sure that you have Redis running. For example:
+
+```bash
+redis-server
+```
+
+Note that the application assumes you only have one Redis server that is used by the application for storing the 
+conversation history and is also used if Claim Check has been enabled. 
 
 ## Run Codec Server for Claim Check (optional)
 If you have decided to set up the Claim Check above, you will 
@@ -122,18 +145,26 @@ temporal server start-dev
 ```
 
 ### Start the Worker
-This assumes you are already in the src/temporal_supervisor folder. 
+
 ```bash
 cd src/temporal_supervisor
 ./startlocalworker.sh
 ```
 
-In another terminal, start the Console UX
-### Start the Command Line UX
+### Start the API
+
 ```bash
-cd src/temporal_supervisor
-./startlocalux.sh
+cd src/temporal_supervisor/api
+./startlocalapi.sh
 ```
+### Start the UX
+
+```bash
+cd src/temporal_supervisor/frontend
+npm start
+```
+
+A new browser window opens where you can interact with the application. 
 
 If you are opening a new investment account, in another terminal
 ### Send the Compliance Reviewed Signal 
@@ -163,12 +194,18 @@ export TEMPORAL_KEY_PATH="/path/to/key.key"
 cd src/temporal_supervisor
 ./startcloudworker.sh
 ```
-In a new terminal, run the the UX, passing in a Workflow ID 
 
-### Start the Console UX
+### Start the API
+
 ```bash
-cd src/temporal_supervisor
-./startcloudux.sh <Workflow ID>
+cd src/temporal_supervisor/api
+./startcloudapi.sh
+```
+### Start the UX
+
+```bash
+cd src/temporal_supervisor/frontend
+npm start
 ```
 
 If you are opening a new investment account, in another terminal
@@ -178,73 +215,26 @@ cd src/temporal_supervisor
 ./cloudsendcomplianceapproval.sh <Child Workflow ID>
 ```
 
+Here are a few screenshots of the UX while opening a new account.
 
-Example output:
-```text
-******* Skip OpenAI Plugin? True *******
-address is 127.0.0.1:7233
-Checking to see if the workflow is already running...
-Got NOT FOUND. Will start it
-Starting workflow using mycoolagent9
+Waiting for KYC to be confirmed:
+![](../../images/ux-waiting-kyc.png)
 
-Welcome to ABC Wealth Management. How can I help you?
-Enter your message: What investment accounts do I have?
-Could you please provide your client ID so I can assist you with your investment accounts?
+Waiting for the Compliance Review to be done:
+![](../../images/ux-waiting-compliance-review.png)
 
-Enter your message: 123
-Here are your investment accounts and their balances:
+New account is complete and opened:
+![](../../images/ux-open-account-complete.png)
 
-1. **Checking**: $1,000.00
-2. **Savings**: $2,312.08
-3. **401K**: $11,070.89
-
-Would you like to open a new account, close an existing one, or see this list again?
-
-Enter your message: open a new account
-Could you please provide the name you would like for the new account and the initial amount for the deposit?
-
-Enter your message: Vacation with $893.45
-Here is your current information:
-
-- **First Name**: Don
-- **Last Name**: Doe
-- **Address**: 123 Main Street
-- **Phone**: 999-555-1212
-- **Email**: jd@someplace.com
-- **Marital Status**: Married
-
-Is this information correct and up to date?
-
-Enter your message: yes
-The information has been approved. Would you like me to check the status of your account opening process?
-
-Enter your message: yes
-The account opening process is currently in the "Waiting Compliance Reviewed" stage. Would you like me to check the status again later?
-
-Enter your message: yes         
-Your new "Vacation" investment account has been successfully opened with an initial amount of $893.45. Everything is complete!
-
-If you need further assistance, feel free to ask.
-
-Enter your message: show investment accounts
-Here are your updated investment accounts and their balances:
-
-1. **Checking**: $1,000.00
-2. **Savings**: $2,312.08
-3. **401K**: $11,070.89
-4. **Vacation**: $893.45
-
-If there's anything else you need, just let me know!
-
-Enter your message: end
-```
-
-You can also add and delete beneficiaries and open and close investment accounts.
+You can also add and delete beneficiaries.
 
 Here is a sample event history shown in the Temporal UX
 
 ![](../../images/temporal-event-history-timeline.png)
-![](../../images/temporal-event-history-events.png)
+
+And here is a sample event history for the Open Account workflow in the Temporal UX:
+
+![](../../images/child-workflow-event-history.png)
 
 ## How the Open Account functionality works
 To demonstrate how to integrate other workflows within an Agentic system, when a user

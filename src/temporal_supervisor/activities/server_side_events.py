@@ -5,6 +5,10 @@ class ServerSideEvents:
     @staticmethod
     @activity.defn
     async def update_status(endpoint: str, status: str) -> str:
+        if endpoint is None or endpoint == "":
+            activity.logger.info("Endpoint is not set. SSE disabled.")
+            return "SSE Disabled"
+
         activity.logger.info(f"Sending updated status {status} to {endpoint}")
         payload = {"status": status}
         response = requests.post(endpoint, json=payload)

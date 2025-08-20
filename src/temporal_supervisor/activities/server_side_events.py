@@ -1,4 +1,5 @@
-from temporalio import workflow, activity
+from temporalio import activity
+from temporalio.exceptions import ApplicationError
 import requests
 
 class ServerSideEvents:
@@ -6,8 +7,7 @@ class ServerSideEvents:
     @activity.defn
     async def update_status(endpoint: str, status: str) -> str:
         if endpoint is None or endpoint == "":
-            activity.logger.info("Endpoint is not set. SSE disabled.")
-            return "SSE Disabled"
+            raise ApplicationError("Endpoint is not set. Non-recoverable error", non_retryable=True)
 
         activity.logger.info(f"Sending updated status {status} to {endpoint}")
         payload = {"status": status}

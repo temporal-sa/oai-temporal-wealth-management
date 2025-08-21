@@ -1,3 +1,4 @@
+
 from dataclasses import dataclass
 from datetime import timedelta
 from enum import Enum
@@ -13,6 +14,7 @@ from common.agent_constants import BENE_AGENT_NAME, BENE_HANDOFF, BENE_INSTRUCTI
     INVEST_INSTRUCTIONS, SUPERVISOR_AGENT_NAME, SUPERVISOR_HANDOFF, SUPERVISOR_INSTRUCTIONS, \
     OPEN_ACCOUNT_AGENT_NAME, OPEN_ACCOUNT_HANDOFF, OPEN_ACCOUNT_INSTRUCTIONS, ROUTING_GUARDRAIL_NAME, \
     ROUTING_INSTRUCTIONS
+
 from temporal_supervisor.activities.db_activities import DBActivities
 
 from temporal_supervisor.activities.open_account import OpenAccount, open_new_investment_account
@@ -87,12 +89,15 @@ async def routing_guardrail(
     )
 
 ### Agents
-def init_agents() -> Agent[WealthManagementContext]:
+def init_agents(disable_guardrails: bool) -> Agent[WealthManagementContext]:
     """
     Initialize the agents for the Wealth Management Workflow
 
     Returns a supervisor agent
     """
+    guardrails = []
+    if disable_guardrails == False:
+        guardrails = [routing_guardrail]
     beneficiary_agent = Agent[WealthManagementContext](
         name=BENE_AGENT_NAME,
         handoff_description=BENE_HANDOFF,
@@ -104,7 +109,7 @@ def init_agents() -> Agent[WealthManagementContext]:
                openai_agents.workflow.activity_as_tool(Beneficiaries.delete_beneficiary,
                                 start_to_close_timeout=timedelta(seconds=5))
                ],
-        input_guardrails=[routing_guardrail],
+        input_guardrails=guardrails,
     )
 
     open_account_agent = Agent[WealthManagementContext](
@@ -117,7 +122,7 @@ def init_agents() -> Agent[WealthManagementContext]:
             openai_agents.workflow.activity_as_tool(OpenAccount.approve_kyc, start_to_close_timeout=timedelta(seconds=5)),
             openai_agents.workflow.activity_as_tool(OpenAccount.update_client_details, start_to_close_timeout=timedelta(seconds=5)),
         ],
-        input_guardrails=[routing_guardrail],
+        input_guardrails=guardrails,
     )
 
     investment_agent = Agent[WealthManagementContext](
@@ -131,7 +136,7 @@ def init_agents() -> Agent[WealthManagementContext]:
         handoffs=[
             open_account_agent
         ],
-        input_guardrails=[routing_guardrail],
+        input_guardrails=guardrails,
     )
 
     supervisor_agent = Agent[WealthManagementContext](
@@ -142,7 +147,7 @@ def init_agents() -> Agent[WealthManagementContext]:
             beneficiary_agent,
             investment_agent,
         ],
-        input_guardrails=[routing_guardrail],
+        input_guardrails=guardrails,
     )
 
     beneficiary_agent.handoffs.append(supervisor_agent)
@@ -167,7 +172,7 @@ class WealthManagementWorkflow:
         self.processed_response: list[ChatInteraction] | None = None
         self.run_config = RunConfig()
         self.chat_history: list[ChatInteraction] = []
-        self.current_agent: Agent[WealthManagementContext] = init_agents()
+        self.current_agent: Agent[WealthManagementContext] = init_agents(True)
         self.context = WealthManagementContext()
         self.input_items = [] if input_items is None else input_items
         self.end_workflow = False
@@ -176,6 +181,7 @@ class WealthManagementWorkflow:
                                backoff_coefficient=2,
                                maximum_interval=timedelta(seconds=30))
         self.sse_endpoint = None
+
 
     @workflow.run
     async def run(self, sse_endpoint: str, input_items: list[TResponseInputItem] | None = None, is_continue_as_new: bool = False):

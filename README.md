@@ -16,9 +16,7 @@ Scenarios currently implemented include
 * List Investments - shows a list of accounts and their current balances
 * Close Investment Account - closes an investment account
 
-There are two ways to run through the scenarios with the Temporal version
-* Using a [Web Application](src/frontend/README.md) or 
-* Using a [Console Application](src/temporal_supervisor/README.md)
+You can run through the scenarios with the Temporal version using a [Web Application](src/frontend/README.md) or
 
 ## Prerequisites
 

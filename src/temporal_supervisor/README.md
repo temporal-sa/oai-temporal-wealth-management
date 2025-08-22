@@ -59,7 +59,7 @@ In a new terminal / shell run the following command:
 redis-server
 ```
 
-By default it expects to find Redis running locally. You can override the location of redis
+By default, the application expects to find Redis running locally. You can override the location of redis
 by setting the environment variables:
 
 ```bash
@@ -97,6 +97,9 @@ redis-server
 
 Note that the application assumes you only have one Redis server that is used by the application for storing the 
 conversation history and is also used if Claim Check has been enabled. 
+
+Be aware that using a claim check pattern introduces performance costs by doing remote calls to Redis for every payload. 
+Also, make sure your Redis implementation is rock solid as any downtime will directly affect your workflows. 
 
 ## Run Codec Server for Claim Check (optional)
 If you have decided to set up the Claim Check above, you will 

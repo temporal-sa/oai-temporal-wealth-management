@@ -23,16 +23,19 @@ class ClientActivities:
                                maximum_interval=timedelta(seconds=30))
     @staticmethod
     @activity.defn
-    async def add_client(client_id: str, first_name: str, last_name: str, address: str, phone: str, email: str, marital_status: str) -> str:
-        activity.logger.info(f"add_account. input: {first_name} {last_name} {address} {phone} {email} {marital_status}")
+    async def add_client(new_client: WealthManagementClient) -> str:
+        activity.logger.info(f"add_account. input: {new_client.first_name} "
+                             f"{new_client.last_name} {new_client.address} "
+                             f"{new_client.phone} {new_client.email} "
+                             f"{new_client.marital_status}")
         account_manager = ClientManager()
-        return account_manager.add_client(client_id=client_id,
-                                          first_name=first_name,
-                                          last_name=last_name,
-                                          address=address,
-                                          phone=phone,
-                                          email=email,
-                                          marital_status=marital_status)
+        return account_manager.add_client(client_id=new_client.client_id,
+                                          first_name=new_client.first_name,
+                                          last_name=new_client.last_name,
+                                          address=new_client.address,
+                                          phone=new_client.phone,
+                                          email=new_client.email,
+                                          marital_status=new_client.marital_status)
 
     @staticmethod
     @activity.defn

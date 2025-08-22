@@ -1,11 +1,19 @@
 import json
 import os
+from dataclasses import dataclass
+
 import uuid
 import argparse
 
 script_dir = os.path.dirname(__file__)
 relative_path = '../../data/investments.json'
 INVESTMENTS_FILE =  os.path.join(script_dir, relative_path)
+
+@dataclass
+class InvestmentAccount:
+    client_id: str
+    name: str
+    balance: float
 
 class InvestmentManager:
     def __init__(self, json_file=INVESTMENTS_FILE):
@@ -43,25 +51,25 @@ class InvestmentManager:
 
         return self.data.get(client_id, [])
 
-    def add_investment_account(self, client_id: str, name: str, balance: float):
+    def add_investment_account(self, new_account: InvestmentAccount):
         """
         Adds a new investment account to a client's portfolio.
         Automatically generates a unique investment_id.
         Creates the client_id if it doesn't exist.
         """
         try:
-            if balance < 0:
+            if new_account.balance < 0:
                 print("Error: Balance cannot be negative.")
                 return None
         except ValueError:
             print("Error: Balance must be a numeric value.")
             return None
 
-        if client_id not in self.data:
-            self.data[client_id] = []
+        if new_account.client_id not in self.data:
+            self.data[new_account.client_id] = []
 
         # Generate a unique beneficiary ID for this investment account
-        existing_ids = {i['investment_id'] for i in self.data[client_id]}
+        existing_ids = {i['investment_id'] for i in self.data[new_account.client_id]}
 
         # Use UUID for robust uniqueness, then truncate for a shorter, readable ID
         new_investment_id = f"i-{str(uuid.uuid4())[:8]}"
@@ -70,11 +78,11 @@ class InvestmentManager:
 
         new_investment_account = {
             "investment_id": new_investment_id,
-            "name": name,
-            "balance": balance
+            "name": new_account.name,
+            "balance": new_account.balance
         }
 
-        self.data[client_id].append(new_investment_account)
+        self.data[new_account.client_id].append(new_investment_account)
         self._save_data()
         return new_investment_account  # Return the newly added investment account details
 

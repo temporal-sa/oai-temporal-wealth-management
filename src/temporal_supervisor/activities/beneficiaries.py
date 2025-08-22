@@ -32,10 +32,13 @@ class Beneficiaries:
 
     @staticmethod
     @activity.defn
-    async def add_beneficiary(client_id: str, first_name: str, last_name: str, relationship: str):
-        activity.logger.info(f"add_beneficiary: input: {client_id}, {first_name}, {last_name}, {relationship}")
+    async def add_beneficiary(new_beneficiary: Beneficiary):
+        activity.logger.info(f"add_beneficiary: input: {new_beneficiary.client_id}, "
+                             f"{new_beneficiary.first_name}, {new_beneficiary.last_name}, "
+                             f"{new_beneficiary.relationship}")
         beneficiaries_mgr = BeneficiariesManager()
-        beneficiaries_mgr.add_beneficiary(client_id, first_name, last_name, relationship)
+        beneficiaries_mgr.add_beneficiary(new_beneficiary.client_id, new_beneficiary.first_name,
+                                          new_beneficiary.last_name, new_beneficiary.relationship)
 
     @staticmethod
     @activity.defn

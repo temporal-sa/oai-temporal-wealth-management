@@ -3,6 +3,7 @@ from datetime import timedelta
 
 from temporalio import workflow
 
+from common.investment_manager import InvestmentAccount
 from temporal_supervisor.activities.clients import ClientActivities
 from temporal_supervisor.activities.investments import Investments
 from common.account_context import UpdateAccountOpeningStateInput
@@ -68,10 +69,12 @@ class OpenInvestmentAccountWorkflow:
         await self._set_state("Compliance review has been approved. Creating Investment Account")
 
         # finally, let's create/open the account
+        # build the new investment account
+        new_account = InvestmentAccount(self.inputs.client_id, inputs.account_name, inputs.initial_amount)
         workflow.logger.info("Creating a new investment account")
         investment_account = await workflow.execute_activity(
             Investments.open_investment,
-            args=[self.inputs.client_id, inputs.account_name, inputs.initial_amount],
+            args=[new_account],
             schedule_to_close_timeout=self.sched_to_close_timeout,
             retry_policy=ClientActivities.retry_policy)
 

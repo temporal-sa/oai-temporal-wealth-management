@@ -311,24 +311,18 @@ class WealthManagementWorkflow:
             agent_name = new_item.agent.name
             if isinstance(new_item, MessageOutputItem):
                 workflow.logger.info(f"{agent_name} {ItemHelpers.text_message_output(new_item)}")
-                text_response += f"{ItemHelpers.text_message_output(new_item)}\n"
-                # self.chat_history.append(f"{agent_name} {ItemHelpers.text_message_output(new_item)}")
+                text_response += f"{ItemHelpers.text_message_output(new_item)}"
             elif isinstance(new_item, HandoffOutputItem):
                 workflow.logger.info(f"Handed off from {new_item.source_agent.name} to {new_item.target_agent.name}")
                 agent_trace += f"Handed off from {new_item.source_agent.name} to {new_item.target_agent.name}\n"
-                # self.chat_history.append(f"Handed off from {new_item.source_agent.name} to {new_item.target_agent.name}")
             elif isinstance(new_item, ToolCallItem):
                 workflow.logger.info(f"{agent_name}: Calling a tool")
                 agent_trace += f"{agent_name}: Calling a tool\n"
-                # self.chat_history.append(f"{agent_name}: Calling a tool")
             elif isinstance(new_item, ToolCallOutputItem):
                 workflow.logger.info(f"{agent_name}: Tool call output: {new_item.output}")
-                # this might be problematic... TODO: validate
                 json_response += new_item.output + "\n"
-                # self.chat_history.append(f"{agent_name}: Tool call output: {new_item.output}")
             else:
                 agent_trace += f"{agent_name}: Skipping item: {new_item.__class__.__name__}\n"
-                # self.chat_history.append(f"{agent_name}: Skipping item: {new_item.__class__.__name__}")
         return agent_trace, json_response, text_response
 
     @workflow.query

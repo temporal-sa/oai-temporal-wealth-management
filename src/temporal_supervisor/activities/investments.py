@@ -1,9 +1,11 @@
 import json
+from dataclasses import dataclass
 
 from temporalio import activity, workflow
 
 with workflow.unsafe.imports_passed_through():
-    from common.investment_manager import InvestmentManager
+    from common.investment_manager import InvestmentManager, InvestmentAccount
+
 
 class Investments:
     @staticmethod
@@ -15,10 +17,11 @@ class Investments:
 
     @staticmethod
     @activity.defn
-    async def open_investment(client_id: str, name: str, balance: float) -> dict:
-        activity.logger.info(f"Opening an investment account for {client_id}, Name: {name}, Balance: {balance}")
+    async def open_investment(new_account: InvestmentAccount) -> dict:
+        activity.logger.info(f"Opening an investment account for {new_account.client_id}, "
+                             f"Name: {new_account.name}, Balance: {new_account.balance}")
         investment_acct_mgr = InvestmentManager()
-        return investment_acct_mgr.add_investment_account(client_id, name, balance)
+        return investment_acct_mgr.add_investment_account(new_account)
 
     @staticmethod
     @activity.defn

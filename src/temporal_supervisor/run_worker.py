@@ -1,7 +1,7 @@
 import asyncio
 import logging
 import os
-from typing import Optional
+from typing import Optional, Sequence, Callable, Type
 
 from agents import Model, ModelProvider, OpenAIChatCompletionsModel
 import httpx
@@ -46,6 +46,17 @@ class CustomModelProvider(ModelProvider):
         )
         return model
 
+def choose_workflows(client_helper: ClientHelper) -> Sequence[Type]:
+    # returns the workflows depending if we have one or two task queues
+    if client_helper.taskQueue == client_helper.taskQueueOpenAccount:
+        return [
+            WealthManagementWorkflow,
+            OpenInvestmentAccountWorkflow
+        ]
+    else:
+        return [
+            WealthManagementWorkflow,
+        ]
 
 async def main():
     logging.basicConfig(level=logging.INFO,
@@ -74,10 +85,7 @@ async def main():
     worker = Worker(
         client,
         task_queue=client_helper.taskQueue,
-        workflows=[
-            WealthManagementWorkflow,
-            OpenInvestmentAccountWorkflow
-        ],
+        workflows=choose_workflows(client_helper),
         activities=[
             Beneficiaries.list_beneficiaries,
             Beneficiaries.add_beneficiary,
@@ -95,7 +103,7 @@ async def main():
             DBActivities.save_conversation,
             DBActivities.delete_conversation,
             ServerSideEvents.update_status,
-        ],
+        ]
     )
     print(f"Running worker on {client_helper.address}")
     await worker.run()

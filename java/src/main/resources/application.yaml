@@ -1,0 +1,12 @@
+spring:
+  main:
+    allow-bean-definition-overriding: true
+    web-application-type: none
+  application:
+    name: open-account
+  # temporal specific configs (default to local development)
+  temporal:
+    namespace: default
+    connection:
+      target: 127.0.0.1:7233
+

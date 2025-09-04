@@ -11,6 +11,8 @@ class ClientHelper:
         self.tlsCertPath = os.getenv("TEMPORAL_CERT_PATH","")
         self.tlsKeyPath = os.getenv("TEMPORAL_KEY_PATH","")
         self.taskQueue = os.getenv("TEMPORAL_TASK_QUEUE", "Supervisor")
+        # Task Queue for Opening a new Account. If this is not set, use the same task queue as the Supervisor
+        self.taskQueueOpenAccount = os.getenv("TEMPORAL_TASK_QUEUE_OPEN_ACCOUNT", self.taskQueue)
         self.skipOpenAIPlugin = str_to_bool(os.getenv("SKIP_OPENAI_PLUGIN", "False"))
         print(f"******* Skip OpenAI Plugin? {self.skipOpenAIPlugin} *******")
 

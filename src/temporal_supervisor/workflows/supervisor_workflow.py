@@ -245,7 +245,7 @@ class WealthManagementWorkflow:
                                 schedule_to_close_timeout=self.sched_to_close_timeout,
                                 retry_policy=self.retry_policy
             )
-            workflow.logger.info(f"After updating the status, the result is {result}")
+            # workflow.logger.info(f"After updating the status, the result is {result}")
 
         current_details = "\n\n"
         for item in self.chat_history:

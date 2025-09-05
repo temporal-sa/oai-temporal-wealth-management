@@ -7,6 +7,7 @@ Scenarios currently implemented include
 * List Beneficiaries - shows a list of beneficiaries and their relationship to the account owner
 * Delete Beneficiary - delete a beneficiary from your account
 * Open Investment Account - opens a new investment account using a **Child Workflow**
+  * There are Python and Java versions of this workflow. By default, the Python version is used.
 * List Investments - shows a list of accounts and their current balances
 * Close Investment Account - closes an investment account
 
@@ -31,7 +32,8 @@ agents and business logic that drive the agentic application.
 ## Prerequisites
 
 * [Poetry](https://python-poetry.org/docs/) - Python Dependency Management
-* [Redis](https://redis.io/downloads/) - Redis - Required to store the conversation history and optional for the Claim Check pattern. 
+* [Redis](https://redis.io/downloads/) - Redis - Required to store the conversation history and optional for the Claim Check pattern.
+* [Java JDK](https://www.oracle.com/java/technologies/downloads/) - Java - Optional. Only needed if you want to run the Java Open Investment Account workflow.
 
 ## Set up Python Environment
 ```bash
@@ -147,11 +149,26 @@ Start Temporal Locally.
 temporal server start-dev
 ```
 
-### Start the Worker
+### Start the Worker using Python Open Investment Account Workflow (default)
 
 ```bash
 cd src/temporal_supervisor
 ./startlocalworker.sh
+```
+
+If you want to use the Java Open Investment Account Workflow, 
+you need to specify the name of the Task Queue when running the Python worker:
+
+```bash
+cd src/temporal_supervisor
+./startlocalworker.sh Open-Account-Java
+```
+and then start the Java worker, making sure you pass in the same name as you did 
+when you started the Python worker
+
+```bash
+cd java
+./startlocalworker.sh Open-Account-Java
 ```
 
 ### Start the API
@@ -196,6 +213,21 @@ export TEMPORAL_KEY_PATH="/path/to/key.key"
 ```bash
 cd src/temporal_supervisor
 ./startcloudworker.sh
+```
+
+If you want to use the Java Open Investment Account Workflow, 
+you need to specify the name of the Task Queue when running the Python worker:
+
+```bash
+cd src/temporal_supervisor
+./startcloudworker.sh Open-Account-Java
+```
+and then start the Java worker, making sure you pass in the same name as you did 
+when you started the Python worker
+
+```bash
+cd java
+./startcloudworker.sh Open-Account-Java
 ```
 
 ### Start the API

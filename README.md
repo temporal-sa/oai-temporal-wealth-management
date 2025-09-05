@@ -13,6 +13,7 @@ Scenarios currently implemented include
 * List Beneficiaries - shows a list of beneficiaries and their relationship to the account owner
 * Delete Beneficiary - delete a beneficiary from your account
 * Open Investment Account - opens a new investment account - using a **child workflow** in the Temporal version. 
+  * There are Python and Java versions of this workflow. By default, the Python version is used. 
 * List Investments - shows a list of accounts and their current balances
 * Close Investment Account - closes an investment account
 

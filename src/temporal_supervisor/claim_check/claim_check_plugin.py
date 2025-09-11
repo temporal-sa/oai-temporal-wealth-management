@@ -1,5 +1,6 @@
 import os
 
+import temporalio
 from temporalio.client import Plugin, ClientConfig
 from temporalio.converter import DataConverter
 
@@ -12,6 +13,9 @@ class ClaimCheckPlugin(Plugin):
         self.redisHost = os.getenv("REDIS_HOST", "localhost")
         self.redisPort = int(os.getenv("REDIS_PORT", "6379"))
 
+    def init_client_plugin(self, next: Plugin) -> None:
+        self.next_client_plugin = next
+    
     def get_data_converter(self, config: ClientConfig) -> DataConverter:
         default_converter_class = config["data_converter"].payload_converter_class
         if self.useClaimCheck:
@@ -29,6 +33,7 @@ class ClaimCheckPlugin(Plugin):
 
     def configure_client(self, config: ClientConfig) -> ClientConfig:
         config["data_converter"] = self.get_data_converter(config)
-        return super().configure_client(config)
+        return self.next_client_plugin.configure_client(config)
 
-
+    async def connect_service_client(self, config: temporalio.service.ConnectConfig) -> temporalio.service.ServiceClient:
+        return await self.next_client_plugin.connect_service_client(config)

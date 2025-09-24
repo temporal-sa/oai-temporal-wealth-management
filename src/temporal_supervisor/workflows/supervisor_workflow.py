@@ -9,20 +9,19 @@ from temporalio.contrib import openai_agents
 from temporalio.common import RetryPolicy
 
 from common.user_message import ProcessUserMessageInput, ChatInteraction
+from common.status_update import StatusUpdate
 from common.agent_constants import BENE_AGENT_NAME, BENE_HANDOFF, BENE_INSTRUCTIONS, INVEST_AGENT_NAME, \
     INVEST_HANDOFF, \
     INVEST_INSTRUCTIONS, SUPERVISOR_AGENT_NAME, SUPERVISOR_HANDOFF, SUPERVISOR_INSTRUCTIONS, \
     OPEN_ACCOUNT_AGENT_NAME, OPEN_ACCOUNT_HANDOFF, OPEN_ACCOUNT_INSTRUCTIONS, ROUTING_GUARDRAIL_NAME, \
     ROUTING_INSTRUCTIONS
 
-from temporal_supervisor.activities.db_activities import DBActivities
+from temporal_supervisor.activities.event_stream_activities import EventStreamActivities
 
 from temporal_supervisor.activities.open_account import OpenAccount, open_new_investment_account
 from common.account_context import UpdateAccountOpeningStateInput
 
-
 with workflow.unsafe.imports_passed_through():
-    from temporal_supervisor.activities.server_side_events import ServerSideEvents
     from temporal_supervisor.activities.beneficiaries import Beneficiaries
     from temporal_supervisor.activities.investments import Investments
     from agents import (
@@ -155,20 +154,14 @@ def init_agents(disable_guardrails: bool) -> Agent[WealthManagementContext]:
     open_account_agent.handoffs.append(investment_agent)
     return supervisor_agent
 
-class Source(Enum):
-    USER = 1
-    CHILD_WORKFLOW = 2
-
-@dataclass
-class Message:
-    message: str
-    source: Source
 
 @workflow.defn
 class WealthManagementWorkflow:
 
     def __init__(self, input_items: list[TResponseInputItem] | None = None ):
-        self.pending_messages: asyncio.Queue = asyncio.Queue()
+        self.wf_id = workflow.info().workflow_id
+        self.pending_chat_messages: asyncio.Queue = asyncio.Queue()
+        self.pending_status_updates: asyncio.Queue = asyncio.Queue()
         self.processed_response: list[ChatInteraction] | None = None
         self.run_config = RunConfig()
         self.chat_history: list[ChatInteraction] = []
@@ -180,72 +173,70 @@ class WealthManagementWorkflow:
         self.retry_policy = RetryPolicy(initial_interval=timedelta(seconds=1),
                                backoff_coefficient=2,
                                maximum_interval=timedelta(seconds=30))
-        self.sse_endpoint = None
-
 
     @workflow.run
-    async def run(self, sse_endpoint: str, input_items: list[TResponseInputItem] | None = None, is_continue_as_new: bool = False):
-
-        if not is_continue_as_new:
+    async def run(self, input_items: list[TResponseInputItem] | None = None):
+        if workflow.info().continued_run_id is None:
             # delete any previous conversations
+            # FIXME: We shouldn't be deleting conversations here,
+            # we should be deleting them when the workflow is ended coupled with
+            # expirations on redis in case of workflow termination.
+            # This is polluting the workflow code because we re-use the workflow ID in the demo app.
             wf_id = workflow.info().workflow_id
             workflow.logger.info(f"Deleting any previous conversation {wf_id}")
-            await workflow.execute_activity(DBActivities.delete_conversation,
-                                            args=[wf_id,],
-                                            schedule_to_close_timeout=self.sched_to_close_timeout,
-                                            retry_policy=self.retry_policy)
+            await workflow.execute_local_activity(
+                EventStreamActivities.delete_conversation,
+                args=[wf_id],
+                schedule_to_close_timeout=self.sched_to_close_timeout,
+                retry_policy=self.retry_policy)
 
-        self.sse_endpoint = sse_endpoint
         while True:
-            workflow.logger.info("At top of loop - waiting for another message")
-            # Wait for queue item or end workflow
+            workflow.logger.info("At top of loop - waiting for messages or status updates")
+            # Wait for queue items or end workflow
             await workflow.wait_condition(
-                lambda: not self.pending_messages.empty() or self.end_workflow
+                lambda: not self.pending_chat_messages.empty() or not self.pending_status_updates.empty() or self.end_workflow
             )
 
             if self.end_workflow:
                 workflow.logger.info("Ending workflow.")
                 return
 
-            # Get the message, process it, save the response
-            message = self.pending_messages.get_nowait()
-            self.processed_response = await self._process_chat_message(message)
-            workflow.logger.info("message processed. ")
+            # Process chat messages
+            if not self.pending_chat_messages.empty():
+                message = self.pending_chat_messages.get_nowait()
+                self.processed_response = await self._process_chat_message(message)
+                workflow.logger.info("chat message processed.")
+
+            # Process status updates
+            if not self.pending_status_updates.empty():
+                status_message = self.pending_status_updates.get_nowait()
+                await self._process_status_update(status_message)
+                workflow.logger.info("status update processed.")
 
             # do we need to do a continue as new?
             if workflow.info().is_continue_as_new_suggested():
                 # wait until everything finishes before doing Continue As New
+                # FIXME: This will only ensure that things are added to our self.pending_ queues, it won't process them. They will be lost.
                 await workflow.wait_condition(
                     lambda: workflow.all_handlers_finished()
                 )
-                workflow.continue_as_new(args=[self.input_items, True])
+                workflow.continue_as_new(args=[self.input_items])
 
-    async def _process_chat_message(self, message: Message) -> list[ChatInteraction]:
-        workflow.logger.info(f"processing user message {message}")
+    async def _process_chat_message(self, message: str) -> list[ChatInteraction]:
+        workflow.logger.info(f"processing chat message: {message}")
         length = len(self.chat_history)
 
-        if message.source == Source.USER:
-            chat_interaction = ChatInteraction(
-                user_prompt=message.message,
-                text_response=""
-            )
-            try:
-                await self._process_user_message(chat_interaction, message)
-            except InputGuardrailTripwireTriggered as e:
-                workflow.logger.info(f"Guardrail Tripwire triggered {e}")
-                await self._handle_guardrail_failure(chat_interaction, e)
-        else:
-            workflow.logger.info(f"processing message of type {message.source}")
+        chat_interaction = ChatInteraction(
+            user_prompt=message,
+            text_response=""
+        )
+        try:
+            await self._process_user_message(chat_interaction, message)
+        except InputGuardrailTripwireTriggered as e:
+            workflow.logger.info(f"Guardrail Tripwire triggered {e}")
+            await self._handle_guardrail_failure(chat_interaction, e)
 
-            # Update the status (e.g. use SSE to update the client)
-            # TODO: Consider filtering which messages we want to update the client
-            result = await workflow.execute_activity(
-                                ServerSideEvents.update_status,
-                                args=[self.sse_endpoint, message.message],
-                                schedule_to_close_timeout=self.sched_to_close_timeout,
-                                retry_policy=self.retry_policy
-            )
-            workflow.logger.info(f"After updating the status, the result is {result}")
+        self.chat_history.append(chat_interaction)
 
         current_details = "\n\n"
         for item in self.chat_history:
@@ -253,19 +244,27 @@ class WealthManagementWorkflow:
 
         workflow.set_current_details(current_details)
 
-        # save the conversation to the DB
-        wf_id = workflow.info().workflow_id
-        workflow.logger.info(f"Saving the conversation ==> {self.chat_history}")
-        await workflow.execute_activity(DBActivities.save_conversation,
-                                        args=[wf_id, self.chat_history],
-                                        schedule_to_close_timeout=self.sched_to_close_timeout,
-                                        retry_policy=self.retry_policy)
+        await workflow.execute_local_activity(
+            EventStreamActivities.append_chat_interaction,
+            args=[self.wf_id, chat_interaction],
+            schedule_to_close_timeout=self.sched_to_close_timeout,
+            retry_policy=self.retry_policy)
 
         return self.chat_history[length:]
 
-    async def _process_user_message(self, chat_interaction: ChatInteraction, message: Message):
+    async def _process_status_update(self, status_message: str):
+        workflow.logger.info(f"processing status update: {status_message}")
 
-        self.input_items.append({"content": message.message, "role": "user"})
+        # TODO: Consider filtering which messages we want to update the client
+        status_update = StatusUpdate(status=status_message)
+        result = await workflow.execute_local_activity(
+            EventStreamActivities.append_status_update,
+            args=[self.wf_id, status_update],
+            schedule_to_close_timeout=self.sched_to_close_timeout,
+            retry_policy=self.retry_policy)
+
+    async def _process_user_message(self, chat_interaction: ChatInteraction, message: str):
+        self.input_items.append({"content": message, "role": "user"})
         result = await Runner.run(
             self.current_agent,
             self.input_items,
@@ -283,8 +282,6 @@ class WealthManagementWorkflow:
         chat_interaction.json_response = json_response
         chat_interaction.agent_trace = agent_trace
 
-        self.chat_history.append(chat_interaction)
-
     async def _handle_guardrail_failure(self, chat_interaction, e):
         workflow.logger.info(f"Guardrail tripwire triggered: {e}")
         text_response = "I'm sorry, but I can only help with wealth management questions related to beneficiaries and investments. Please ask me about your beneficiaries, investment accounts, or other wealth management topics."
@@ -297,11 +294,6 @@ class WealthManagementWorkflow:
         chat_interaction.text_response = text_response
         chat_interaction.json_response = ""
         chat_interaction.agent_trace = agent_trace
-        self.chat_history.append(chat_interaction)
-        current_details = "\n\n"
-        for item in self.chat_history:
-            current_details.join(str(item))
-        workflow.set_current_details(current_details)
 
     async def _process_llm_response(self, result):
         text_response = ""
@@ -336,16 +328,12 @@ class WealthManagementWorkflow:
     @workflow.signal
     async def update_account_opening_state(self, state_input: UpdateAccountOpeningStateInput):
         workflow.logger.info(f"Account Opening State changed {state_input.account_name} {state_input.state}")
-        message = Message(message=f"New {state_input.account_name} account status changed: {state_input.state}",
-                          source=Source.CHILD_WORKFLOW
-                          )
-        await self.pending_messages.put(message)
+        status_message = f"New {state_input.account_name} account status changed: {state_input.state}"
+        await self.pending_status_updates.put(status_message)
 
     @workflow.signal
     async def process_user_message(self, message_input: ProcessUserMessageInput):
         workflow.logger.info(f"processing user message {message_input}")
         workflow.logger.info(f"Agent has guardrails: {hasattr(self.current_agent, 'input_guardrails') and self.current_agent.input_guardrails}")
-        message = Message(message=message_input.user_input,
-                          source=Source.USER)
-        await self.pending_messages.put(message)
+        await self.pending_chat_messages.put(message_input.user_input)
 

@@ -9,7 +9,9 @@ function App() {
   const [isChatActive, setIsChatActive] = useState(false);
   const [statusContent, setStatusContent] = useState('');
   const chatWindowRef = useRef(null);
+  const eventCountRef = useRef(0);
   let [isPolling, setIsPolling] = useState(false);
+  const [isWaitingForAIResponse, setIsWaitingForAIResponse] = useState(false);
   const defaultHeaderText = 'Chat session started.';
 
   useEffect(() => {
@@ -35,8 +37,11 @@ function App() {
       // Call the function immediately on start
       pollApi();
 
-      // Set up the interval to poll every 2 second (1000 milliseconds)
-      intervalId = setInterval(pollApi, 2000);
+      // Set up the interval with dynamic frequency:
+      // 2 seconds when waiting for AI response, 5 seconds when waiting for user input
+      const pollingInterval = isWaitingForAIResponse ? 2000 : 5000;
+      console.log(`Setting polling interval to ${pollingInterval}ms (waiting for AI: ${isWaitingForAIResponse})`);
+      intervalId = setInterval(pollApi, pollingInterval);
     }
 
     // The cleanup function is crucial for preventing memory leaks
@@ -45,32 +50,7 @@ function App() {
       clearInterval(intervalId);
       console.log('Polling stopped.');
     };
-  }, [isPolling]); // The effect re-runs whenever the isPolling state changes
-
-  useEffect(() => {
-    // Create a new EventSource instance
-    const eventSource = new EventSource(`${API_BASE_URL}/sse/status/stream`);
-
-    // Listen for 'message' events from the server
-    eventSource.onmessage = (event) => {
-      // The data is a string, so parse it
-      console.log('SSE: The raw data is ', event.data)
-      const newStatus = JSON.parse(event.data);
-      console.log('SSE: The new status is ', newStatus);
-      setStatusContent(newStatus.status);
-    };
-
-    // Listen for errors
-    eventSource.onerror = (err) => {
-      console.error('EventSource failed:', err);
-      eventSource.close();
-    };
-
-    // Clean up the connection when the component unmounts
-    return () => {
-      eventSource.close();
-    };
-  }, []);
+  }, [isPolling, isWaitingForAIResponse]); // The effect re-runs whenever the isPolling or isWaitingForAIResponse state changes
 
   const handleStartChat = async () => {
     try {
@@ -83,12 +63,15 @@ function App() {
         if (result.message === 'Workflow started.') {
           setMessages([{text: defaultHeaderText, type: 'bot'}]);
           setIsChatActive(true);
+          eventCountRef.current = 0;
         } else {
           // assume that the workflow is still running
           await fetchChatHistory('Previous history');
           setIsChatActive(true);
         }
         setSessionId(newSessionId);
+        setIsPolling(true); // Start polling immediately when chat becomes active
+        setIsWaitingForAIResponse(false); // Start with slower polling until user sends a message
       } else {
         setMessages( [{text: `Bad/invalid response from API: ${response.status}`, type: 'bot'}]);
       }
@@ -107,10 +90,10 @@ function App() {
     const userMessage = { text: input, type: 'user' };
     setMessages(prev => [...prev, userMessage]);
     setInput('');
+    setIsWaitingForAIResponse(true); // Switch to faster polling (2s) while waiting for AI response
     console.log("before sending the prompt, messages are ", messages);
 
     try {
-      setIsPolling(false);
       const encodedInput = encodeURIComponent(input);
       const response = await fetch(`${API_BASE_URL}/send-prompt?prompt=${encodedInput}`, {
         method: 'POST',
@@ -118,7 +101,6 @@ function App() {
       });
       // const data =
       await response.json();
-      setIsPolling(true);
       // if (data.response && data.response.length > 0) {
       //   console.log("data coming back is ", data.response[0].text_response)
       //   // nothing to do
@@ -143,6 +125,8 @@ function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ session_id: sessionId }),
       });
+      setIsPolling(false);
+      setIsWaitingForAIResponse(false); // Reset polling state
       setMessages(prev => [...prev, { text: 'Chat session ended.', type: 'bot' }]);
       setSessionId(null);
       setIsChatActive(false);
@@ -154,37 +138,69 @@ function App() {
   const handleToggleChatState = () => {
     if (isChatActive) {
       handleEndChat();
-      setIsPolling(false);
     } else {
       handleStartChat();
       setStatusContent('');
-      // won't start polling until we send the first message
     }
   };
 
-    const fetchChatHistory = async (headerText) => {
+  const fetchChatHistory = async (headerText) => {
+    const currentEventCount = eventCountRef.current;
+    console.log("fetching chat history, event count is ", currentEventCount);
+
+    let data = null;
     // if (!sessionId) return;
     try {
-      console.log("Getting ready to get the chat history...")
-      const response = await fetch(`${API_BASE_URL}/get-chat-history`);
-      const data = await response.json();
-      if (data === null || data.length === 0) {
-        return;
-      }
-      let headerArray = [{text: headerText, type: 'bot'}];
-      const formattedHistory = headerArray.concat(data.flatMap(item => [
-            { text: item.user_prompt, type: 'user' },
-            { text: item.text_response, type: 'bot' }
-         ]));
-      // console.log("formattedHistory is ", formattedHistory);
-      if (messages.length < formattedHistory.length) {
-         setMessages(formattedHistory);
-      }
+      const response = await fetch(`${API_BASE_URL}/get-chat-history?from_index=${currentEventCount}`);
+      data = await response.json();
     } catch (error) {
       console.error('Error fetching chat history:', error);
+      return;
+    }
+
+    if (data === null || data.length === 0) {
+      return;
+    }
+
+    const newEventCount = currentEventCount + data.length;
+    console.log(`Processing ${data.length} new events, eventCount: ${currentEventCount} -> ${newEventCount}`);
+    
+    eventCountRef.current = newEventCount;
+
+    const newMessages = [];
+    let receivedBotResponse = false;
+    data.forEach(item => {
+      switch (item.type) {
+        case 'chat_interaction':
+          newMessages.push(
+            { text: item.content.user_prompt, type: 'user' },
+            { text: item.content.text_response, type: 'bot' }
+          );
+          receivedBotResponse = true;
+          break;
+        case 'status_update':
+          setStatusContent(item.content.status);
+          break;
+      }
+    });
+    
+    if (receivedBotResponse) {
+      setIsWaitingForAIResponse(false);
+    }
+    if (newMessages.length > 0) {
+      setMessages(prev => {
+        // Check if first new message is duplicate of last existing message
+        if (prev.length > 0 && 
+            newMessages[0].type === prev[prev.length - 1].type && 
+            newMessages[0].text === prev[prev.length - 1].text) {
+          // Skip the duplicate first message
+          return [...prev, ...newMessages.slice(1)];
+        }
+        
+        return [...prev, ...newMessages];
+      });
     }
   };
-
 
   return (
     <div className="App">

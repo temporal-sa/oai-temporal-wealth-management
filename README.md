@@ -23,7 +23,7 @@ You can run through the scenarios with the Temporal version using a [Web Applica
 * [Poetry](https://python-poetry.org/docs/) - Python Dependency Management
 * [OpenAI API Key] (https://platform.openai.com/api-keys) - Your key to accessing OpenAI's LLM
 * [Temporal CLI](https://docs.temporal.io/cli#install) - Local Temporal service
-* [Redis](https://redis.io/downloads/) - Stores conversation history and real-time status updates
+* [Redis](https://redis.io/downloads/) - Workflow writes conversation history, API reads from it
 
 ## Set up Python Environment
 ```bash
@@ -42,8 +42,6 @@ It should look something like this:
 ```text
 export OPENAI_API_KEY=sk-proj-....
 ```
-
-## Getting Started
 
 See the OpenAI Agents SDK Version [here](src/oai_supervisor/README.md)
 And the Temporal version of this example is located [here](src/temporal_supervisor/README.md)

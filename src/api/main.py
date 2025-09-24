@@ -1,16 +1,20 @@
+import json
+
+import asyncio
 from contextlib import asynccontextmanager
 from typing import Optional, AsyncGenerator
 
-from fastapi import FastAPI, HTTPException, Request, Query
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from temporalio.client import Client
-from temporalio.common import WorkflowIDReusePolicy
+from fastapi.responses import StreamingResponse
+from temporalio.client import Client, WithStartWorkflowOperation
+from temporalio.common import WorkflowIDReusePolicy, WorkflowIDConflictPolicy
 from temporalio.exceptions import TemporalError
 from temporalio.contrib.openai_agents import OpenAIAgentsPlugin
 from temporalio.service import RPCError
 
-from common.event_stream_manager import EventStreamManager
 from common.client_helper import ClientHelper
+from common.db_manager import DBManager
 from common.user_message import ProcessUserMessageInput
 from temporal_supervisor.claim_check.claim_check_plugin import ClaimCheckPlugin
 from temporal_supervisor.workflows.supervisor_workflow import WealthManagementWorkflow
@@ -55,12 +59,10 @@ def root():
     return {"message": "OpenAI Agent SDK + Temporal Agent!"}
 
 @app.get("/get-chat-history")
-async def get_chat_history(
-    from_index: int = Query(0, description="Get events starting from this index")
-):
+async def get_chat_history():
     """ Retrieves the chat history from Redis """
     try:
-        history = await EventStreamManager().get_events_from_index(WORKFLOW_ID, from_index)
+        history = await DBManager().read(WORKFLOW_ID)
         if history is None:
             return ""
 
@@ -78,6 +80,14 @@ async def get_chat_history(
 
 @app.post("/send-prompt")
 async def send_prompt(prompt: str):
+    # Start or update the workflow
+    start_op = WithStartWorkflowOperation(
+        WealthManagementWorkflow.run,
+        id=WORKFLOW_ID,
+        task_queue=task_queue,
+        id_conflict_policy=WorkflowIDConflictPolicy.USE_EXISTING,
+    )
+
     print(f"Received prompt {prompt}")
 
     message = ProcessUserMessageInput(
@@ -113,10 +123,11 @@ UPDATE_STATUS_NAME = "update_status"
 @app.post("/start-workflow")
 async def start_workflow(request: Request):
     try:
+        sse_url = str(request.url_for(UPDATE_STATUS_NAME))
         # start the workflow
         await temporal_client.start_workflow(
             WealthManagementWorkflow.run,
-            args=[],
+            args=[sse_url],
             id=WORKFLOW_ID,
             task_queue=task_queue,
             id_reuse_policy=WorkflowIDReusePolicy.ALLOW_DUPLICATE
@@ -130,3 +141,33 @@ async def start_workflow(request: Request):
         return {
             "message": f"An error occurred starting the workflow {e}"
         }
+
+# In-memory list to hold active SSE client connections
+# Note that this does not scale past one instance of the API
+connected_clients = []
+
+# SSE generator function
+async def event_generator(request: Request):
+    client_queue = asyncio.Queue()
+    connected_clients.append(client_queue)
+    try:
+        while True:
+            # Wait for a new message to be put in the queue
+            message = await client_queue.get()
+            yield f"data: {message}\n\n"
+    except asyncio.CancelledError:
+        connected_clients.remove(client_queue)
+        raise
+
+# Endpoint for clients to connect and receive events
+@app.get("/sse/status/stream")
+async def sse_endpoint(request: Request):
+    return StreamingResponse(event_generator(request), media_type="text/event-stream")
+
+# Endpoint for the Temporal Workflow to send updates
+@app.post("/sse/status/update", name=UPDATE_STATUS_NAME)
+async def update_status(data: dict):
+    message = json.dumps(data)
+    for queue in connected_clients:
+        await queue.put(message)
+    return {"message": "Status updated"}

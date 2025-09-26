@@ -18,8 +18,6 @@ from temporal_supervisor.workflows.supervisor_workflow import WealthManagementWo
 temporal_client: Optional[Client] = None
 task_queue: Optional[str] = None
 
-WORKFLOW_ID = "oai-temporal-agent"
-
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     # app startup
@@ -56,11 +54,12 @@ def root():
 
 @app.get("/get-chat-history")
 async def get_chat_history(
+    workflow_id: str,
     from_index: int = Query(0, description="Get events starting from this index")
 ):
     """ Retrieves the chat history from Redis """
     try:
-        history = await EventStreamManager().get_events_from_index(WORKFLOW_ID, from_index)
+        history = await EventStreamManager().get_events_from_index(workflow_id=workflow_id, from_index=from_index)
         if history is None:
             return ""
 
@@ -77,7 +76,7 @@ async def get_chat_history(
         )
 
 @app.post("/send-prompt")
-async def send_prompt(prompt: str):
+async def send_prompt(workflow_id: str, prompt: str):
     print(f"Received prompt {prompt}")
 
     message = ProcessUserMessageInput(
@@ -85,7 +84,7 @@ async def send_prompt(prompt: str):
     )
 
     try:
-        handle = temporal_client.get_workflow_handle(workflow_id=WORKFLOW_ID)
+        handle = temporal_client.get_workflow_handle(workflow_id=workflow_id)
         await handle.signal(WealthManagementWorkflow.process_user_message,
                             args=[message])
         print(f"Sent message {message}")
@@ -97,10 +96,10 @@ async def send_prompt(prompt: str):
 
 
 @app.post("/end-chat")
-async def end_chat():
+async def end_chat(workflow_id: str):
     """Sends an end_workflow signal to the workflow."""
     try:
-        handle = temporal_client.get_workflow_handle(WORKFLOW_ID)
+        handle = temporal_client.get_workflow_handle(workflow_id=workflow_id)
         await handle.signal("end_workflow")
         return {"message": "End chat signal sent."}
     except TemporalError as e:
@@ -111,13 +110,13 @@ async def end_chat():
 UPDATE_STATUS_NAME = "update_status"
 
 @app.post("/start-workflow")
-async def start_workflow(request: Request):
+async def start_workflow(workflow_id: str):
     try:
         # start the workflow
         await temporal_client.start_workflow(
             WealthManagementWorkflow.run,
             args=[],
-            id=WORKFLOW_ID,
+            id=workflow_id,
             task_queue=task_queue,
             id_reuse_policy=WorkflowIDReusePolicy.ALLOW_DUPLICATE
         )

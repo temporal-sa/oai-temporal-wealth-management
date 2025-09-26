@@ -13,6 +13,8 @@ function App() {
   let [isPolling, setIsPolling] = useState(false);
   const [isWaitingForAIResponse, setIsWaitingForAIResponse] = useState(false);
   const defaultHeaderText = 'Chat session started.';
+  const workflow_id_prefix = 'oai-temporal-agent-';
+  const [workflow_id, setWorkflowId] = useState('');
 
   useEffect(() => {
     if (chatWindowRef.current) {
@@ -55,29 +57,35 @@ function App() {
   const handleStartChat = async () => {
     try {
       let response;
-      response = await fetch(`${API_BASE_URL}/start-workflow`, { method: 'POST' });
+      const newSessionId = Math.random().toString(36).substring(2, 15);
+      const newWorkflowId = workflow_id_prefix + newSessionId;
+      console.log(`Getting ready to start workflow with id ${newWorkflowId}`);
+      response = await fetch(`${API_BASE_URL}/start-workflow?workflow_id=${newWorkflowId}`, { method: 'POST' });
       if (response.ok) {
         const result = await response.json();
-        const newSessionId = Math.random().toString(36).substring(2, 15);
+
         // check to see if it has truly been started
         if (result.message === 'Workflow started.') {
+          console.log('Workflow has been started.');
+          setWorkflowId(newWorkflowId);
           setMessages([{text: defaultHeaderText, type: 'bot'}]);
           setIsChatActive(true);
           eventCountRef.current = 0;
+          setSessionId(newSessionId);
+          setIsPolling(true); // Start polling immediately when chat becomes active
+          setIsWaitingForAIResponse(false); // Start with slower polling until user sends a message
         } else {
-          // assume that the workflow is still running
-          await fetchChatHistory('Previous history');
-          setIsChatActive(true);
+          setMessages([{text: `Workflow didn't start. Error ${result.message}`, type: 'bot'}]);
+          setIsPolling(false);
         }
-        setSessionId(newSessionId);
-        setIsPolling(true); // Start polling immediately when chat becomes active
-        setIsWaitingForAIResponse(false); // Start with slower polling until user sends a message
       } else {
         setMessages( [{text: `Bad/invalid response from API: ${response.status}`, type: 'bot'}]);
+        setIsPolling(false);
       }
     } catch (error) {
       console.error('Error starting chat session:', error);
       setMessages([{ text: 'Failed to start chat session.', type: 'bot' }]);
+      setIsPolling(false);
     }
   };
 
@@ -95,7 +103,7 @@ function App() {
 
     try {
       const encodedInput = encodeURIComponent(input);
-      const response = await fetch(`${API_BASE_URL}/send-prompt?prompt=${encodedInput}`, {
+      const response = await fetch(`${API_BASE_URL}/send-prompt?workflow_id=${workflow_id}&prompt=${encodedInput}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
       });
@@ -120,7 +128,7 @@ function App() {
       return;
     }
     try {
-      await fetch(`${API_BASE_URL}/end-chat`, {
+      await fetch(`${API_BASE_URL}/end-chat?workflow_id=${workflow_id}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ session_id: sessionId }),
@@ -132,6 +140,7 @@ function App() {
       setIsChatActive(false);
     } catch (error) {
         console.error('Error ending chat session:', error);
+        setIsPolling(false);
     }
   };
 
@@ -151,7 +160,7 @@ function App() {
     let data = null;
     // if (!sessionId) return;
     try {
-      const response = await fetch(`${API_BASE_URL}/get-chat-history?from_index=${currentEventCount}`);
+      const response = await fetch(`${API_BASE_URL}/get-chat-history?workflow_id=${workflow_id}&from_index=${currentEventCount}`);
       data = await response.json();
     } catch (error) {
       console.error('Error fetching chat history:', error);
@@ -181,6 +190,8 @@ function App() {
         case 'status_update':
           setStatusContent(item.content.status);
           break;
+        default:
+          // No Default
       }
     });
     

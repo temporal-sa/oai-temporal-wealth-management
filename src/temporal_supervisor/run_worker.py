@@ -12,11 +12,10 @@ from temporalio.worker import Worker
 
 from common.client_helper import ClientHelper
 from temporal_supervisor.activities.clients import ClientActivities
-from temporal_supervisor.activities.db_activities import DBActivities
+from temporal_supervisor.activities.event_stream_activities import EventStreamActivities
 from temporal_supervisor.activities.open_account import OpenAccount
 from temporalio.contrib.openai_agents import OpenAIAgentsPlugin
 
-from temporal_supervisor.activities.server_side_events import ServerSideEvents
 from temporal_supervisor.claim_check.claim_check_plugin import ClaimCheckPlugin
 
 from temporal_supervisor.activities.beneficiaries import Beneficiaries
@@ -99,11 +98,10 @@ async def main():
             OpenAccount.get_current_client_info,
             OpenAccount.update_client_details,
             OpenAccount.approve_kyc,
-            DBActivities.read_conversation,
-            DBActivities.save_conversation,
-            DBActivities.delete_conversation,
-            ServerSideEvents.update_status,
-        ]
+            EventStreamActivities.append_chat_interaction,
+            EventStreamActivities.append_status_update,
+            EventStreamActivities.delete_conversation,
+        ],
     )
     print(f"Running worker on {client_helper.address}")
     await worker.run()

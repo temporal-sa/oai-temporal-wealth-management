@@ -13,6 +13,11 @@ Be sure to follow the instructions to run the API, which can be found [here](../
 Note that the web application communicates directly with the API and the API is what 
 communicates with Temporal running locally or in the cloud.
 
+## Install Dependencies
+```bash
+npm install
+```
+
 ## Running the Web App
 ```bash
 cd src/frontend

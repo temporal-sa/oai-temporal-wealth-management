@@ -19,10 +19,9 @@ The overall application architecture looks like this:
 
 There is a React UX which is where the customer interacts with the application. 
 The React UX leverages an API which exposes endpoints to start a workflow, send a prompt,
-retrieving the chat history, ending the chat. It also implements Server Side Events (SSE)
-which the React UX registers with and allows the back end processes to notify the UX as 
-things change. SSE is leveraged as the Open Account child workflow progresses through the
-different steps. 
+retrieving the chat history, and ending the chat. The React frontend uses adaptive polling
+to retrieve new events from Redis, providing real-time status updates as the Open Account 
+child workflow progresses through the different steps. 
 
 The API in turn, communicates with Temporal to start workflows and send signals. Finally, 
 the worker contains the two workflows - supervisor and open account - which contain the 
@@ -52,16 +51,17 @@ It should look something like this:
 ```bash
 export OPENAI_API_KEY=sk-proj-....
 ```
-## Set up Redis for the conversation store
+## Set up Redis
 
-If you don't have an existing Redis server, you can run one locally after installing it. 
+Redis is used for storing conversation history and providing real-time status updates. If you don't have an existing Redis server, you can run one locally after installing it. 
+
 In a new terminal / shell run the following command:
 
 ```bash
 redis-server
 ```
 
-By default, the application expects to find Redis running locally. You can override the location of redis
+By default, the application expects to find Redis running locally. You can override the location of Redis
 by setting the environment variables:
 
 ```bash

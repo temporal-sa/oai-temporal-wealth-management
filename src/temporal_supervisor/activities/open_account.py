@@ -20,16 +20,18 @@ client_helper = ClientHelper()
 @function_tool
 async def open_new_investment_account(account_input: OpenInvestmentAccountInput) -> str:
     # We are in the context of the main workflow
-    workflow_id = f"OpenAccount-{account_input.client_id}-{account_input.account_name}"
+    # retrieve the current workflow id
+    current_workflow_id = workflow.info().workflow_id
+    child_workflow_id = f"OpenAccount-{current_workflow_id}-{account_input.client_id}-{account_input.account_name}"
     await workflow.start_child_workflow(
         OpenInvestmentAccountWorkflow.run,
         args=[account_input],
-        id=workflow_id,
+        id=child_workflow_id,
         parent_close_policy=ParentClosePolicy.TERMINATE,
         task_queue=client_helper.taskQueueOpenAccount
     )
     # can't return the handle as we need something serializable for the other activities
-    return workflow_id
+    return child_workflow_id
 
 class OpenAccount:
 

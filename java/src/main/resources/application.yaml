@@ -9,4 +9,7 @@ spring:
     namespace: default
     connection:
       target: 127.0.0.1:7233
-
+  # Redis configuration
+  redis:
+    host: localhost
+    port: 6379

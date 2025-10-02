@@ -8,4 +8,5 @@ if [ -z "$1" ]
     exit 1
 fi
 export TEMPORAL_TASK_QUEUE_OPEN_ACCOUNT="$1"
+source ../setclaimcheck.sh
 ./gradlew runWorker

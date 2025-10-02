@@ -1,6 +1,7 @@
 package io.temporal.demo.wealthmanagement;
 
 import io.temporal.client.WorkflowClient;
+import io.temporal.common.converter.DataConverter;
 import io.temporal.demo.wealthmanagement.activities.UpdateParentWorkflow;
 import io.temporal.demo.wealthmanagement.activities.UpdateParentWorkflowImpl;
 import io.temporal.demo.wealthmanagement.common.ServerInfo;
@@ -11,13 +12,17 @@ import io.temporal.worker.Worker;
 import io.temporal.worker.WorkerFactory;
 import io.temporal.workflow.Workflow;
 import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.cache.annotation.EnableCaching;
 
 import java.util.UUID;
 
 @SpringBootApplication
+@EnableCaching
 public class StartTheWorker implements CommandLineRunner {
 
     public static void main(String[] args) {
@@ -27,14 +32,15 @@ public class StartTheWorker implements CommandLineRunner {
         SpringApplication.run(StartTheWorker.class, args);
     }
 
+    @Autowired
+    private WorkflowClient client;
+
     @Override
     public void run(String... args) throws Exception {
         Logger log = Workflow.getLogger(StartTheWorker.class);
         log.info("Starting the workers...");
         // Since we're disabling the workers, we need to
         // add them here
-        WorkflowServiceStubs service = TemporalClient.getWorkflowServiceStubs();
-        WorkflowClient client = WorkflowClient.newInstance(service);
         WorkerFactory workerFactory = WorkerFactory.newInstance(client);
         Worker worker = workerFactory.newWorker(ServerInfo.getTaskqueueOpenAccount());
         worker.registerWorkflowImplementationTypes(OpenInvestmentAccountWorkflowImpl.class);

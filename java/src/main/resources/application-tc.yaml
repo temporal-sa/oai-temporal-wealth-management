@@ -13,3 +13,7 @@ spring:
         # override with -Dspring.temporal.connection.mtls.insecure=true
         insecure-trust-manager: false # or add ca.pem to java default truststore
         # more configuration options https://github.com/temporalio/sdk-java/tree/master/temporal-spring-boot-autoconfigure-alpha#mtls
+  # Redis configuration
+  redis:
+    host: localhost
+    port: 6379

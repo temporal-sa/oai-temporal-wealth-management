@@ -10,6 +10,4 @@ if [ ! -z "$1" ]
     echo "*** Using $1 as the Task Queue for the Open Account workflow. ***"
     export TEMPORAL_TASK_QUEUE_OPEN_ACCOUNT="$1"
     echo "*** Remember to also start the Java Workflow ***"
-    echo "*** Also, the Java Workflow doesn't currently have a Payload converter"
-    echo "*** which means that you need to disable the Claim Check"
 fi

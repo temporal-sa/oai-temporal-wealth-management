@@ -31,6 +31,10 @@ public class ServerInfo {
         return getEnv("TEMPORAL_TASK_QUEUE_OPEN_ACCOUNT", getTaskqueue());
     }
 
+    public static Boolean useClaimCheck() {
+        return Boolean.parseBoolean(getEnv("USE_CLAIM_CHECK", "false"));
+    }
+
     public static Map<String, String> getServerInfo() {
         Map<String, String> info = new HashMap<>();
         info.put("certPath", getCertPath());
@@ -38,6 +42,7 @@ public class ServerInfo {
         info.put("namespace", getNamespace());
         info.put("address", getAddress());
         info.put("taskQueue", getTaskqueue());
+        info.put("useClaimCheck", useClaimCheck().toString());
         return info;
     }
 

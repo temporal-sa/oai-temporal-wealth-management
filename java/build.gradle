@@ -10,8 +10,8 @@ group = 'io.temporal.springboot.example'
 // version = '0.0.1-SNAPSHOT'
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
 }
 
 ext {
@@ -32,6 +32,7 @@ repositories {
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter'
     implementation "org.springframework.boot:spring-boot-starter-actuator"
+    implementation "org.springframework.boot:spring-boot-starter-data-redis"
     implementation "io.temporal:temporal-spring-boot-starter:$javaSDKVersion"
     implementation 'org.apache.commons:commons-lang3:3.18.0'
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.2'

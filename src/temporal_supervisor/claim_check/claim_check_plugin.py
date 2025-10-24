@@ -27,8 +27,14 @@ class ClaimCheckPlugin(Plugin):
                 payload_converter_class=default_converter_class
             )
 
+    def init_client_plugin(self, next: Plugin) -> None:
+        """Initialize the plugin chain"""
+        self.next_plugin = next
+
     def configure_client(self, config: ClientConfig) -> ClientConfig:
         config["data_converter"] = self.get_data_converter(config)
-        return super().configure_client(config)
+        return self.next_plugin.configure_client(config)
 
-
+    async def connect_service_client(self, config):
+        """Pass through to next plugin in chain"""
+        return await self.next_plugin.connect_service_client(config)

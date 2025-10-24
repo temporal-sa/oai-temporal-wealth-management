@@ -3,20 +3,22 @@ import os
 from temporalio.client import Plugin, ClientConfig
 from temporalio.converter import DataConverter
 
+from common.redis_config import RedisConfig
 from common.util import str_to_bool
 from temporal_supervisor.claim_check.claim_check_codec import ClaimCheckCodec
 
 class ClaimCheckPlugin(Plugin):
     def __init__(self):
         self.useClaimCheck = str_to_bool(os.getenv("USE_CLAIM_CHECK", "False"))
-        self.redisHost = os.getenv("REDIS_HOST", "localhost")
-        self.redisPort = int(os.getenv("REDIS_PORT", "6379"))
+
+        # Redis configuration
+        self.redis_config = RedisConfig()
 
     def get_data_converter(self, config: ClientConfig) -> DataConverter:
         default_converter_class = config["data_converter"].payload_converter_class
         if self.useClaimCheck:
             print(f"using claim check codec {self.useClaimCheck}")
-            claim_check_codec = ClaimCheckCodec(self.redisHost, self.redisPort)
+            claim_check_codec = ClaimCheckCodec(self.redis_config)
 
             return DataConverter(
                 payload_converter_class=default_converter_class,

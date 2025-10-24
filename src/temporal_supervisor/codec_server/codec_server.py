@@ -5,6 +5,7 @@ from aiohttp import hdrs, web
 from google.protobuf import json_format
 from temporalio.api.common.v1 import Payload, Payloads
 
+from common.redis_config import RedisConfig
 from temporal_supervisor.claim_check.claim_check_codec import ClaimCheckCodec
 
 def build_codec_server() -> web.Application:
@@ -42,7 +43,8 @@ def build_codec_server() -> web.Application:
         return resp
 
     # Build app
-    codec = ClaimCheckCodec()
+    config = RedisConfig()
+    codec = ClaimCheckCodec(config=config)
     app = web.Application()
     app.add_routes(
         [

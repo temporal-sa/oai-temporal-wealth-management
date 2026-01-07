@@ -157,13 +157,13 @@ cd src/temporal_supervisor
 ### Start the API
 
 ```bash
-cd src/temporal_supervisor/api
+cd src/api
 ./startlocalapi.sh
 ```
 ### Start the UX
 
 ```bash
-cd src/temporal_supervisor/frontend
+cd src/frontend
 npm start
 ```
 
@@ -201,13 +201,13 @@ cd src/temporal_supervisor
 ### Start the API
 
 ```bash
-cd src/temporal_supervisor/api
+cd src/api
 ./startcloudapi.sh
 ```
 ### Start the UX
 
 ```bash
-cd src/temporal_supervisor/frontend
+cd src/frontend
 npm start
 ```
 

@@ -1,11 +1,11 @@
-from importlib.metadata import metadata
-
 import uuid
 import redis.asyncio as redis
-from typing import Iterable, List
+from typing import Iterable, List, Optional
 
 from temporalio.api.common.v1 import Payload
 from temporalio.converter import PayloadCodec
+
+from common.redis_config import RedisConfig
 
 #
 # Substitutes the payload for a GUID
@@ -13,8 +13,8 @@ from temporalio.converter import PayloadCodec
 #
 class ClaimCheckCodec(PayloadCodec):
 
-    def __init__(self, redis_host: str = "localhost", redis_port: int = 6379):
-        self.redis_client = redis.Redis(host=redis_host, port=redis_port)
+    def __init__(self, config: RedisConfig):
+        self.redis_client = redis.Redis(host=config.hostname, port=config.port)
 
     #
     # TODO: Figure out when/how to close the redis_client

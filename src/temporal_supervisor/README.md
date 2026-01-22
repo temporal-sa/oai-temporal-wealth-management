@@ -174,13 +174,13 @@ cd java
 ### Start the API
 
 ```bash
-cd src/temporal_supervisor/api
+cd src/api
 ./startlocalapi.sh
 ```
 ### Start the UX
 
 ```bash
-cd src/temporal_supervisor/frontend
+cd src/frontend
 npm start
 ```
 
@@ -195,18 +195,18 @@ cd src/temporal_supervisor
 
 ## Running the Demo in Temporal Cloud
 
-Copy the setcloudenv.example to setcloudenv.sh in the src/temporal_supervisor folder.
+Copy the setcloudenv.example, located in the src/temporal_supervisor folder to the project root and name it setcloudenv.sh .
 
 ```bash
-cp setcloundenv.sh setcloudenv.sh
+cp  src/temporal_supervisor/setcloudenv.example setcloudenv.sh
 ```
 
 Edit setcloudenv.sh to match your Temporal Cloud account:
 ```bash
 export TEMPORAL_ADDRESS=<namespace>.<accountID>.tmprl.cloud:7233
 export TEMPORAL_NAMESPACE=<namespace>.<accountID>
-export TEMPORAL_CERT_PATH="/path/to/cert.pem"
-export TEMPORAL_KEY_PATH="/path/to/key.key"
+export TEMPORAL_TLS_CLIENT_CERT_PATH="/path/to/cert.pem"
+export TEMPORAL_TLS_CLIENT_KEY_PATH="/path/to/key.key"
 ```
 
 ### Start the Worker
@@ -233,13 +233,13 @@ cd java
 ### Start the API
 
 ```bash
-cd src/temporal_supervisor/api
+cd src/api
 ./startcloudapi.sh
 ```
 ### Start the UX
 
 ```bash
-cd src/temporal_supervisor/frontend
+cd src/frontend
 npm start
 ```
 

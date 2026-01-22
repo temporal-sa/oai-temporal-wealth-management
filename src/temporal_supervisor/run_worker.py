@@ -73,9 +73,7 @@ async def main():
         ]
     print(f"address is {client_helper.address} and plugins are {plugins}")
     plugins = plugins
-    client = await Client.connect(target_host=client_helper.address,
-                                  namespace=client_helper.namespace,
-                                  tls=client_helper.get_tls_config(),
+    client = await Client.connect(**client_helper.client_config,
                                   plugins=plugins)
 
     # for the demo, we're using the same task queue as

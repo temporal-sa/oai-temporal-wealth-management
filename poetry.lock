@@ -925,14 +925,14 @@ typing-extensions = ">=4.12.2"
 
 [[package]]
 name = "openai"
-version = "1.97.1"
+version = "1.109.1"
 description = "The official Python library for the openai API"
 optional = false
 python-versions = ">=3.8"
 groups = ["main"]
 files = [
-    {file = "openai-1.97.1-py3-none-any.whl", hash = "sha256:4e96bbdf672ec3d44968c9ea39d2c375891db1acc1794668d8149d5fa6000606"},
-    {file = "openai-1.97.1.tar.gz", hash = "sha256:a744b27ae624e3d4135225da9b1c89c107a2a7e5bc4c93e5b7b5214772ce7a4e"},
+    {file = "openai-1.109.1-py3-none-any.whl", hash = "sha256:6bcaf57086cf59159b8e27447e4e7dd019db5d29a438072fbd49c290c7e65315"},
+    {file = "openai-1.109.1.tar.gz", hash = "sha256:d173ed8dbca665892a6db099b4a2dfac624f94d20a93f46eb0b56aae940ed869"},
 ]
 
 [package.dependencies]
@@ -953,28 +953,30 @@ voice-helpers = ["numpy (>=2.0.2)", "sounddevice (>=0.5.1)"]
 
 [[package]]
 name = "openai-agents"
-version = "0.2.3"
+version = "0.3.2"
 description = "OpenAI Agents SDK"
 optional = false
 python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "openai_agents-0.2.3-py3-none-any.whl", hash = "sha256:15c5602de7076a5df6d11f07a18ffe0cf4f6811f6135b301acdd1998398a6d5c"},
-    {file = "openai_agents-0.2.3.tar.gz", hash = "sha256:95d4ad194c5c0cf1a40038cb701eee8ecdaaf7698d87bb13e3c2c5cff80c4b4d"},
+    {file = "openai_agents-0.3.2-py3-none-any.whl", hash = "sha256:55e02c57f2aaf3170ff0aa0ab7c337c28fd06b43b3bb9edc28b77ffd8142b425"},
+    {file = "openai_agents-0.3.2.tar.gz", hash = "sha256:b71ac04ee9f502f1bc0f4d142407df4ec69db4442db86c4da252b4558fa90cd5"},
 ]
 
 [package.dependencies]
 griffe = ">=1.5.6,<2"
 mcp = {version = ">=1.11.0,<2", markers = "python_version >= \"3.10\""}
-openai = ">=1.96.1,<2"
+openai = ">=1.107.1,<2"
 pydantic = ">=2.10,<3"
 requests = ">=2.0,<3"
 types-requests = ">=2.0,<3"
 typing-extensions = ">=4.12.2,<5"
 
 [package.extras]
+encrypt = ["cryptography (>=45.0,<46)"]
 litellm = ["litellm (>=1.67.4.post1,<2)"]
 realtime = ["websockets (>=15.0,<16)"]
+sqlalchemy = ["asyncpg (>=0.29.0)", "sqlalchemy (>=2.0)"]
 viz = ["graphviz (>=0.17)"]
 voice = ["numpy (>=2.2.0,<3) ; python_version >= \"3.10\"", "websockets (>=15.0,<16)"]
 
@@ -1625,30 +1627,30 @@ full = ["httpx (>=0.27.0,<0.29.0)", "itsdangerous", "jinja2", "python-multipart 
 
 [[package]]
 name = "temporalio"
-version = "1.15.0"
+version = "1.18.1"
 description = "Temporal.io Python SDK"
 optional = false
 python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "temporalio-1.15.0-cp39-abi3-macosx_10_12_x86_64.whl", hash = "sha256:74bc5cc0e6bdc161a43015538b0821b8713f5faa716c4209971c274b528e0d47"},
-    {file = "temporalio-1.15.0-cp39-abi3-macosx_11_0_arm64.whl", hash = "sha256:ee8001304dae5723d79797516cfeebe04b966fdbdf348e658fce3b43afdda3cd"},
-    {file = "temporalio-1.15.0-cp39-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:8febd1ac36720817e69c2176aa4aca14a97fe0b83f0d2449c0c730b8f0174d02"},
-    {file = "temporalio-1.15.0-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:202d81a42cafaed9ccc7ccbea0898838e3b8bf92fee65394f8790f37eafbaa63"},
-    {file = "temporalio-1.15.0-cp39-abi3-win_amd64.whl", hash = "sha256:aae5b18d7c9960238af0f3ebf6b7e5959e05f452106fc0d21a8278d78724f780"},
-    {file = "temporalio-1.15.0.tar.gz", hash = "sha256:a4bc6ca01717880112caab75d041713aacc8263dc66e41f5019caef68b344fa0"},
+    {file = "temporalio-1.18.1-cp39-abi3-macosx_10_12_x86_64.whl", hash = "sha256:748c0ec9f48aa1ab612a58fe516d9be28c1dd98194f560fd28a2ab09c6e2ca5e"},
+    {file = "temporalio-1.18.1-cp39-abi3-macosx_11_0_arm64.whl", hash = "sha256:5a789e7c483582d6d7dd49e7d2d2730d82dc94d9342fe71be76fa67afa4e6865"},
+    {file = "temporalio-1.18.1-cp39-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:a9f5cf75c4b887476a2b39d022a9c44c495f5eb1668087a022bd9258d3adddf9"},
+    {file = "temporalio-1.18.1-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:f28a69394bf18b4a1c22a6a784d348e93482858c505d054570b278f0f5e13e9c"},
+    {file = "temporalio-1.18.1-cp39-abi3-win_amd64.whl", hash = "sha256:552b360f9ccdac8d5fc5d19c6578c2f6f634399ccc37439c4794aa58487f7fd5"},
+    {file = "temporalio-1.18.1.tar.gz", hash = "sha256:46394498f8822e61b3ce70d6735de7618f5af0501fb90f3f90f4b4f9e7816d77"},
 ]
 
 [package.dependencies]
 nexus-rpc = "1.1.0"
-protobuf = ">=3.20,<6"
+protobuf = ">=3.20,<7.0.0"
 python-dateutil = {version = ">=2.8.2,<3", markers = "python_full_version < \"3.11.0\""}
 types-protobuf = ">=3.20"
 typing-extensions = ">=4.2.0,<5"
 
 [package.extras]
 grpc = ["grpcio (>=1.48.2,<2)"]
-openai-agents = ["eval-type-backport (>=0.2.2) ; python_full_version < \"3.10.0\"", "openai-agents (>=0.2.3,<0.3)"]
+openai-agents = ["eval-type-backport (>=0.2.2) ; python_full_version < \"3.10.0\"", "mcp (>=1.9.4,<2) ; python_full_version >= \"3.10.0\"", "openai-agents (>=0.3,<0.4)"]
 opentelemetry = ["opentelemetry-api (>=1.11.1,<2)", "opentelemetry-sdk (>=1.11.1,<2)"]
 pydantic = ["pydantic (>=2.0.0,<3)"]
 
@@ -1899,4 +1901,4 @@ propcache = ">=0.2.1"
 [metadata]
 lock-version = "2.1"
 python-versions = "~=3.9"
-content-hash = "e50dc0fd9d454cdbfb3d9a5b655064a18bf3b550b0efe4a75a05a5d77e7ab886"
+content-hash = "7ed4904ee84ad9101670b594c6837c81bf3a3cb940a8ac06004dbf3607608348"

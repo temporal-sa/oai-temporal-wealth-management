@@ -15,9 +15,7 @@ async def approve(workflow_id: str):
 
     client_helper = ClientHelper()
     print(f"address is {client_helper.address}")
-    client = await Client.connect(target_host=client_helper.address,
-                                  namespace=client_helper.namespace,
-                                  tls=client_helper.get_tls_config(),
+    client = await Client.connect(**client_helper.client_config,
                                   plugins=[
                                       # OpenAIAgentsPlugin(),
                                       ClaimCheckPlugin()

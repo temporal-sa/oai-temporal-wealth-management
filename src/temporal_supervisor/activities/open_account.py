@@ -39,9 +39,7 @@ class OpenAccount:
     async def get_workflow_handle(workflow_id) -> WorkflowHandle:
         client_helper = ClientHelper()
         print(f"(OpenAccount.get_temporal_client) address is {client_helper.address}")
-        the_client = await Client.connect(target_host=client_helper.address,
-                                          namespace=client_helper.namespace,
-                                          tls=client_helper.get_tls_config(),
+        the_client = await Client.connect(**client_helper.client_config,
                                           plugins=[
                                              # OpenAIAgentsPlugin(),
                                              ClaimCheckPlugin()

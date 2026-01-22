@@ -126,5 +126,8 @@ class OpenInvestmentAccountWorkflow:
         await self._update_parent_state(state)
 
     async def _update_parent_state(self, state: str) -> None:
+        if workflow.info().parent is None:
+            return
+
         parent_handle = workflow.get_external_workflow_handle(workflow.info().parent.workflow_id)
         await parent_handle.signal("update_account_opening_state", UpdateAccountOpeningStateInput(account_name=self.inputs.account_name, state=state))

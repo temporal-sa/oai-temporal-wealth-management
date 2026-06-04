@@ -7,4 +7,4 @@ source ../../setclaimcheck.sh
 export SKIP_OPENAI_PLUGIN=True
 # Run the worker
 ./startlocalworker.sh &
-poetry run python run_open_account_workflow.py
+uv run python run_open_account_workflow.py

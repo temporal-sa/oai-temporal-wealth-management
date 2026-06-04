@@ -7,11 +7,11 @@ Operations
 
 ## Prerequisites
 
-* [Poetry](https://python-poetry.org/docs/) - Python Dependency Management
+* [uv](https://docs.astral.sh/uv/) - Python Dependency Management
 
 ## Set up Python Environment
 ```bash
-poetry install
+uv sync
 ```
 
 ### Start API Server

@@ -30,13 +30,13 @@ agents and business logic that drive the agentic application.
 
 ## Prerequisites
 
-* [Poetry](https://python-poetry.org/docs/) - Python Dependency Management
+* [uv](https://docs.astral.sh/uv/) - Python Dependency Management
 * [Redis](https://redis.io/downloads/) - Redis - Required to store the conversation history and optional for the Claim Check pattern.
 * [Java JDK](https://www.oracle.com/java/technologies/downloads/) - Java - Optional. Only needed if you want to run the Java Open Investment Account workflow.
 
 ## Set up Python Environment
 ```bash
-poetry install
+uv sync
 ```
 
 ## Set up your OpenAI API Key

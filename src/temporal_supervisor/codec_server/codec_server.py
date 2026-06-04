@@ -1,3 +1,12 @@
+"""Codec server for decoding claim-checked Temporal payloads in the Web UI.
+
+Exposes POST /encode and POST /decode endpoints that the Temporal Web UI
+(default: http://localhost:8233) can use to inspect workflow event history.
+
+Usage:
+    uv run python -m temporal_supervisor.codec_server.codec_server
+"""
+
 from functools import partial
 from typing import Awaitable, Callable, Iterable, List
 
@@ -8,49 +17,50 @@ from temporalio.api.common.v1 import Payload, Payloads
 from common.redis_config import RedisConfig
 from temporal_supervisor.claim_check.claim_check_codec import ClaimCheckCodec
 
+TEMPORAL_UI_ORIGIN = "http://localhost:8233"
+ALLOWED_ORIGINS = {TEMPORAL_UI_ORIGIN, "https://cloud.temporal.io"}
+
+
 def build_codec_server() -> web.Application:
-    # Cors handler
-    async def cors_options(req: web.Request) -> web.Response:
-        resp = web.Response()
-        if req.headers.get(hdrs.ORIGIN) == "http://localhost:8233":
-            resp.headers[hdrs.ACCESS_CONTROL_ALLOW_ORIGIN] = "http://localhost:8233"
-            resp.headers[hdrs.ACCESS_CONTROL_ALLOW_METHODS] = "POST"
-            resp.headers[hdrs.ACCESS_CONTROL_ALLOW_HEADERS] = "content-type,x-namespace"
+    def set_cors_headers(req: web.Request, resp: web.Response) -> None:
+        origin = req.headers.get(hdrs.ORIGIN)
+        if origin is not None and origin in ALLOWED_ORIGINS:
+            resp.headers[hdrs.ACCESS_CONTROL_ALLOW_ORIGIN] = origin
+            resp.headers[hdrs.VARY] = "Origin"
+            resp.headers[hdrs.ACCESS_CONTROL_ALLOW_METHODS] = "POST, OPTIONS"
+            resp.headers[hdrs.ACCESS_CONTROL_ALLOW_HEADERS] = (
+                "content-type, x-namespace, authorization"
+            )
+            resp.headers[hdrs.ACCESS_CONTROL_ALLOW_CREDENTIALS] = "true"
+
+    async def cors_preflight(req: web.Request) -> web.Response:
+        resp = web.Response(status=204)
+        set_cors_headers(req, resp)
         return resp
 
-    # General purpose payloads-to-payloads
     async def apply(
-        fn: Callable[[Iterable[Payload]], Awaitable[List[Payload]]], req: web.Request
+        fn: Callable[[Iterable[Payload]], Awaitable[List[Payload]]],
+        req: web.Request,
     ) -> web.Response:
-        # Read payloads as JSON
         assert req.content_type == "application/json"
         data = await req.read()
         payloads = json_format.Parse(data, Payloads())
-        # print("----- Request -------")
-        # print(payloads)
-        # print("---------------------")
-        # Apply
         payloads = Payloads(payloads=await fn(payloads.payloads))
-
-        # Apply CORS and return JSON
-        resp = await cors_options(req)
-        resp.content_type = "application/json"
-        resp.text = json_format.MessageToJson(payloads)
-        # print("------ Response -----")
-        # print(f"{resp.text}")
-        # print("---------------------")
-
+        resp = web.Response(
+            content_type="application/json",
+            text=json_format.MessageToJson(payloads),
+        )
+        set_cors_headers(req, resp)
         return resp
 
-    # Build app
-    config = RedisConfig()
-    codec = ClaimCheckCodec(config=config)
+    codec = ClaimCheckCodec(config=RedisConfig())
     app = web.Application()
     app.add_routes(
         [
             web.post("/encode", partial(apply, codec.encode)),
             web.post("/decode", partial(apply, codec.decode)),
-            web.options("/decode", cors_options),
+            web.options("/encode", cors_preflight),
+            web.options("/decode", cors_preflight),
         ]
     )
     return app

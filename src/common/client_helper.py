@@ -14,4 +14,6 @@ class ClientHelper:
         self.namespace = self.client_config.get('namespace')
         self.taskQueue = os.getenv("TEMPORAL_TASK_QUEUE", "Supervisor")
         self.skipOpenAIPlugin = str_to_bool(os.getenv("SKIP_OPENAI_PLUGIN", "False"))
+        # Task Queue for the model (LLM) calls, so that they can be rate limited separately from the tools
+        self.taskQueueLLM = os.getenv("TEMPORAL_TASK_QUEUE_LLM", f"{self.taskQueue}-llm")
         print(f"******* Skip OpenAI Plugin? {self.skipOpenAIPlugin} *******")

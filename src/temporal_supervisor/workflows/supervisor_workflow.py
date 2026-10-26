@@ -20,6 +20,7 @@ from temporal_supervisor.activities.event_stream_activities import EventStreamAc
 
 from temporal_supervisor.activities.open_account import OpenAccount, open_new_investment_account
 from common.account_context import UpdateAccountOpeningStateInput
+from temporal_supervisor.retry_policies import TOOL_RETRY_POLICY
 
 with workflow.unsafe.imports_passed_through():
     from temporal_supervisor.activities.beneficiaries import Beneficiaries
@@ -38,6 +39,7 @@ with workflow.unsafe.imports_passed_through():
         RunContextWrapper,
         GuardrailFunctionOutput,
         InputGuardrailTripwireTriggered,
+        function_tool,
     )
     from pydantic import BaseModel
 
@@ -45,6 +47,26 @@ with workflow.unsafe.imports_passed_through():
 
 class WealthManagementContext(BaseModel):
     client_id: str | None = None
+    # Latest state reported by each open-account child workflow, keyed by its
+    # workflow ID. Updated by the update_account_opening_state signal.
+    account_opening_states: dict[str, str] = {}
+
+@function_tool
+async def get_account_opening_status(ctx: RunContextWrapper[WealthManagementContext], workflow_id: str) -> str:
+    """Get the current status of an account opening.
+
+    Args:
+        workflow_id: The workflow ID returned by open_new_investment_account.
+
+    Returns:
+        The latest status the account opening reported. "Complete" means the account
+        was opened; a status starting with "Rolled back" means it was not opened.
+        Either way, that account opening is finished.
+    """
+    state = ctx.context.account_opening_states.get(workflow_id)
+    if state is None:
+        return f"No account opening with workflow ID {workflow_id} was found in this conversation."
+    return state
 
 class RoutingGuardrailOutput(BaseModel):
     is_wealth_management_question: bool
@@ -102,11 +124,14 @@ def init_agents(disable_guardrails: bool) -> Agent[WealthManagementContext]:
         handoff_description=BENE_HANDOFF,
         instructions=BENE_INSTRUCTIONS,
         tools=[openai_agents.workflow.activity_as_tool(Beneficiaries.list_beneficiaries,
-                                start_to_close_timeout=timedelta(seconds=5)),
+                                start_to_close_timeout=timedelta(seconds=5),
+                                retry_policy=TOOL_RETRY_POLICY),
                openai_agents.workflow.activity_as_tool(Beneficiaries.add_beneficiary,
-                                start_to_close_timeout=timedelta(seconds=5)),
+                                start_to_close_timeout=timedelta(seconds=5),
+                                retry_policy=TOOL_RETRY_POLICY),
                openai_agents.workflow.activity_as_tool(Beneficiaries.delete_beneficiary,
-                                start_to_close_timeout=timedelta(seconds=5))
+                                start_to_close_timeout=timedelta(seconds=5),
+                                retry_policy=TOOL_RETRY_POLICY)
                ],
         input_guardrails=guardrails,
     )
@@ -117,9 +142,13 @@ def init_agents(disable_guardrails: bool) -> Agent[WealthManagementContext]:
         instructions=OPEN_ACCOUNT_INSTRUCTIONS,
         tools=[
             open_new_investment_account,
-            openai_agents.workflow.activity_as_tool(OpenAccount.get_current_client_info, start_to_close_timeout=timedelta(seconds=5)),
-            openai_agents.workflow.activity_as_tool(OpenAccount.approve_kyc, start_to_close_timeout=timedelta(seconds=5)),
-            openai_agents.workflow.activity_as_tool(OpenAccount.update_client_details, start_to_close_timeout=timedelta(seconds=5)),
+            get_account_opening_status,
+            openai_agents.workflow.activity_as_tool(OpenAccount.get_current_client_info, start_to_close_timeout=timedelta(seconds=5),
+                                retry_policy=TOOL_RETRY_POLICY),
+            openai_agents.workflow.activity_as_tool(OpenAccount.approve_kyc, start_to_close_timeout=timedelta(seconds=5),
+                                retry_policy=TOOL_RETRY_POLICY),
+            openai_agents.workflow.activity_as_tool(OpenAccount.update_client_details, start_to_close_timeout=timedelta(seconds=5),
+                                retry_policy=TOOL_RETRY_POLICY),
         ],
         input_guardrails=guardrails,
     )
@@ -129,9 +158,11 @@ def init_agents(disable_guardrails: bool) -> Agent[WealthManagementContext]:
         handoff_description=INVEST_HANDOFF,
         instructions=INVEST_INSTRUCTIONS,
         tools=[openai_agents.workflow.activity_as_tool(Investments.list_investments,
-                                start_to_close_timeout=timedelta(seconds=5)),
+                                start_to_close_timeout=timedelta(seconds=5),
+                                retry_policy=TOOL_RETRY_POLICY),
                openai_agents.workflow.activity_as_tool(Investments.close_investment,
-                                start_to_close_timeout=timedelta(seconds=5))],
+                                start_to_close_timeout=timedelta(seconds=5),
+                                retry_policy=TOOL_RETRY_POLICY)],
         handoffs=[
             open_account_agent
         ],
@@ -175,7 +206,12 @@ class WealthManagementWorkflow:
                                maximum_interval=timedelta(seconds=30))
 
     @workflow.run
-    async def run(self, input_items: list[TResponseInputItem] | None = None):
+    async def run(self, input_items: list[TResponseInputItem] | None = None,
+                  account_opening_states: dict[str, str] | None = None):
+        # carried over from the previous run on continue-as-new. A signal may already
+        # have been handled before run started, so don't overwrite newer states.
+        for opening_id, state in (account_opening_states or {}).items():
+            self.context.account_opening_states.setdefault(opening_id, state)
         if workflow.info().continued_run_id is None:
             # delete any previous conversations
             # FIXME: We shouldn't be deleting conversations here,
@@ -220,7 +256,7 @@ class WealthManagementWorkflow:
                 await workflow.wait_condition(
                     lambda: workflow.all_handlers_finished()
                 )
-                workflow.continue_as_new(args=[self.input_items])
+                workflow.continue_as_new(args=[self.input_items, self.context.account_opening_states])
 
     async def _process_chat_message(self, message: str) -> list[ChatInteraction]:
         workflow.logger.info(f"processing chat message: {message}")
@@ -328,6 +364,8 @@ class WealthManagementWorkflow:
     @workflow.signal
     async def update_account_opening_state(self, state_input: UpdateAccountOpeningStateInput):
         workflow.logger.info(f"Account Opening State changed {state_input.account_name} {state_input.state}")
+        if state_input.workflow_id is not None:
+            self.context.account_opening_states[state_input.workflow_id] = state_input.state
         status_message = f"New {state_input.account_name} account status changed: {state_input.state}"
         await self.pending_status_updates.put(status_message)
 

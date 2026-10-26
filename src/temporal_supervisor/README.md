@@ -256,3 +256,69 @@ One important thing to remember is to be sure you don't ask the agent to repeate
 poll the workflow as it will most likely result in a Max Turns exceeded exception. It is 
 possible to change the value of Max Turns as a parameter to `Runner.Run`, just be very careful. 
 
+
+After compliance approval, the child workflow opens the account as a saga: it creates
+the account record, transfers the initial deposit from the client's linked bank account
+(`data/funding_accounts.json`), and registers the account with the custodian. The
+parent workflow records each status the child reports, and the Open Account Agent
+reads it with the `get_account_opening_status` tool instead of relying on the
+conversation history.
+
+## Failure scenarios (chaos panel)
+
+Click **Chaos** in the chat header to open the chaos panel. Its switches inject
+failures at runtime: activities and the model read the flags from Redis on every
+attempt, so you can turn a failure on and off mid-conversation without restarting
+anything. The panel also lists each injected failure as it happens (activity and
+attempt number). Open the [Temporal UI](http://localhost:8233) alongside it to show
+the pending activity, its attempt count, and the last failure. **Reset all** turns
+every flag off.
+
+| Scenario | How to show it | What Temporal does |
+|---|---|---|
+| **Tool / API down** | Turn on *Core banking API down*, then ask to list your investments (or open an account, so it fails after compliance approval). Turn it off. | The activity retries (1s backoff, capped at 5s) for as long as the outage lasts. The agent waits mid-turn and answers once the API is back. Nothing is lost or re-asked. |
+| **LLM down** | Turn on *OpenAI API down* and send a message. Turn it off. | The model call is an activity, so it retries the same way (capped at 10s). The conversation picks up exactly where it was. |
+| **LLM rate limited (reactive)** | Turn on *OpenAI rate limited (429)* and send a message. | The model raises an `ApplicationError` with `next_retry_delay` (15s, like a `Retry-After` header), which overrides the retry policy's backoff. Real OpenAI 429s are handled the same way: the `OpenAIAgentsPlugin` turns the response's `Retry-After` header into the next retry delay. The OpenAI client's own retries are turned off (`max_retries=0`) so Temporal decides. |
+| **LLM rate limited (proactive)** | Start the worker with `LLM_MAX_CALLS_PER_SECOND=0.2`, then chat in several browser tabs at once. | Model calls run on their own task queue (`<TEMPORAL_TASK_QUEUE>-llm`, or `TEMPORAL_TASK_QUEUE_LLM`). The Temporal service dispatches at most that many per second across *all* workers, so calls queue up instead of hitting the provider's limit. Tools on the main queue aren't slowed down. |
+| **Business rule (non-retryable)** | Ask to open an account with $2,000,000 (or less than $100). | `validate_new_account` raises a non-retryable `ApplicationError`: one attempt, no retries. The reason goes back to the agent, which explains it to the customer. Compare it with *Tool / API down* in the Temporal UI. |
+| **Saga** | Turn on *Custodian rejects new accounts* (and *Slow account-opening steps* so you can watch), then open an account through compliance approval. Without flags: as client `123`, open an account with $300,000 (the linked bank account has $250,000). | The completed steps are undone in reverse order (refund, then remove the account). Compensations are activities too, so they are retried until they succeed. Kill the worker mid-rollback and the rollback still finishes. Transfers are idempotent (keyed by the workflow and run ID), so a retried debit or refund never moves money twice. |
+| **Bug in workflow code** | Turn on *Bug in workflow code*, then open an account through compliance approval. See below. | The workflow pauses at the failing line, keeping all its state, until a worker with fixed code picks it up. |
+
+### Bug in the workflow code
+
+While **Bug in workflow code** is on, `find_promotion` gives new account openings a
+`WELCOME-BONUS` promo code, which is passed to `OpenInvestmentAccountWorkflow` as
+part of its input. The welcome-bonus code path (`_welcome_bonus` in
+`workflows/open_account_workflow.py`) has a real bug: it reads
+`inputs.initial_deposit`, a field that doesn't exist. Openings without the promo
+code never reach it.
+
+Right after compliance approval, the workflow raises `AttributeError:
+'OpenInvestmentAccountInput' object has no attribute 'initial_deposit'`. In the
+Python SDK an ordinary exception fails the *workflow task*, not the workflow, so
+the workflow stays **Running**, paused at that point with the compliance approval
+intact. The Temporal UI shows the failing workflow task and its stack trace.
+Other conversations, and openings without the promo code, keep working.
+
+Turning the switch off doesn't help: the promo code is part of the workflow's
+input, so every retry hits the same line. The fix is code. Change
+`inputs.initial_deposit` to `inputs.initial_amount` and restart the worker. The
+workflow resumes on the server's next workflow-task retry and opens the account
+with the bonus. Workflow-task retries back off over time, up to 10 minutes; if the
+fix is deployed within a couple of minutes, the workflow resumes within about a minute.
+
+After the demo, re-arm the bug:
+
+```bash
+git checkout src/temporal_supervisor/workflows/open_account_workflow.py
+```
+
+### Tests
+
+The failure scenarios have tests that run against the Temporal test server (downloaded
+on first run) with stub activities. No OpenAI key or Redis is needed.
+
+```bash
+poetry install --with dev
+poetry run pytest
+```

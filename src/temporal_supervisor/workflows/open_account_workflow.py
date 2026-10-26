@@ -1,18 +1,26 @@
 from dataclasses import dataclass
 from datetime import timedelta
+from typing import Optional
 
 from temporalio import workflow
+from temporalio.exceptions import ActivityError, ApplicationError
 
 from common.investment_manager import InvestmentAccount
-from temporal_supervisor.activities.clients import ClientActivities
-from temporal_supervisor.activities.investments import Investments
 from common.account_context import UpdateAccountOpeningStateInput
+
+with workflow.unsafe.imports_passed_through():
+    from temporal_supervisor.activities.clients import ClientActivities
+    from temporal_supervisor.activities.custodian import Custodian
+    from temporal_supervisor.activities.funding import Funding
+    from temporal_supervisor.activities.investments import Investments
+    from temporal_supervisor.retry_policies import TOOL_RETRY_POLICY
 
 @dataclass
 class OpenInvestmentAccountInput:
     client_id: str
     account_name: str
     initial_amount: float
+    promo_code: Optional[str] = None
 
 @dataclass
 class OpenInvestmentAccountOutput:
@@ -35,7 +43,8 @@ class OpenInvestmentAccountWorkflow:
         self.client = None
         self.inputs: OpenInvestmentAccountInput
         self.initialized = False
-        self.sched_to_close_timeout = timedelta(seconds=5)
+        # Bounds a single attempt only, so an outage is retried for as long as it lasts.
+        self.start_to_close_timeout = timedelta(seconds=30)
         self.kyc_verified = False
         self.compliance_reviewed = False
         self.current_state = "Initializing"
@@ -46,11 +55,7 @@ class OpenInvestmentAccountWorkflow:
         self.inputs = inputs
 
         workflow.logger.info(f"Retrieving current client information")
-        self.client = await workflow.execute_activity(
-                         ClientActivities.get_client,
-                         self.inputs.client_id,
-                         schedule_to_close_timeout=self.sched_to_close_timeout,
-                         retry_policy=ClientActivities.retry_policy)
+        self.client = await self._execute(ClientActivities.get_client, self.inputs.client_id)
         workflow.logger.info(f"Client {self.inputs.client_id} details {self.client}")
         self.initialized = True
         await self._set_state("Waiting KYC")
@@ -67,28 +72,71 @@ class OpenInvestmentAccountWorkflow:
         await workflow.wait_condition(lambda: self.compliance_reviewed)
 
         await self._set_state("Compliance review has been approved. Creating Investment Account")
+        return await self._open_account(inputs)
 
-        # finally, let's create/open the account
-        # build the new investment account
-        new_account = InvestmentAccount(self.inputs.client_id, inputs.account_name, inputs.initial_amount)
-        workflow.logger.info("Creating a new investment account")
-        investment_account = await workflow.execute_activity(
-            Investments.open_investment,
-            args=[new_account],
-            schedule_to_close_timeout=self.sched_to_close_timeout,
-            retry_policy=ClientActivities.retry_policy)
+    async def _open_account(self, inputs: OpenInvestmentAccountInput) -> OpenInvestmentAccountOutput:
+        """Saga: create, fund, and register the account.
+
+        Each completed step records how to undo it. If a later step fails with a
+        non-retryable error, the recorded compensations run in reverse order.
+        Transient failures never get here: activities retry until they succeed.
+        """
+        amount = inputs.initial_amount
+        bonus = self._welcome_bonus(inputs) if inputs.promo_code else 0.0
+        # Idempotency key: stable across activity retries and worker restarts. It
+        # includes the run ID because the workflow ID is reused when the customer
+        # opens an account with the same name again (e.g. after a rollback).
+        transfer_id = f"{workflow.info().workflow_id}-{workflow.info().run_id}-initial-deposit"
+        compensations = []  # (description, activity, args)
+        try:
+            await self._set_state("Creating the account record.")
+            account = await self._execute(
+                Investments.open_investment,
+                InvestmentAccount(inputs.client_id, inputs.account_name, amount + bonus))
+            investment_id = account["investment_id"]
+            compensations.append(
+                ("removing the account record", Investments.remove_investment, [inputs.client_id, investment_id]))
+
+            await self._set_state(f"Transferring ${amount:,.2f} from the linked bank account.")
+            await self._execute(Funding.debit_linked_account, inputs.client_id, amount, transfer_id)
+            compensations.append(
+                (f"refunding ${amount:,.2f} to the linked bank account",
+                 Funding.credit_linked_account,
+                 [inputs.client_id, amount, f"{transfer_id}-refund"]))
+
+            await self._set_state("Registering the account with the custodian.")
+            await self._execute(Custodian.register_account, inputs.client_id, investment_id, amount)
+        except ActivityError as e:
+            cause = e.__cause__
+            reason = cause.message if isinstance(cause, ApplicationError) else str(cause or e)
+            await self._set_state(f"Failed: {reason}. Rolling back.")
+            for description, activity_fn, args in reversed(compensations):
+                await self._set_state(f"Rolling back: {description}.")
+                await self._execute(activity_fn, *args)
+            await self._set_state(f"Rolled back. The account was not opened: {reason}.")
+            return OpenInvestmentAccountOutput(account_created=False,
+                                               message=f"The account was not opened: {reason}")
 
         await self._set_state("Complete")
+        return OpenInvestmentAccountOutput(account_created=True, message="investment account created")
 
-        return_value = OpenInvestmentAccountOutput()
-        return_value.account_created = investment_account is not None
-        return_value.message = "investment account created" if investment_account is not None \
-                                    else "An unexpected error occurred creating investment account"
+    @staticmethod
+    def _welcome_bonus(inputs: OpenInvestmentAccountInput) -> float:
+        """Welcome-bonus promotion: 1% of the initial deposit, up to $500."""
+        # Deliberate bug for the "Bug in workflow code" demo; the fix is
+        # inputs.initial_amount. See README "Failure scenarios".
+        # return min(inputs.initial_amount * 0.01, 500.0)
+        return min(inputs.initial_deposit * 0.01, 500.0)
 
-        return return_value
+    async def _execute(self, activity_fn, *args):
+        return await workflow.execute_activity(
+            activity_fn,
+            args=list(args),
+            start_to_close_timeout=self.start_to_close_timeout,
+            retry_policy=TOOL_RETRY_POLICY)
 
     @workflow.query
-    async def get_current_state(self) -> str:
+    def get_current_state(self) -> str:
         workflow.logger.info(f"Returning current state {self.current_state}")
         return self.current_state
 
@@ -101,11 +149,7 @@ class OpenInvestmentAccountWorkflow:
     @workflow.update
     async def update_client_details(self, client: dict) -> str:
         workflow.logger.info(f"Updating client information for {self.inputs.client_id}")
-        result = await workflow.execute_activity(
-                    ClientActivities.update_client,
-                    args=[self.inputs.client_id, client],
-                    schedule_to_close_timeout=self.sched_to_close_timeout,
-                    retry_policy=ClientActivities.retry_policy)
+        result = await self._execute(ClientActivities.update_client, self.inputs.client_id, client)
         self.kyc_verified = True
         return result
 
@@ -126,5 +170,11 @@ class OpenInvestmentAccountWorkflow:
         await self._update_parent_state(state)
 
     async def _update_parent_state(self, state: str) -> None:
+        if workflow.info().parent is None:
+            return
+
         parent_handle = workflow.get_external_workflow_handle(workflow.info().parent.workflow_id)
-        await parent_handle.signal("update_account_opening_state", UpdateAccountOpeningStateInput(account_name=self.inputs.account_name, state=state))
+        await parent_handle.signal("update_account_opening_state",
+                                   UpdateAccountOpeningStateInput(account_name=self.inputs.account_name,
+                                                                  state=state,
+                                                                  workflow_id=workflow.info().workflow_id))

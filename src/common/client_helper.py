@@ -16,4 +16,6 @@ class ClientHelper:
         # Task Queue for Opening a new Account. If this is not set, use the same task queue as the Supervisor
         self.taskQueueOpenAccount = os.getenv("TEMPORAL_TASK_QUEUE_OPEN_ACCOUNT", self.taskQueue)
         self.skipOpenAIPlugin = str_to_bool(os.getenv("SKIP_OPENAI_PLUGIN", "False"))
+        # Task Queue for the model (LLM) calls, so that they can be rate limited separately from the tools
+        self.taskQueueLLM = os.getenv("TEMPORAL_TASK_QUEUE_LLM", f"{self.taskQueue}-llm")
         print(f"******* Skip OpenAI Plugin? {self.skipOpenAIPlugin} *******")

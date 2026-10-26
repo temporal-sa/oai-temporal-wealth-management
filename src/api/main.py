@@ -9,6 +9,7 @@ from temporalio.exceptions import TemporalError
 from temporalio.contrib.openai_agents import OpenAIAgentsPlugin
 from temporalio.service import RPCError
 
+from common.chaos_manager import CHAOS_FLAGS, ChaosFlag, ChaosManager
 from common.event_stream_manager import EventStreamManager
 from common.client_helper import ClientHelper
 from common.user_message import ProcessUserMessageInput
@@ -127,3 +128,52 @@ async def start_workflow(workflow_id: str):
         return {
             "message": f"An error occurred starting the workflow {e}"
         }
+
+
+@app.get("/chaos")
+async def get_chaos():
+    """The failure-injection flags for the UI chaos panel, plus the failures they recently caused."""
+    manager = ChaosManager()
+    try:
+        enabled = await manager.get_flags()
+        return {
+            "flags": [
+                {
+                    "flag": info.flag.value,
+                    "label": info.label,
+                    "description": info.description,
+                    "enabled": enabled[info.flag.value],
+                }
+                for info in CHAOS_FLAGS
+            ],
+            "events": await manager.get_events(),
+        }
+    finally:
+        await manager.close()
+
+
+@app.post("/chaos")
+async def set_chaos(flag: str, enabled: bool):
+    try:
+        chaos_flag = ChaosFlag(flag)
+    except ValueError:
+        raise HTTPException(status_code=400, detail=f"Unknown chaos flag: {flag}")
+    manager = ChaosManager()
+    try:
+        await manager.set_enabled(chaos_flag, enabled)
+        return {"flag": flag, "enabled": enabled}
+    finally:
+        await manager.close()
+
+
+@app.post("/chaos/reset")
+async def reset_chaos():
+    """Turn every flag off and clear the failure log."""
+    manager = ChaosManager()
+    try:
+        for info in CHAOS_FLAGS:
+            await manager.set_enabled(info.flag, False)
+        await manager.clear_events()
+        return {"message": "All failure injection turned off."}
+    finally:
+        await manager.close()

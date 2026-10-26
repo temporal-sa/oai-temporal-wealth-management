@@ -1,0 +1,13 @@
+{
+  "accounts": {
+    "123": {
+      "name": "Linked checking account ending 4421",
+      "balance": 250000.0
+    },
+    "234": {
+      "name": "Linked checking account ending 9087",
+      "balance": 50000.0
+    }
+  },
+  "transfers": {}
+}

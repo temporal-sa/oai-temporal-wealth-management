@@ -1,9 +1,10 @@
 import asyncio
 import logging
 import os
+from datetime import timedelta
 from typing import Optional, Sequence, Callable, Type
 
-from agents import Model, ModelProvider, OpenAIChatCompletionsModel
+from agents import Model, ModelProvider
 import httpx
 from openai import AsyncOpenAI
 from temporalio import workflow
@@ -14,12 +15,16 @@ from common.client_helper import ClientHelper
 from temporal_supervisor.activities.clients import ClientActivities
 from temporal_supervisor.activities.event_stream_activities import EventStreamActivities
 from temporal_supervisor.activities.open_account import OpenAccount
-from temporalio.contrib.openai_agents import OpenAIAgentsPlugin
+from temporalio.contrib.openai_agents import OpenAIAgentsPlugin, ModelActivityParameters
 
 from temporal_supervisor.claim_check.claim_check_plugin import ClaimCheckPlugin
 
 from temporal_supervisor.activities.beneficiaries import Beneficiaries
+from temporal_supervisor.activities.custodian import Custodian
+from temporal_supervisor.activities.funding import Funding
 from temporal_supervisor.activities.investments import Investments
+from temporal_supervisor.model_config import ChaosAwareOpenAIModel
+from temporal_supervisor.retry_policies import LLM_RETRY_POLICY
 
 from temporal_supervisor.workflows.supervisor_workflow import (
     WealthManagementWorkflow
@@ -31,6 +36,8 @@ from temporal_supervisor.workflows.open_account_workflow import (
 openai_client = AsyncOpenAI(
     base_url="https://api.openai.com/v1",  # Override for alternate endpoint
     api_key=os.getenv("OPENAI_API_KEY"),
+    # Let the Temporal activity retry policy decide how failed model calls are retried
+    max_retries=0,
     http_client=httpx.AsyncClient(
         verify=True,  # change to set client cert
     ),
@@ -39,7 +46,7 @@ openai_client = AsyncOpenAI(
 
 class CustomModelProvider(ModelProvider):
     def get_model(self, model_name: Optional[str]) -> Model:
-        model = OpenAIChatCompletionsModel(
+        model = ChaosAwareOpenAIModel(
             model=model_name if model_name else "gpt-4o",
             openai_client=openai_client,
         )
@@ -68,6 +75,11 @@ async def main():
     plugins = [ ClaimCheckPlugin() ] if client_helper.skipOpenAIPlugin else \
         [ OpenAIAgentsPlugin(
             model_provider=CustomModelProvider(),
+            model_params=ModelActivityParameters(
+                task_queue=client_helper.taskQueueLLM,
+                start_to_close_timeout=timedelta(seconds=60),
+                retry_policy=LLM_RETRY_POLICY,
+            ),
           ),
          ClaimCheckPlugin()
         ]
@@ -88,8 +100,14 @@ async def main():
             Beneficiaries.add_beneficiary,
             Beneficiaries.delete_beneficiary,
             Investments.list_investments,
+            Investments.validate_new_account,
+            Investments.find_promotion,
             Investments.open_investment,
+            Investments.remove_investment,
             Investments.close_investment,
+            Funding.debit_linked_account,
+            Funding.credit_linked_account,
+            Custodian.register_account,
             ClientActivities.get_client,
             ClientActivities.add_client,
             ClientActivities.update_client,
@@ -101,8 +119,25 @@ async def main():
             EventStreamActivities.delete_conversation,
         ],
     )
-    print(f"Running worker on {client_helper.address}")
-    await worker.run()
+    if client_helper.skipOpenAIPlugin:
+        print(f"Running worker on {client_helper.address}")
+        await worker.run()
+        return
+
+    # Model calls run on their own task queue. The OpenAIAgentsPlugin registers the
+    # model activity on every worker built from the client, so this worker needs
+    # nothing else. Setting LLM_MAX_CALLS_PER_SECOND has the Temporal service rate
+    # limit model calls across all workers, so they queue up instead of hitting the
+    # provider's rate limit.
+    max_llm_calls = os.getenv("LLM_MAX_CALLS_PER_SECOND")
+    llm_worker = Worker(
+        client,
+        task_queue=client_helper.taskQueueLLM,
+        max_task_queue_activities_per_second=float(max_llm_calls) if max_llm_calls else None,
+    )
+    print(f"Running worker on {client_helper.address}. "
+          f"Model calls on {client_helper.taskQueueLLM}, max calls per second: {max_llm_calls or 'unlimited'}")
+    await asyncio.gather(worker.run(), llm_worker.run())
 
 if __name__ == '__main__':
     asyncio.run(main())

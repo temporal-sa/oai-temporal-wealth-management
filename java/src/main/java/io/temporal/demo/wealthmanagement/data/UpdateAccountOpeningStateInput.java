@@ -14,4 +14,7 @@ public class UpdateAccountOpeningStateInput {
     @JsonProperty("account_name")
     private String accountName;
     private String state;
+    // The open-account workflow that reported the state
+    @JsonProperty("workflow_id")
+    private String workflowId;
 }

@@ -23,7 +23,7 @@ const SCENARIOS = [
   },
   {
     title: 'Bug in workflow code',
-    steps: 'Turn on "Bug in workflow code" and open an account through compliance approval. The workflow pauses on the bug while other chats keep working. Fix _welcome_bonus in open_account_workflow.py (initial_deposit → initial_amount) and restart the worker, and it carries on. Afterwards, git checkout the file to re-arm the bug.',
+    steps: 'Turn on "Bug in workflow code" and open an account through compliance approval. The workflow pauses on the bug while other chats keep working. Fix _welcome_bonus in open_account_workflow.py (initial_deposit → initial_amount), or BONUS_RATES in the Java workflow (WELCOME_BONUS → WELCOME-BONUS), and restart the worker, and it carries on. Afterwards, git checkout the file to re-arm the bug.',
   },
 ];
 

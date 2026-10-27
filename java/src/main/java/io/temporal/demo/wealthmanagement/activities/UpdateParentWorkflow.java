@@ -6,5 +6,5 @@ import io.temporal.activity.ActivityMethod;
 @ActivityInterface
 public interface UpdateParentWorkflow {
     @ActivityMethod
-    void changeState(String parentWorkflowId, String accountName, String state);
+    void changeState(String parentWorkflowId, String accountName, String state, String workflowId);
 }

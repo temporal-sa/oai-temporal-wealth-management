@@ -345,12 +345,37 @@ After the demo, re-arm the bug:
 git checkout src/temporal_supervisor/workflows/open_account_workflow.py
 ```
 
+### With the Java Open Account workflow
+
+All the scenarios work the same way when the Java version of `OpenInvestmentAccountWorkflow`
+is used (see [Running the Demo Locally](#running-the-demo-locally)). The Java workflow calls
+the Python activities by name on the Python worker's task queue, so the chaos flags, which are
+read inside those activities and the model activity, apply unchanged. The saga uses the
+Temporal Java SDK's `Saga` class.
+
+The bug in the workflow code is different in Java. `BONUS_RATES` in
+`java/src/main/java/io/temporal/demo/wealthmanagement/workflow/OpenInvestmentAccountWorkflowImpl.java`
+is keyed by `"WELCOME_BONUS"` (underscore), but the promo code is `"WELCOME-BONUS"` (hyphen),
+so `welcomeBonus` throws a `NullPointerException`. As in Python, an unchecked exception fails
+the workflow task, not the workflow, so it stays **Running**. The fix is the commented-out line
+above it. Restart the Java worker after fixing it, and re-arm the bug afterwards with:
+
+```bash
+git checkout java/src/main/java/io/temporal/demo/wealthmanagement/workflow/OpenInvestmentAccountWorkflowImpl.java
+```
+
 ### Tests
 
 The failure scenarios have tests that run against the Temporal test server (downloaded
 on first run) with stub activities. No OpenAI key or Redis is needed.
 
 ```bash
-poetry install --with dev
-poetry run pytest
+uv run pytest
+```
+
+The Java workflow has the same tests, using the Temporal Java SDK's test environment:
+
+```bash
+cd java
+./gradlew test
 ```

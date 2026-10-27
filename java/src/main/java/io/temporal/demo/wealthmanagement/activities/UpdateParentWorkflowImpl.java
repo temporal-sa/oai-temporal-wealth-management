@@ -10,7 +10,7 @@ import io.temporal.serviceclient.WorkflowServiceStubs;
 public class UpdateParentWorkflowImpl implements UpdateParentWorkflow {
 
     @Override
-    public void changeState(String parentWorkflowId, String accountName, String state) {
+    public void changeState(String parentWorkflowId, String accountName, String state, String workflowId) {
         try {
             WorkflowServiceStubs service = TemporalClient.getWorkflowServiceStubs();
             WorkflowClient client = WorkflowClient.newInstance(service);
@@ -19,6 +19,7 @@ public class UpdateParentWorkflowImpl implements UpdateParentWorkflow {
             UpdateAccountOpeningStateInput parameter = new UpdateAccountOpeningStateInput();
             parameter.setAccountName(accountName);
             parameter.setState(state);
+            parameter.setWorkflowId(workflowId);
             // signal the parent workflow
             parent.signal("update_account_opening_state", parameter);
         } catch (Exception ex) {

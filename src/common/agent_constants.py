@@ -66,6 +66,8 @@ OPEN_ACCOUNT_INSTRUCTIONS = f""""{RECOMMENDED_PROMPT_PREFIX}
            to save the return value as this will be required in the other tools.
            If the tool says the account cannot be opened, explain the reason to the customer and do not continue.
         3. Call get_account_opening_status to check whether the account is waiting for KYC approval.
+           Every account opening needs its own KYC confirmation, even if the customer confirmed their
+           details for an earlier one in this conversation.
            Use the get_current_client_info tool to retrieve their current data.
            Display their current data and ask them if this information is correct and up to date.
            If the user says that it is correct, call the approve_kyc tool

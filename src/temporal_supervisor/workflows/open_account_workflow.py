@@ -123,8 +123,11 @@ class OpenInvestmentAccountWorkflow:
     @staticmethod
     def _welcome_bonus(inputs: OpenInvestmentAccountInput) -> float:
         """Welcome-bonus promotion: 1% of the initial deposit, up to $500."""
-        # Deliberate bug for the "Bug in workflow code" demo; the fix is
-        # inputs.initial_amount. See README "Failure scenarios".
+        # *** Bug-In-Workflow-Code ***
+        # Intentional bug for the "Bug in workflow code" demo: OpenInvestmentAccountInput has no
+        # initial_deposit field (it's initial_amount), so the line below raises an AttributeError.
+        # To fix it, uncomment the first line below and comment out the second.
+        # See README "Failure scenarios".
         # return min(inputs.initial_amount * 0.01, 500.0)
         return min(inputs.initial_deposit * 0.01, 500.0)
 

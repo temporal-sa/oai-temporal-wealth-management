@@ -24,8 +24,10 @@ import java.util.Optional;
 @WorkflowImpl
 public class OpenInvestmentAccountWorkflowImpl implements OpenInvestmentAccountWorkflow {
     // Welcome-bonus promotion: a percentage of the initial deposit, up to MAX_BONUS.
-    // Deliberate bug for the "Bug in workflow code" demo: the promo code is "WELCOME-BONUS"
-    // (with a hyphen), so the lookup in welcomeBonus returns null. The fix is the line below.
+    // *** Bug-In-Workflow-Code ***
+    // Intentional bug for the "Bug in workflow code" demo: the promo code is "WELCOME-BONUS" (hyphen),
+    // but BONUS_RATES is keyed by "WELCOME_BONUS" (underscore), so the lookup in welcomeBonus returns null.
+    // To fix it, uncomment the first line below and comment out the second.
     // private static final Map<String, Double> BONUS_RATES = Map.of("WELCOME-BONUS", 0.01);
     private static final Map<String, Double> BONUS_RATES = Map.of("WELCOME_BONUS", 0.01);
     private static final double MAX_BONUS = 500.0;

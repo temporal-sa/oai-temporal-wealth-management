@@ -1,0 +1,1299 @@
+
+> Task :dependencies
+
+------------------------------------------------------------
+Root project 'oai-wealth-management-java'
+------------------------------------------------------------
+
+annotationProcessor - Annotation processors and their dependencies for source set 'main'.
++--- org.projectlombok:lombok:1.18.30
+\--- com.google.errorprone:error_prone_core:2.23.0
+     +--- com.google.errorprone:error_prone_annotation:2.23.0
+     |    \--- com.google.guava:guava:32.1.1-jre
+     |         +--- com.google.guava:guava-parent:32.1.1-jre
+     |         |    +--- com.google.code.findbugs:jsr305:3.0.2 (c)
+     |         |    +--- org.checkerframework:checker-qual:3.33.0 (c)
+     |         |    \--- com.google.errorprone:error_prone_annotations:2.18.0 -> 2.23.0 (c)
+     |         +--- com.google.guava:failureaccess:1.0.1
+     |         +--- com.google.code.findbugs:jsr305 -> 3.0.2
+     |         +--- org.checkerframework:checker-qual -> 3.33.0
+     |         \--- com.google.errorprone:error_prone_annotations -> 2.23.0
+     +--- com.google.errorprone:error_prone_type_annotations:2.23.0
+     +--- com.google.errorprone:error_prone_check_api:2.23.0
+     |    +--- com.google.errorprone:error_prone_annotation:2.23.0 (*)
+     |    +--- com.google.code.findbugs:jsr305:3.0.2
+     |    +--- io.github.eisop:dataflow-errorprone:3.34.0-eisop1
+     |    +--- io.github.java-diff-utils:java-diff-utils:4.12
+     |    +--- com.google.auto.value:auto-value-annotations:1.9
+     |    +--- com.google.errorprone:error_prone_annotations:2.23.0
+     |    +--- com.github.kevinstern:software-and-algorithms:1.0
+     |    +--- com.github.ben-manes.caffeine:caffeine:3.0.5
+     |    |    +--- org.checkerframework:checker-qual:3.19.0 -> 3.33.0
+     |    |    \--- com.google.errorprone:error_prone_annotations:2.10.0 -> 2.23.0
+     |    \--- com.google.inject:guice:5.1.0
+     |         +--- javax.inject:javax.inject:1
+     |         +--- aopalliance:aopalliance:1.0
+     |         \--- com.google.guava:guava:30.1-jre -> 32.1.1-jre (*)
+     +--- org.pcollections:pcollections:3.1.4
+     +--- com.google.guava:guava:32.1.1-jre (*)
+     +--- com.google.auto:auto-common:1.2.1
+     |    \--- com.google.guava:guava:31.0.1-jre -> 32.1.1-jre (*)
+     +--- com.google.code.findbugs:jsr305:3.0.2
+     +--- io.github.eisop:dataflow-errorprone:3.34.0-eisop1
+     +--- com.google.auto.value:auto-value-annotations:1.9
+     +--- com.google.errorprone:error_prone_annotations:2.23.0
+     +--- com.google.protobuf:protobuf-java:3.19.6
+     +--- com.google.auto.service:auto-service-annotations:1.0.1
+     \--- javax.inject:javax.inject:1
+
+bootArchives - Configuration for Spring Boot archive artifacts. (n)
+No dependencies
+
+compileClasspath - Compile classpath for source set 'main'.
++--- org.projectlombok:lombok:1.18.30
++--- com.google.errorprone:error_prone_core:2.23.0
+|    +--- com.google.errorprone:error_prone_annotation:2.23.0
+|    |    \--- com.google.guava:guava:32.1.1-jre
+|    |         +--- com.google.guava:guava-parent:32.1.1-jre
+|    |         |    +--- com.google.code.findbugs:jsr305:3.0.2 (c)
+|    |         |    +--- org.checkerframework:checker-qual:3.33.0 (c)
+|    |         |    +--- com.google.errorprone:error_prone_annotations:2.18.0 -> 2.23.0 (c)
+|    |         |    \--- com.google.j2objc:j2objc-annotations:2.8 (c)
+|    |         +--- com.google.guava:failureaccess:1.0.1
+|    |         +--- com.google.code.findbugs:jsr305 -> 3.0.2
+|    |         +--- org.checkerframework:checker-qual -> 3.33.0
+|    |         +--- com.google.errorprone:error_prone_annotations -> 2.23.0
+|    |         \--- com.google.j2objc:j2objc-annotations -> 2.8
+|    +--- com.google.errorprone:error_prone_type_annotations:2.23.0
+|    +--- com.google.errorprone:error_prone_check_api:2.23.0
+|    |    +--- com.google.errorprone:error_prone_annotation:2.23.0 (*)
+|    |    +--- com.google.code.findbugs:jsr305:3.0.2
+|    |    +--- io.github.eisop:dataflow-errorprone:3.34.0-eisop1
+|    |    +--- io.github.java-diff-utils:java-diff-utils:4.12
+|    |    +--- com.google.auto.value:auto-value-annotations:1.9
+|    |    +--- com.google.errorprone:error_prone_annotations:2.23.0
+|    |    +--- com.github.kevinstern:software-and-algorithms:1.0
+|    |    +--- com.github.ben-manes.caffeine:caffeine:3.0.5
+|    |    \--- com.google.inject:guice:5.1.0
+|    |         +--- javax.inject:javax.inject:1
+|    |         +--- aopalliance:aopalliance:1.0
+|    |         \--- com.google.guava:guava:30.1-jre -> 32.1.1-jre (*)
+|    +--- org.pcollections:pcollections:3.1.4
+|    +--- com.google.guava:guava:32.1.1-jre (*)
+|    +--- com.google.auto:auto-common:1.2.1
+|    |    \--- com.google.guava:guava:31.0.1-jre -> 32.1.1-jre (*)
+|    +--- com.google.code.findbugs:jsr305:3.0.2
+|    +--- io.github.eisop:dataflow-errorprone:3.34.0-eisop1
+|    +--- com.google.auto.value:auto-value-annotations:1.9
+|    +--- com.google.errorprone:error_prone_annotations:2.23.0
+|    +--- com.google.protobuf:protobuf-java:3.19.6 -> 3.25.7
+|    +--- com.google.auto.service:auto-service-annotations:1.0.1
+|    \--- javax.inject:javax.inject:1
++--- org.springframework.boot:spring-boot-starter -> 2.7.18
+|    +--- org.springframework.boot:spring-boot:2.7.18
+|    |    +--- org.springframework:spring-core:5.3.31
+|    |    |    \--- org.springframework:spring-jcl:5.3.31
+|    |    \--- org.springframework:spring-context:5.3.31
+|    |         +--- org.springframework:spring-aop:5.3.31
+|    |         |    +--- org.springframework:spring-beans:5.3.31
+|    |         |    |    \--- org.springframework:spring-core:5.3.31 (*)
+|    |         |    \--- org.springframework:spring-core:5.3.31 (*)
+|    |         +--- org.springframework:spring-beans:5.3.31 (*)
+|    |         +--- org.springframework:spring-core:5.3.31 (*)
+|    |         \--- org.springframework:spring-expression:5.3.31
+|    |              \--- org.springframework:spring-core:5.3.31 (*)
+|    +--- org.springframework.boot:spring-boot-autoconfigure:2.7.18
+|    |    \--- org.springframework.boot:spring-boot:2.7.18 (*)
+|    +--- org.springframework.boot:spring-boot-starter-logging:2.7.18
+|    |    +--- ch.qos.logback:logback-classic:1.2.12 -> 1.5.7
+|    |    |    +--- ch.qos.logback:logback-core:1.5.7
+|    |    |    \--- org.slf4j:slf4j-api:2.0.15
+|    |    +--- org.apache.logging.log4j:log4j-to-slf4j:2.17.2
+|    |    |    +--- org.slf4j:slf4j-api:1.7.35 -> 2.0.15
+|    |    |    \--- org.apache.logging.log4j:log4j-api:2.17.2
+|    |    \--- org.slf4j:jul-to-slf4j:1.7.36
+|    |         \--- org.slf4j:slf4j-api:1.7.36 -> 2.0.15
+|    +--- jakarta.annotation:jakarta.annotation-api:1.3.5
+|    +--- org.springframework:spring-core:5.3.31 (*)
+|    \--- org.yaml:snakeyaml:1.30
++--- org.springframework.boot:spring-boot-starter-actuator -> 2.7.18
+|    +--- org.springframework.boot:spring-boot-starter:2.7.18 (*)
+|    +--- org.springframework.boot:spring-boot-actuator-autoconfigure:2.7.18
+|    |    +--- org.springframework.boot:spring-boot-actuator:2.7.18
+|    |    |    \--- org.springframework.boot:spring-boot:2.7.18 (*)
+|    |    +--- org.springframework.boot:spring-boot:2.7.18 (*)
+|    |    \--- org.springframework.boot:spring-boot-autoconfigure:2.7.18 (*)
+|    \--- io.micrometer:micrometer-core:1.9.17
+|         \--- org.hdrhistogram:HdrHistogram:2.1.12
++--- ch.qos.logback:logback-classic:1.5.7 (*)
++--- io.temporal:temporal-spring-boot-starter:1.30.1
+|    +--- org.springframework.boot:spring-boot-dependencies:2.7.18
+|    |    +--- com.fasterxml.jackson.core:jackson-annotations:2.13.5 -> 2.15.2 (c)
+|    |    +--- com.fasterxml.jackson.core:jackson-core:2.13.5 -> 2.15.2 (c)
+|    |    +--- com.fasterxml.jackson.core:jackson-databind:2.13.5 -> 2.15.2 (c)
+|    |    +--- com.github.ben-manes.caffeine:caffeine:2.9.3 -> 3.0.5 (c)
+|    |    +--- org.apache.commons:commons-lang3:3.12.0 -> 3.14.0 (c)
+|    |    +--- ch.qos.logback:logback-classic:1.2.12 -> 1.5.7 (c)
+|    |    +--- ch.qos.logback:logback-core:1.2.12 -> 1.5.7 (c)
+|    |    +--- org.projectlombok:lombok:1.18.30 (c)
+|    |    +--- org.springframework.boot:spring-boot-starter:2.7.18 (c)
+|    |    +--- org.springframework.boot:spring-boot-starter-actuator:2.7.18 (c)
+|    |    +--- org.slf4j:slf4j-api:1.7.36 -> 2.0.15 (c)
+|    |    +--- org.springframework.boot:spring-boot-autoconfigure:2.7.18 (c)
+|    |    +--- com.google.code.gson:gson:2.9.1 -> 2.10.1 (c)
+|    |    +--- io.micrometer:micrometer-core:1.9.17 (c)
+|    |    +--- org.springframework.boot:spring-boot:2.7.18 (c)
+|    |    +--- org.springframework.boot:spring-boot-starter-logging:2.7.18 (c)
+|    |    +--- jakarta.annotation:jakarta.annotation-api:1.3.5 (c)
+|    |    +--- org.springframework:spring-core:5.3.31 (c)
+|    |    +--- org.yaml:snakeyaml:1.30 (c)
+|    |    +--- org.springframework.boot:spring-boot-actuator-autoconfigure:2.7.18 (c)
+|    |    +--- org.springframework:spring-context:5.3.31 (c)
+|    |    +--- org.apache.logging.log4j:log4j-to-slf4j:2.17.2 (c)
+|    |    +--- org.slf4j:jul-to-slf4j:1.7.36 (c)
+|    |    +--- org.springframework:spring-jcl:5.3.31 (c)
+|    |    +--- org.springframework.boot:spring-boot-actuator:2.7.18 (c)
+|    |    +--- org.springframework:spring-aop:5.3.31 (c)
+|    |    +--- org.springframework:spring-beans:5.3.31 (c)
+|    |    +--- org.springframework:spring-expression:5.3.31 (c)
+|    |    \--- org.apache.logging.log4j:log4j-api:2.17.2 (c)
+|    +--- io.temporal:temporal-spring-boot-autoconfigure:1.30.1
+|    |    +--- org.springframework.boot:spring-boot-dependencies:2.7.18 (*)
+|    |    +--- io.opentelemetry:opentelemetry-bom:1.25.0
+|    |    +--- org.springframework.boot:spring-boot-autoconfigure -> 2.7.18 (*)
+|    |    \--- io.temporal:temporal-opentracing:1.30.1
+|    |         \--- io.opentracing:opentracing-api:0.33.0
+|    +--- io.temporal:temporal-sdk:1.30.1
+|    |    +--- io.grpc:grpc-bom:1.58.1
+|    |    |    +--- io.grpc:grpc-api:1.58.1 (c)
+|    |    |    +--- io.grpc:grpc-stub:1.58.1 (c)
+|    |    |    +--- io.grpc:grpc-netty-shaded:1.58.1 (c)
+|    |    |    +--- io.grpc:grpc-services:1.58.1 (c)
+|    |    |    +--- io.grpc:grpc-inprocess:1.58.1 (c)
+|    |    |    +--- io.grpc:grpc-core:1.58.1 (c)
+|    |    |    +--- io.grpc:grpc-protobuf:1.58.1 (c)
+|    |    |    +--- io.grpc:grpc-util:1.58.1 (c)
+|    |    |    \--- io.grpc:grpc-protobuf-lite:1.58.1 (c)
+|    |    +--- com.fasterxml.jackson:jackson-bom:2.14.2 -> 2.15.2
+|    |    |    +--- com.fasterxml.jackson.core:jackson-annotations:2.15.2 (c)
+|    |    |    +--- com.fasterxml.jackson.core:jackson-core:2.15.2 (c)
+|    |    |    \--- com.fasterxml.jackson.core:jackson-databind:2.15.2 (c)
+|    |    +--- io.micrometer:micrometer-bom:1.9.9
+|    |    |    \--- io.micrometer:micrometer-core:1.9.9 -> 1.9.17 (c)
+|    |    +--- io.temporal:temporal-serviceclient:1.30.1
+|    |    |    +--- io.grpc:grpc-bom:1.58.1 (*)
+|    |    |    +--- io.grpc:grpc-api -> 1.58.1
+|    |    |    |    +--- com.google.code.findbugs:jsr305:3.0.2
+|    |    |    |    \--- com.google.errorprone:error_prone_annotations:2.20.0 -> 2.23.0
+|    |    |    +--- io.grpc:grpc-stub -> 1.58.1
+|    |    |    |    +--- io.grpc:grpc-api:1.58.1 (*)
+|    |    |    |    \--- com.google.guava:guava:32.0.1-android -> 32.1.1-jre (*)
+|    |    |    +--- io.grpc:grpc-netty-shaded -> 1.58.1
+|    |    |    |    \--- io.grpc:grpc-core:1.58.1
+|    |    |    |         \--- io.grpc:grpc-api:1.58.1 (*)
+|    |    |    +--- io.grpc:grpc-services -> 1.58.1
+|    |    |    |    +--- io.grpc:grpc-protobuf:1.58.1
+|    |    |    |    |    +--- io.grpc:grpc-api:1.58.1 (*)
+|    |    |    |    |    +--- com.google.code.findbugs:jsr305:3.0.2
+|    |    |    |    |    +--- com.google.protobuf:protobuf-java:3.24.0 -> 3.25.7
+|    |    |    |    |    +--- com.google.api.grpc:proto-google-common-protos:2.22.0
+|    |    |    |    |    |    \--- com.google.protobuf:protobuf-java:3.23.2 -> 3.25.7
+|    |    |    |    |    \--- io.grpc:grpc-protobuf-lite:1.58.1
+|    |    |    |    |         \--- io.grpc:grpc-api:1.58.1 (*)
+|    |    |    |    +--- io.grpc:grpc-stub:1.58.1 (*)
+|    |    |    |    \--- io.grpc:grpc-util:1.58.1
+|    |    |    |         \--- io.grpc:grpc-core:1.58.1 (*)
+|    |    |    +--- io.grpc:grpc-inprocess -> 1.58.1
+|    |    |    |    \--- io.grpc:grpc-core:1.58.1 (*)
+|    |    |    +--- com.google.protobuf:protobuf-java-util:3.25.7
+|    |    |    |    +--- com.google.protobuf:protobuf-java:3.25.7
+|    |    |    |    +--- com.google.code.findbugs:jsr305:3.0.2
+|    |    |    |    +--- com.google.code.gson:gson:2.8.9 -> 2.10.1
+|    |    |    |    +--- com.google.errorprone:error_prone_annotations:2.18.0 -> 2.23.0
+|    |    |    |    +--- com.google.guava:guava:32.0.1-jre -> 32.1.1-jre (*)
+|    |    |    |    \--- com.google.j2objc:j2objc-annotations:2.8
+|    |    |    +--- com.uber.m3:tally-core:0.13.0
+|    |    |    |    \--- com.google.code.findbugs:jsr305:3.0.2
+|    |    |    \--- org.slf4j:slf4j-api:1.7.36 -> 2.0.15
+|    |    +--- com.google.code.gson:gson:2.10.1
+|    |    +--- io.micrometer:micrometer-core -> 1.9.17 (*)
+|    |    +--- io.nexusrpc:nexus-sdk:0.4.0-alpha
+|    |    \--- com.fasterxml.jackson.core:jackson-databind -> 2.15.2
+|    |         +--- com.fasterxml.jackson.core:jackson-annotations:2.15.2
+|    |         |    \--- com.fasterxml.jackson:jackson-bom:2.15.2 (*)
+|    |         +--- com.fasterxml.jackson.core:jackson-core:2.15.2
+|    |         |    \--- com.fasterxml.jackson:jackson-bom:2.15.2 (*)
+|    |         \--- com.fasterxml.jackson:jackson-bom:2.15.2 (*)
+|    \--- io.temporal:temporal-testing:1.30.1
+|         +--- io.temporal:temporal-sdk:1.30.1 (*)
+|         \--- io.temporal:temporal-test-server:1.30.1
+|              \--- io.temporal:temporal-sdk:1.30.1 (*)
++--- org.apache.commons:commons-lang3:3.14.0
++--- com.fasterxml.jackson.core:jackson-databind:2.15.2 (*)
++--- info.picocli:picocli:4.7.5
+\--- commons-cli:commons-cli:1.6.0
+
+compileOnly - Compile-only dependencies for the 'main' feature. (n)
+\--- org.projectlombok:lombok:1.18.30 (n)
+
+default - Configuration for default artifacts. (n)
+No dependencies
+
+developmentOnly - Configuration for development-only dependencies such as Spring Boot's DevTools.
+No dependencies
+
+errorprone - Error Prone dependencies, will be extended by all source sets' annotationProcessor configurations
+\--- com.google.errorprone:error_prone_core:2.23.0
+     +--- com.google.errorprone:error_prone_annotation:2.23.0
+     |    \--- com.google.guava:guava:32.1.1-jre
+     |         +--- com.google.guava:guava-parent:32.1.1-jre
+     |         |    +--- com.google.code.findbugs:jsr305:3.0.2 (c)
+     |         |    +--- org.checkerframework:checker-qual:3.33.0 (c)
+     |         |    \--- com.google.errorprone:error_prone_annotations:2.18.0 -> 2.23.0 (c)
+     |         +--- com.google.guava:failureaccess:1.0.1
+     |         +--- com.google.code.findbugs:jsr305 -> 3.0.2
+     |         +--- org.checkerframework:checker-qual -> 3.33.0
+     |         \--- com.google.errorprone:error_prone_annotations -> 2.23.0
+     +--- com.google.errorprone:error_prone_type_annotations:2.23.0
+     +--- com.google.errorprone:error_prone_check_api:2.23.0
+     |    +--- com.google.errorprone:error_prone_annotation:2.23.0 (*)
+     |    +--- com.google.code.findbugs:jsr305:3.0.2
+     |    +--- io.github.eisop:dataflow-errorprone:3.34.0-eisop1
+     |    +--- io.github.java-diff-utils:java-diff-utils:4.12
+     |    +--- com.google.auto.value:auto-value-annotations:1.9
+     |    +--- com.google.errorprone:error_prone_annotations:2.23.0
+     |    +--- com.github.kevinstern:software-and-algorithms:1.0
+     |    +--- com.github.ben-manes.caffeine:caffeine:3.0.5
+     |    |    +--- org.checkerframework:checker-qual:3.19.0 -> 3.33.0
+     |    |    \--- com.google.errorprone:error_prone_annotations:2.10.0 -> 2.23.0
+     |    \--- com.google.inject:guice:5.1.0
+     |         +--- javax.inject:javax.inject:1
+     |         +--- aopalliance:aopalliance:1.0
+     |         \--- com.google.guava:guava:30.1-jre -> 32.1.1-jre (*)
+     +--- org.pcollections:pcollections:3.1.4
+     +--- com.google.guava:guava:32.1.1-jre (*)
+     +--- com.google.auto:auto-common:1.2.1
+     |    \--- com.google.guava:guava:31.0.1-jre -> 32.1.1-jre (*)
+     +--- com.google.code.findbugs:jsr305:3.0.2
+     +--- io.github.eisop:dataflow-errorprone:3.34.0-eisop1
+     +--- com.google.auto.value:auto-value-annotations:1.9
+     +--- com.google.errorprone:error_prone_annotations:2.23.0
+     +--- com.google.protobuf:protobuf-java:3.19.6
+     +--- com.google.auto.service:auto-service-annotations:1.0.1
+     \--- javax.inject:javax.inject:1
+
+errorproneJavac - Error Prone Javac dependencies, will only be used when using JDK 8 (i.e. not JDK 9 or superior)
+\--- com.google.errorprone:javac:9+181-r4173-1
+
+implementation - Implementation dependencies for the 'main' feature. (n)
++--- org.springframework.boot:spring-boot-starter (n)
++--- org.springframework.boot:spring-boot-starter-actuator (n)
++--- ch.qos.logback:logback-classic:1.5.7 (n)
++--- io.temporal:temporal-spring-boot-starter:1.30.1 (n)
++--- org.apache.commons:commons-lang3:3.14.0 (n)
++--- com.fasterxml.jackson.core:jackson-databind:2.15.2 (n)
++--- info.picocli:picocli:4.7.5 (n)
+\--- commons-cli:commons-cli:1.6.0 (n)
+
+mainSourceElements - List of source directories contained in the Main SourceSet. (n)
+No dependencies
+
+productionRuntimeClasspath
++--- org.springframework.boot:spring-boot-starter -> 2.7.18
+|    +--- org.springframework.boot:spring-boot:2.7.18
+|    |    +--- org.springframework:spring-core:5.3.31
+|    |    |    \--- org.springframework:spring-jcl:5.3.31
+|    |    \--- org.springframework:spring-context:5.3.31
+|    |         +--- org.springframework:spring-aop:5.3.31
+|    |         |    +--- org.springframework:spring-beans:5.3.31
+|    |         |    |    \--- org.springframework:spring-core:5.3.31 (*)
+|    |         |    \--- org.springframework:spring-core:5.3.31 (*)
+|    |         +--- org.springframework:spring-beans:5.3.31 (*)
+|    |         +--- org.springframework:spring-core:5.3.31 (*)
+|    |         \--- org.springframework:spring-expression:5.3.31
+|    |              \--- org.springframework:spring-core:5.3.31 (*)
+|    +--- org.springframework.boot:spring-boot-autoconfigure:2.7.18
+|    |    \--- org.springframework.boot:spring-boot:2.7.18 (*)
+|    +--- org.springframework.boot:spring-boot-starter-logging:2.7.18
+|    |    +--- ch.qos.logback:logback-classic:1.2.12 -> 1.5.7
+|    |    |    +--- ch.qos.logback:logback-core:1.5.7
+|    |    |    \--- org.slf4j:slf4j-api:2.0.15
+|    |    +--- org.apache.logging.log4j:log4j-to-slf4j:2.17.2
+|    |    |    +--- org.slf4j:slf4j-api:1.7.35 -> 2.0.15
+|    |    |    \--- org.apache.logging.log4j:log4j-api:2.17.2
+|    |    \--- org.slf4j:jul-to-slf4j:1.7.36
+|    |         \--- org.slf4j:slf4j-api:1.7.36 -> 2.0.15
+|    +--- jakarta.annotation:jakarta.annotation-api:1.3.5
+|    +--- org.springframework:spring-core:5.3.31 (*)
+|    \--- org.yaml:snakeyaml:1.30
++--- org.springframework.boot:spring-boot-starter-actuator -> 2.7.18
+|    +--- org.springframework.boot:spring-boot-starter:2.7.18 (*)
+|    +--- org.springframework.boot:spring-boot-actuator-autoconfigure:2.7.18
+|    |    +--- com.fasterxml.jackson.core:jackson-databind:2.13.5 -> 2.15.2
+|    |    |    +--- com.fasterxml.jackson.core:jackson-annotations:2.15.2
+|    |    |    |    \--- com.fasterxml.jackson:jackson-bom:2.15.2
+|    |    |    |         +--- com.fasterxml.jackson.core:jackson-annotations:2.15.2 (c)
+|    |    |    |         +--- com.fasterxml.jackson.core:jackson-core:2.15.2 (c)
+|    |    |    |         +--- com.fasterxml.jackson.core:jackson-databind:2.15.2 (c)
+|    |    |    |         +--- com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.15.2 (c)
+|    |    |    |         \--- com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.15.2 (c)
+|    |    |    +--- com.fasterxml.jackson.core:jackson-core:2.15.2
+|    |    |    |    \--- com.fasterxml.jackson:jackson-bom:2.15.2 (*)
+|    |    |    \--- com.fasterxml.jackson:jackson-bom:2.15.2 (*)
+|    |    +--- com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.13.5 -> 2.15.2
+|    |    |    +--- com.fasterxml.jackson.core:jackson-annotations:2.15.2 (*)
+|    |    |    +--- com.fasterxml.jackson.core:jackson-core:2.15.2 (*)
+|    |    |    +--- com.fasterxml.jackson.core:jackson-databind:2.15.2 (*)
+|    |    |    \--- com.fasterxml.jackson:jackson-bom:2.15.2 (*)
+|    |    +--- org.springframework.boot:spring-boot-actuator:2.7.18
+|    |    |    \--- org.springframework.boot:spring-boot:2.7.18 (*)
+|    |    +--- org.springframework.boot:spring-boot:2.7.18 (*)
+|    |    \--- org.springframework.boot:spring-boot-autoconfigure:2.7.18 (*)
+|    \--- io.micrometer:micrometer-core:1.9.17
+|         +--- org.hdrhistogram:HdrHistogram:2.1.12
+|         \--- org.latencyutils:LatencyUtils:2.0.3
++--- ch.qos.logback:logback-classic:1.5.7 (*)
++--- io.temporal:temporal-spring-boot-starter:1.30.1
+|    +--- org.springframework.boot:spring-boot-starter -> 2.7.18 (*)
+|    +--- org.springframework.boot:spring-boot-dependencies:2.7.18
+|    |    +--- com.fasterxml.jackson.core:jackson-annotations:2.13.5 -> 2.15.2 (c)
+|    |    +--- com.fasterxml.jackson.core:jackson-core:2.13.5 -> 2.15.2 (c)
+|    |    +--- com.fasterxml.jackson.core:jackson-databind:2.13.5 -> 2.15.2 (c)
+|    |    +--- org.apache.commons:commons-lang3:3.12.0 -> 3.14.0 (c)
+|    |    +--- ch.qos.logback:logback-classic:1.2.12 -> 1.5.7 (c)
+|    |    +--- ch.qos.logback:logback-core:1.2.12 -> 1.5.7 (c)
+|    |    +--- org.springframework.boot:spring-boot-starter:2.7.18 (c)
+|    |    +--- org.springframework.boot:spring-boot-starter-actuator:2.7.18 (c)
+|    |    +--- org.slf4j:slf4j-api:1.7.36 -> 2.0.15 (c)
+|    |    +--- org.springframework.boot:spring-boot-autoconfigure:2.7.18 (c)
+|    |    +--- com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.13.5 -> 2.15.2 (c)
+|    |    +--- com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.13.5 -> 2.15.2 (c)
+|    |    +--- com.google.code.gson:gson:2.9.1 -> 2.10.1 (c)
+|    |    +--- io.micrometer:micrometer-core:1.9.17 (c)
+|    |    +--- com.jayway.jsonpath:json-path:2.7.0 -> 2.9.0 (c)
+|    |    +--- org.springframework.boot:spring-boot:2.7.18 (c)
+|    |    +--- org.springframework.boot:spring-boot-starter-logging:2.7.18 (c)
+|    |    +--- jakarta.annotation:jakarta.annotation-api:1.3.5 (c)
+|    |    +--- org.springframework:spring-core:5.3.31 (c)
+|    |    +--- org.yaml:snakeyaml:1.30 (c)
+|    |    +--- org.springframework.boot:spring-boot-actuator-autoconfigure:2.7.18 (c)
+|    |    +--- net.minidev:json-smart:2.4.11 -> 2.5.0 (c)
+|    |    +--- org.springframework:spring-context:5.3.31 (c)
+|    |    +--- org.apache.logging.log4j:log4j-to-slf4j:2.17.2 (c)
+|    |    +--- org.slf4j:jul-to-slf4j:1.7.36 (c)
+|    |    +--- org.springframework:spring-jcl:5.3.31 (c)
+|    |    +--- org.springframework.boot:spring-boot-actuator:2.7.18 (c)
+|    |    +--- org.springframework:spring-aop:5.3.31 (c)
+|    |    +--- org.springframework:spring-beans:5.3.31 (c)
+|    |    +--- org.springframework:spring-expression:5.3.31 (c)
+|    |    \--- org.apache.logging.log4j:log4j-api:2.17.2 (c)
+|    +--- io.temporal:temporal-spring-boot-autoconfigure:1.30.1
+|    |    +--- io.opentelemetry:opentelemetry-api -> 1.25.0
+|    |    |    \--- io.opentelemetry:opentelemetry-context:1.25.0
+|    |    +--- io.opentelemetry:opentelemetry-opentracing-shim:1.25.0-alpha
+|    |    |    +--- io.opentelemetry:opentelemetry-semconv:1.25.0-alpha
+|    |    |    |    \--- io.opentelemetry:opentelemetry-api:1.25.0 (*)
+|    |    |    +--- io.opentracing:opentracing-noop:0.33.0
+|    |    |    |    \--- io.opentracing:opentracing-api:0.33.0
+|    |    |    +--- io.opentelemetry:opentelemetry-api:1.25.0 (*)
+|    |    |    \--- io.opentracing:opentracing-api:0.33.0
+|    |    +--- org.springframework.boot:spring-boot-dependencies:2.7.18 (*)
+|    |    +--- io.opentelemetry:opentelemetry-bom:1.25.0
+|    |    |    +--- io.opentelemetry:opentelemetry-api:1.25.0 (c)
+|    |    |    \--- io.opentelemetry:opentelemetry-context:1.25.0 (c)
+|    |    +--- org.springframework.boot:spring-boot-autoconfigure -> 2.7.18 (*)
+|    |    \--- io.temporal:temporal-opentracing:1.30.1
+|    |         +--- com.google.guava:guava:32.0.1-jre
+|    |         |    +--- com.google.guava:failureaccess:1.0.1
+|    |         |    +--- com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava
+|    |         |    +--- com.google.code.findbugs:jsr305:3.0.2
+|    |         |    +--- org.checkerframework:checker-qual:3.33.0
+|    |         |    +--- com.google.errorprone:error_prone_annotations:2.18.0 -> 2.20.0
+|    |         |    \--- com.google.j2objc:j2objc-annotations:2.8
+|    |         +--- io.opentracing:opentracing-util:0.33.0
+|    |         |    +--- io.opentracing:opentracing-api:0.33.0
+|    |         |    \--- io.opentracing:opentracing-noop:0.33.0 (*)
+|    |         \--- io.opentracing:opentracing-api:0.33.0
+|    +--- io.temporal:temporal-sdk:1.30.1
+|    |    +--- com.google.guava:guava:32.0.1-jre (*)
+|    |    +--- com.fasterxml.jackson.datatype:jackson-datatype-jsr310 -> 2.15.2 (*)
+|    |    +--- com.fasterxml.jackson.datatype:jackson-datatype-jdk8 -> 2.15.2
+|    |    |    +--- com.fasterxml.jackson.core:jackson-core:2.15.2 (*)
+|    |    |    +--- com.fasterxml.jackson.core:jackson-databind:2.15.2 (*)
+|    |    |    \--- com.fasterxml.jackson:jackson-bom:2.15.2 (*)
+|    |    +--- io.grpc:grpc-bom:1.58.1
+|    |    |    +--- io.grpc:grpc-api:1.58.1 (c)
+|    |    |    +--- io.grpc:grpc-stub:1.58.1 (c)
+|    |    |    +--- io.grpc:grpc-netty-shaded:1.58.1 (c)
+|    |    |    +--- io.grpc:grpc-services:1.58.1 (c)
+|    |    |    +--- io.grpc:grpc-inprocess:1.58.1 (c)
+|    |    |    +--- io.grpc:grpc-core:1.58.1 (c)
+|    |    |    +--- io.grpc:grpc-protobuf:1.58.1 (c)
+|    |    |    +--- io.grpc:grpc-util:1.58.1 (c)
+|    |    |    +--- io.grpc:grpc-context:1.58.1 (c)
+|    |    |    \--- io.grpc:grpc-protobuf-lite:1.58.1 (c)
+|    |    +--- com.fasterxml.jackson:jackson-bom:2.14.2 -> 2.15.2 (*)
+|    |    +--- io.micrometer:micrometer-bom:1.9.9
+|    |    |    \--- io.micrometer:micrometer-core:1.9.9 -> 1.9.17 (c)
+|    |    +--- io.temporal:temporal-serviceclient:1.30.1
+|    |    |    +--- io.grpc:grpc-bom:1.58.1 (*)
+|    |    |    +--- io.grpc:grpc-api -> 1.58.1
+|    |    |    |    +--- com.google.code.findbugs:jsr305:3.0.2
+|    |    |    |    +--- com.google.errorprone:error_prone_annotations:2.20.0
+|    |    |    |    \--- com.google.guava:guava:32.0.1-android -> 32.0.1-jre (*)
+|    |    |    +--- io.grpc:grpc-stub -> 1.58.1
+|    |    |    |    +--- io.grpc:grpc-api:1.58.1 (*)
+|    |    |    |    +--- com.google.guava:guava:32.0.1-android -> 32.0.1-jre (*)
+|    |    |    |    \--- com.google.errorprone:error_prone_annotations:2.20.0
+|    |    |    +--- io.grpc:grpc-netty-shaded -> 1.58.1
+|    |    |    |    +--- com.google.guava:guava:32.0.1-android -> 32.0.1-jre (*)
+|    |    |    |    +--- com.google.errorprone:error_prone_annotations:2.20.0
+|    |    |    |    +--- io.perfmark:perfmark-api:0.26.0
+|    |    |    |    \--- io.grpc:grpc-core:1.58.1
+|    |    |    |         +--- io.grpc:grpc-api:1.58.1 (*)
+|    |    |    |         +--- com.google.code.gson:gson:2.10.1
+|    |    |    |         +--- com.google.android:annotations:4.1.1.4
+|    |    |    |         +--- org.codehaus.mojo:animal-sniffer-annotations:1.23
+|    |    |    |         +--- com.google.errorprone:error_prone_annotations:2.20.0
+|    |    |    |         +--- com.google.guava:guava:32.0.1-android -> 32.0.1-jre (*)
+|    |    |    |         +--- io.perfmark:perfmark-api:0.26.0
+|    |    |    |         +--- io.grpc:grpc-context:1.58.1
+|    |    |    |         |    \--- io.grpc:grpc-api:1.58.1 (*)
+|    |    |    |         \--- io.grpc:grpc-util:1.58.1
+|    |    |    |              +--- io.grpc:grpc-core:1.58.1 (*)
+|    |    |    |              +--- org.codehaus.mojo:animal-sniffer-annotations:1.23
+|    |    |    |              \--- com.google.guava:guava:32.0.1-android -> 32.0.1-jre (*)
+|    |    |    +--- io.grpc:grpc-services -> 1.58.1
+|    |    |    |    +--- io.grpc:grpc-protobuf:1.58.1
+|    |    |    |    |    +--- io.grpc:grpc-api:1.58.1 (*)
+|    |    |    |    |    +--- com.google.code.findbugs:jsr305:3.0.2
+|    |    |    |    |    +--- com.google.protobuf:protobuf-java:3.24.0 -> 3.25.7
+|    |    |    |    |    +--- com.google.api.grpc:proto-google-common-protos:2.22.0
+|    |    |    |    |    |    \--- com.google.protobuf:protobuf-java:3.23.2 -> 3.25.7
+|    |    |    |    |    +--- io.grpc:grpc-protobuf-lite:1.58.1
+|    |    |    |    |    |    +--- io.grpc:grpc-api:1.58.1 (*)
+|    |    |    |    |    |    +--- com.google.code.findbugs:jsr305:3.0.2
+|    |    |    |    |    |    \--- com.google.guava:guava:32.0.1-android -> 32.0.1-jre (*)
+|    |    |    |    |    \--- com.google.guava:guava:32.0.1-android -> 32.0.1-jre (*)
+|    |    |    |    +--- io.grpc:grpc-stub:1.58.1 (*)
+|    |    |    |    +--- io.grpc:grpc-util:1.58.1 (*)
+|    |    |    |    +--- com.google.protobuf:protobuf-java-util:3.24.0 -> 3.25.7
+|    |    |    |    |    +--- com.google.protobuf:protobuf-java:3.25.7
+|    |    |    |    |    +--- com.google.code.findbugs:jsr305:3.0.2
+|    |    |    |    |    +--- com.google.code.gson:gson:2.8.9 -> 2.10.1
+|    |    |    |    |    +--- com.google.errorprone:error_prone_annotations:2.18.0 -> 2.20.0
+|    |    |    |    |    +--- com.google.guava:guava:32.0.1-jre (*)
+|    |    |    |    |    \--- com.google.j2objc:j2objc-annotations:2.8
+|    |    |    |    +--- com.google.guava:guava:32.0.1-jre (*)
+|    |    |    |    +--- com.google.errorprone:error_prone_annotations:2.20.0
+|    |    |    |    +--- com.google.j2objc:j2objc-annotations:2.8
+|    |    |    |    \--- com.google.code.gson:gson:2.10.1
+|    |    |    +--- io.grpc:grpc-inprocess -> 1.58.1
+|    |    |    |    +--- io.grpc:grpc-core:1.58.1 (*)
+|    |    |    |    \--- com.google.guava:guava:32.0.1-android -> 32.0.1-jre (*)
+|    |    |    +--- com.google.protobuf:protobuf-java-util:3.25.7 (*)
+|    |    |    +--- com.uber.m3:tally-core:0.13.0
+|    |    |    |    \--- com.google.code.findbugs:jsr305:3.0.2
+|    |    |    \--- org.slf4j:slf4j-api:1.7.36 -> 2.0.15
+|    |    +--- com.google.code.gson:gson:2.10.1
+|    |    +--- io.micrometer:micrometer-core -> 1.9.17 (*)
+|    |    +--- io.nexusrpc:nexus-sdk:0.4.0-alpha
+|    |    \--- com.fasterxml.jackson.core:jackson-databind -> 2.15.2 (*)
+|    \--- io.temporal:temporal-testing:1.30.1
+|         +--- com.jayway.jsonpath:json-path:2.9.0
+|         |    \--- net.minidev:json-smart:2.5.0
+|         |         \--- net.minidev:accessors-smart:2.5.0
+|         |              \--- org.ow2.asm:asm:9.3
+|         +--- io.temporal:temporal-sdk:1.30.1 (*)
+|         \--- io.temporal:temporal-test-server:1.30.1
+|              +--- com.google.guava:guava:32.0.1-jre (*)
+|              +--- com.cronutils:cron-utils:9.2.1
+|              \--- io.temporal:temporal-sdk:1.30.1 (*)
++--- org.apache.commons:commons-lang3:3.14.0
++--- com.fasterxml.jackson.core:jackson-databind:2.15.2 (*)
++--- info.picocli:picocli:4.7.5
+\--- commons-cli:commons-cli:1.6.0
+
+runtimeClasspath - Runtime classpath of source set 'main'.
++--- org.springframework.boot:spring-boot-starter -> 2.7.18
+|    +--- org.springframework.boot:spring-boot:2.7.18
+|    |    +--- org.springframework:spring-core:5.3.31
+|    |    |    \--- org.springframework:spring-jcl:5.3.31
+|    |    \--- org.springframework:spring-context:5.3.31
+|    |         +--- org.springframework:spring-aop:5.3.31
+|    |         |    +--- org.springframework:spring-beans:5.3.31
+|    |         |    |    \--- org.springframework:spring-core:5.3.31 (*)
+|    |         |    \--- org.springframework:spring-core:5.3.31 (*)
+|    |         +--- org.springframework:spring-beans:5.3.31 (*)
+|    |         +--- org.springframework:spring-core:5.3.31 (*)
+|    |         \--- org.springframework:spring-expression:5.3.31
+|    |              \--- org.springframework:spring-core:5.3.31 (*)
+|    +--- org.springframework.boot:spring-boot-autoconfigure:2.7.18
+|    |    \--- org.springframework.boot:spring-boot:2.7.18 (*)
+|    +--- org.springframework.boot:spring-boot-starter-logging:2.7.18
+|    |    +--- ch.qos.logback:logback-classic:1.2.12 -> 1.5.7
+|    |    |    +--- ch.qos.logback:logback-core:1.5.7
+|    |    |    \--- org.slf4j:slf4j-api:2.0.15
+|    |    +--- org.apache.logging.log4j:log4j-to-slf4j:2.17.2
+|    |    |    +--- org.slf4j:slf4j-api:1.7.35 -> 2.0.15
+|    |    |    \--- org.apache.logging.log4j:log4j-api:2.17.2
+|    |    \--- org.slf4j:jul-to-slf4j:1.7.36
+|    |         \--- org.slf4j:slf4j-api:1.7.36 -> 2.0.15
+|    +--- jakarta.annotation:jakarta.annotation-api:1.3.5
+|    +--- org.springframework:spring-core:5.3.31 (*)
+|    \--- org.yaml:snakeyaml:1.30
++--- org.springframework.boot:spring-boot-starter-actuator -> 2.7.18
+|    +--- org.springframework.boot:spring-boot-starter:2.7.18 (*)
+|    +--- org.springframework.boot:spring-boot-actuator-autoconfigure:2.7.18
+|    |    +--- com.fasterxml.jackson.core:jackson-databind:2.13.5 -> 2.15.2
+|    |    |    +--- com.fasterxml.jackson.core:jackson-annotations:2.15.2
+|    |    |    |    \--- com.fasterxml.jackson:jackson-bom:2.15.2
+|    |    |    |         +--- com.fasterxml.jackson.core:jackson-annotations:2.15.2 (c)
+|    |    |    |         +--- com.fasterxml.jackson.core:jackson-core:2.15.2 (c)
+|    |    |    |         +--- com.fasterxml.jackson.core:jackson-databind:2.15.2 (c)
+|    |    |    |         +--- com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.15.2 (c)
+|    |    |    |         \--- com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.15.2 (c)
+|    |    |    +--- com.fasterxml.jackson.core:jackson-core:2.15.2
+|    |    |    |    \--- com.fasterxml.jackson:jackson-bom:2.15.2 (*)
+|    |    |    \--- com.fasterxml.jackson:jackson-bom:2.15.2 (*)
+|    |    +--- com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.13.5 -> 2.15.2
+|    |    |    +--- com.fasterxml.jackson.core:jackson-annotations:2.15.2 (*)
+|    |    |    +--- com.fasterxml.jackson.core:jackson-core:2.15.2 (*)
+|    |    |    +--- com.fasterxml.jackson.core:jackson-databind:2.15.2 (*)
+|    |    |    \--- com.fasterxml.jackson:jackson-bom:2.15.2 (*)
+|    |    +--- org.springframework.boot:spring-boot-actuator:2.7.18
+|    |    |    \--- org.springframework.boot:spring-boot:2.7.18 (*)
+|    |    +--- org.springframework.boot:spring-boot:2.7.18 (*)
+|    |    \--- org.springframework.boot:spring-boot-autoconfigure:2.7.18 (*)
+|    \--- io.micrometer:micrometer-core:1.9.17
+|         +--- org.hdrhistogram:HdrHistogram:2.1.12
+|         \--- org.latencyutils:LatencyUtils:2.0.3
++--- ch.qos.logback:logback-classic:1.5.7 (*)
++--- io.temporal:temporal-spring-boot-starter:1.30.1
+|    +--- org.springframework.boot:spring-boot-starter -> 2.7.18 (*)
+|    +--- org.springframework.boot:spring-boot-dependencies:2.7.18
+|    |    +--- com.fasterxml.jackson.core:jackson-annotations:2.13.5 -> 2.15.2 (c)
+|    |    +--- com.fasterxml.jackson.core:jackson-core:2.13.5 -> 2.15.2 (c)
+|    |    +--- com.fasterxml.jackson.core:jackson-databind:2.13.5 -> 2.15.2 (c)
+|    |    +--- org.apache.commons:commons-lang3:3.12.0 -> 3.14.0 (c)
+|    |    +--- ch.qos.logback:logback-classic:1.2.12 -> 1.5.7 (c)
+|    |    +--- ch.qos.logback:logback-core:1.2.12 -> 1.5.7 (c)
+|    |    +--- org.springframework.boot:spring-boot-starter:2.7.18 (c)
+|    |    +--- org.springframework.boot:spring-boot-starter-actuator:2.7.18 (c)
+|    |    +--- org.slf4j:slf4j-api:1.7.36 -> 2.0.15 (c)
+|    |    +--- org.springframework.boot:spring-boot-autoconfigure:2.7.18 (c)
+|    |    +--- com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.13.5 -> 2.15.2 (c)
+|    |    +--- com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.13.5 -> 2.15.2 (c)
+|    |    +--- com.google.code.gson:gson:2.9.1 -> 2.10.1 (c)
+|    |    +--- io.micrometer:micrometer-core:1.9.17 (c)
+|    |    +--- com.jayway.jsonpath:json-path:2.7.0 -> 2.9.0 (c)
+|    |    +--- org.springframework.boot:spring-boot:2.7.18 (c)
+|    |    +--- org.springframework.boot:spring-boot-starter-logging:2.7.18 (c)
+|    |    +--- jakarta.annotation:jakarta.annotation-api:1.3.5 (c)
+|    |    +--- org.springframework:spring-core:5.3.31 (c)
+|    |    +--- org.yaml:snakeyaml:1.30 (c)
+|    |    +--- org.springframework.boot:spring-boot-actuator-autoconfigure:2.7.18 (c)
+|    |    +--- net.minidev:json-smart:2.4.11 -> 2.5.0 (c)
+|    |    +--- org.springframework:spring-context:5.3.31 (c)
+|    |    +--- org.apache.logging.log4j:log4j-to-slf4j:2.17.2 (c)
+|    |    +--- org.slf4j:jul-to-slf4j:1.7.36 (c)
+|    |    +--- org.springframework:spring-jcl:5.3.31 (c)
+|    |    +--- org.springframework.boot:spring-boot-actuator:2.7.18 (c)
+|    |    +--- org.springframework:spring-aop:5.3.31 (c)
+|    |    +--- org.springframework:spring-beans:5.3.31 (c)
+|    |    +--- org.springframework:spring-expression:5.3.31 (c)
+|    |    \--- org.apache.logging.log4j:log4j-api:2.17.2 (c)
+|    +--- io.temporal:temporal-spring-boot-autoconfigure:1.30.1
+|    |    +--- io.opentelemetry:opentelemetry-api -> 1.25.0
+|    |    |    \--- io.opentelemetry:opentelemetry-context:1.25.0
+|    |    +--- io.opentelemetry:opentelemetry-opentracing-shim:1.25.0-alpha
+|    |    |    +--- io.opentelemetry:opentelemetry-semconv:1.25.0-alpha
+|    |    |    |    \--- io.opentelemetry:opentelemetry-api:1.25.0 (*)
+|    |    |    +--- io.opentracing:opentracing-noop:0.33.0
+|    |    |    |    \--- io.opentracing:opentracing-api:0.33.0
+|    |    |    +--- io.opentelemetry:opentelemetry-api:1.25.0 (*)
+|    |    |    \--- io.opentracing:opentracing-api:0.33.0
+|    |    +--- org.springframework.boot:spring-boot-dependencies:2.7.18 (*)
+|    |    +--- io.opentelemetry:opentelemetry-bom:1.25.0
+|    |    |    +--- io.opentelemetry:opentelemetry-api:1.25.0 (c)
+|    |    |    \--- io.opentelemetry:opentelemetry-context:1.25.0 (c)
+|    |    +--- org.springframework.boot:spring-boot-autoconfigure -> 2.7.18 (*)
+|    |    \--- io.temporal:temporal-opentracing:1.30.1
+|    |         +--- com.google.guava:guava:32.0.1-jre
+|    |         |    +--- com.google.guava:failureaccess:1.0.1
+|    |         |    +--- com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava
+|    |         |    +--- com.google.code.findbugs:jsr305:3.0.2
+|    |         |    +--- org.checkerframework:checker-qual:3.33.0
+|    |         |    +--- com.google.errorprone:error_prone_annotations:2.18.0 -> 2.20.0
+|    |         |    \--- com.google.j2objc:j2objc-annotations:2.8
+|    |         +--- io.opentracing:opentracing-util:0.33.0
+|    |         |    +--- io.opentracing:opentracing-api:0.33.0
+|    |         |    \--- io.opentracing:opentracing-noop:0.33.0 (*)
+|    |         \--- io.opentracing:opentracing-api:0.33.0
+|    +--- io.temporal:temporal-sdk:1.30.1
+|    |    +--- com.google.guava:guava:32.0.1-jre (*)
+|    |    +--- com.fasterxml.jackson.datatype:jackson-datatype-jsr310 -> 2.15.2 (*)
+|    |    +--- com.fasterxml.jackson.datatype:jackson-datatype-jdk8 -> 2.15.2
+|    |    |    +--- com.fasterxml.jackson.core:jackson-core:2.15.2 (*)
+|    |    |    +--- com.fasterxml.jackson.core:jackson-databind:2.15.2 (*)
+|    |    |    \--- com.fasterxml.jackson:jackson-bom:2.15.2 (*)
+|    |    +--- io.grpc:grpc-bom:1.58.1
+|    |    |    +--- io.grpc:grpc-api:1.58.1 (c)
+|    |    |    +--- io.grpc:grpc-stub:1.58.1 (c)
+|    |    |    +--- io.grpc:grpc-netty-shaded:1.58.1 (c)
+|    |    |    +--- io.grpc:grpc-services:1.58.1 (c)
+|    |    |    +--- io.grpc:grpc-inprocess:1.58.1 (c)
+|    |    |    +--- io.grpc:grpc-core:1.58.1 (c)
+|    |    |    +--- io.grpc:grpc-protobuf:1.58.1 (c)
+|    |    |    +--- io.grpc:grpc-util:1.58.1 (c)
+|    |    |    +--- io.grpc:grpc-context:1.58.1 (c)
+|    |    |    \--- io.grpc:grpc-protobuf-lite:1.58.1 (c)
+|    |    +--- com.fasterxml.jackson:jackson-bom:2.14.2 -> 2.15.2 (*)
+|    |    +--- io.micrometer:micrometer-bom:1.9.9
+|    |    |    \--- io.micrometer:micrometer-core:1.9.9 -> 1.9.17 (c)
+|    |    +--- io.temporal:temporal-serviceclient:1.30.1
+|    |    |    +--- io.grpc:grpc-bom:1.58.1 (*)
+|    |    |    +--- io.grpc:grpc-api -> 1.58.1
+|    |    |    |    +--- com.google.code.findbugs:jsr305:3.0.2
+|    |    |    |    +--- com.google.errorprone:error_prone_annotations:2.20.0
+|    |    |    |    \--- com.google.guava:guava:32.0.1-android -> 32.0.1-jre (*)
+|    |    |    +--- io.grpc:grpc-stub -> 1.58.1
+|    |    |    |    +--- io.grpc:grpc-api:1.58.1 (*)
+|    |    |    |    +--- com.google.guava:guava:32.0.1-android -> 32.0.1-jre (*)
+|    |    |    |    \--- com.google.errorprone:error_prone_annotations:2.20.0
+|    |    |    +--- io.grpc:grpc-netty-shaded -> 1.58.1
+|    |    |    |    +--- com.google.guava:guava:32.0.1-android -> 32.0.1-jre (*)
+|    |    |    |    +--- com.google.errorprone:error_prone_annotations:2.20.0
+|    |    |    |    +--- io.perfmark:perfmark-api:0.26.0
+|    |    |    |    \--- io.grpc:grpc-core:1.58.1
+|    |    |    |         +--- io.grpc:grpc-api:1.58.1 (*)
+|    |    |    |         +--- com.google.code.gson:gson:2.10.1
+|    |    |    |         +--- com.google.android:annotations:4.1.1.4
+|    |    |    |         +--- org.codehaus.mojo:animal-sniffer-annotations:1.23
+|    |    |    |         +--- com.google.errorprone:error_prone_annotations:2.20.0
+|    |    |    |         +--- com.google.guava:guava:32.0.1-android -> 32.0.1-jre (*)
+|    |    |    |         +--- io.perfmark:perfmark-api:0.26.0
+|    |    |    |         +--- io.grpc:grpc-context:1.58.1
+|    |    |    |         |    \--- io.grpc:grpc-api:1.58.1 (*)
+|    |    |    |         \--- io.grpc:grpc-util:1.58.1
+|    |    |    |              +--- io.grpc:grpc-core:1.58.1 (*)
+|    |    |    |              +--- org.codehaus.mojo:animal-sniffer-annotations:1.23
+|    |    |    |              \--- com.google.guava:guava:32.0.1-android -> 32.0.1-jre (*)
+|    |    |    +--- io.grpc:grpc-services -> 1.58.1
+|    |    |    |    +--- io.grpc:grpc-protobuf:1.58.1
+|    |    |    |    |    +--- io.grpc:grpc-api:1.58.1 (*)
+|    |    |    |    |    +--- com.google.code.findbugs:jsr305:3.0.2
+|    |    |    |    |    +--- com.google.protobuf:protobuf-java:3.24.0 -> 3.25.7
+|    |    |    |    |    +--- com.google.api.grpc:proto-google-common-protos:2.22.0
+|    |    |    |    |    |    \--- com.google.protobuf:protobuf-java:3.23.2 -> 3.25.7
+|    |    |    |    |    +--- io.grpc:grpc-protobuf-lite:1.58.1
+|    |    |    |    |    |    +--- io.grpc:grpc-api:1.58.1 (*)
+|    |    |    |    |    |    +--- com.google.code.findbugs:jsr305:3.0.2
+|    |    |    |    |    |    \--- com.google.guava:guava:32.0.1-android -> 32.0.1-jre (*)
+|    |    |    |    |    \--- com.google.guava:guava:32.0.1-android -> 32.0.1-jre (*)
+|    |    |    |    +--- io.grpc:grpc-stub:1.58.1 (*)
+|    |    |    |    +--- io.grpc:grpc-util:1.58.1 (*)
+|    |    |    |    +--- com.google.protobuf:protobuf-java-util:3.24.0 -> 3.25.7
+|    |    |    |    |    +--- com.google.protobuf:protobuf-java:3.25.7
+|    |    |    |    |    +--- com.google.code.findbugs:jsr305:3.0.2
+|    |    |    |    |    +--- com.google.code.gson:gson:2.8.9 -> 2.10.1
+|    |    |    |    |    +--- com.google.errorprone:error_prone_annotations:2.18.0 -> 2.20.0
+|    |    |    |    |    +--- com.google.guava:guava:32.0.1-jre (*)
+|    |    |    |    |    \--- com.google.j2objc:j2objc-annotations:2.8
+|    |    |    |    +--- com.google.guava:guava:32.0.1-jre (*)
+|    |    |    |    +--- com.google.errorprone:error_prone_annotations:2.20.0
+|    |    |    |    +--- com.google.j2objc:j2objc-annotations:2.8
+|    |    |    |    \--- com.google.code.gson:gson:2.10.1
+|    |    |    +--- io.grpc:grpc-inprocess -> 1.58.1
+|    |    |    |    +--- io.grpc:grpc-core:1.58.1 (*)
+|    |    |    |    \--- com.google.guava:guava:32.0.1-android -> 32.0.1-jre (*)
+|    |    |    +--- com.google.protobuf:protobuf-java-util:3.25.7 (*)
+|    |    |    +--- com.uber.m3:tally-core:0.13.0
+|    |    |    |    \--- com.google.code.findbugs:jsr305:3.0.2
+|    |    |    \--- org.slf4j:slf4j-api:1.7.36 -> 2.0.15
+|    |    +--- com.google.code.gson:gson:2.10.1
+|    |    +--- io.micrometer:micrometer-core -> 1.9.17 (*)
+|    |    +--- io.nexusrpc:nexus-sdk:0.4.0-alpha
+|    |    \--- com.fasterxml.jackson.core:jackson-databind -> 2.15.2 (*)
+|    \--- io.temporal:temporal-testing:1.30.1
+|         +--- com.jayway.jsonpath:json-path:2.9.0
+|         |    \--- net.minidev:json-smart:2.5.0
+|         |         \--- net.minidev:accessors-smart:2.5.0
+|         |              \--- org.ow2.asm:asm:9.3
+|         +--- io.temporal:temporal-sdk:1.30.1 (*)
+|         \--- io.temporal:temporal-test-server:1.30.1
+|              +--- com.google.guava:guava:32.0.1-jre (*)
+|              +--- com.cronutils:cron-utils:9.2.1
+|              \--- io.temporal:temporal-sdk:1.30.1 (*)
++--- org.apache.commons:commons-lang3:3.14.0
++--- com.fasterxml.jackson.core:jackson-databind:2.15.2 (*)
++--- info.picocli:picocli:4.7.5
+\--- commons-cli:commons-cli:1.6.0
+
+runtimeElements - Runtime elements for the 'main' feature. (n)
+No dependencies
+
+runtimeOnly - Runtime-only dependencies for the 'main' feature. (n)
+No dependencies
+
+testAndDevelopmentOnly - Configuration for test and development-only dependencies such as Spring Boot's DevTools.
+No dependencies
+
+testAnnotationProcessor - Annotation processors and their dependencies for source set 'test'.
+\--- com.google.errorprone:error_prone_core:2.23.0
+     +--- com.google.errorprone:error_prone_annotation:2.23.0
+     |    \--- com.google.guava:guava:32.1.1-jre
+     |         +--- com.google.guava:guava-parent:32.1.1-jre
+     |         |    +--- com.google.code.findbugs:jsr305:3.0.2 (c)
+     |         |    +--- org.checkerframework:checker-qual:3.33.0 (c)
+     |         |    \--- com.google.errorprone:error_prone_annotations:2.18.0 -> 2.23.0 (c)
+     |         +--- com.google.guava:failureaccess:1.0.1
+     |         +--- com.google.code.findbugs:jsr305 -> 3.0.2
+     |         +--- org.checkerframework:checker-qual -> 3.33.0
+     |         \--- com.google.errorprone:error_prone_annotations -> 2.23.0
+     +--- com.google.errorprone:error_prone_type_annotations:2.23.0
+     +--- com.google.errorprone:error_prone_check_api:2.23.0
+     |    +--- com.google.errorprone:error_prone_annotation:2.23.0 (*)
+     |    +--- com.google.code.findbugs:jsr305:3.0.2
+     |    +--- io.github.eisop:dataflow-errorprone:3.34.0-eisop1
+     |    +--- io.github.java-diff-utils:java-diff-utils:4.12
+     |    +--- com.google.auto.value:auto-value-annotations:1.9
+     |    +--- com.google.errorprone:error_prone_annotations:2.23.0
+     |    +--- com.github.kevinstern:software-and-algorithms:1.0
+     |    +--- com.github.ben-manes.caffeine:caffeine:3.0.5
+     |    |    +--- org.checkerframework:checker-qual:3.19.0 -> 3.33.0
+     |    |    \--- com.google.errorprone:error_prone_annotations:2.10.0 -> 2.23.0
+     |    \--- com.google.inject:guice:5.1.0
+     |         +--- javax.inject:javax.inject:1
+     |         +--- aopalliance:aopalliance:1.0
+     |         \--- com.google.guava:guava:30.1-jre -> 32.1.1-jre (*)
+     +--- org.pcollections:pcollections:3.1.4
+     +--- com.google.guava:guava:32.1.1-jre (*)
+     +--- com.google.auto:auto-common:1.2.1
+     |    \--- com.google.guava:guava:31.0.1-jre -> 32.1.1-jre (*)
+     +--- com.google.code.findbugs:jsr305:3.0.2
+     +--- io.github.eisop:dataflow-errorprone:3.34.0-eisop1
+     +--- com.google.auto.value:auto-value-annotations:1.9
+     +--- com.google.errorprone:error_prone_annotations:2.23.0
+     +--- com.google.protobuf:protobuf-java:3.19.6
+     +--- com.google.auto.service:auto-service-annotations:1.0.1
+     \--- javax.inject:javax.inject:1
+
+testCompileClasspath - Compile classpath for source set 'test'.
++--- org.springframework.boot:spring-boot-starter -> 2.7.18
+|    +--- org.springframework.boot:spring-boot:2.7.18
+|    |    +--- org.springframework:spring-core:5.3.31
+|    |    |    \--- org.springframework:spring-jcl:5.3.31
+|    |    \--- org.springframework:spring-context:5.3.31
+|    |         +--- org.springframework:spring-aop:5.3.31
+|    |         |    +--- org.springframework:spring-beans:5.3.31
+|    |         |    |    \--- org.springframework:spring-core:5.3.31 (*)
+|    |         |    \--- org.springframework:spring-core:5.3.31 (*)
+|    |         +--- org.springframework:spring-beans:5.3.31 (*)
+|    |         +--- org.springframework:spring-core:5.3.31 (*)
+|    |         \--- org.springframework:spring-expression:5.3.31
+|    |              \--- org.springframework:spring-core:5.3.31 (*)
+|    +--- org.springframework.boot:spring-boot-autoconfigure:2.7.18
+|    |    \--- org.springframework.boot:spring-boot:2.7.18 (*)
+|    +--- org.springframework.boot:spring-boot-starter-logging:2.7.18
+|    |    +--- ch.qos.logback:logback-classic:1.2.12 -> 1.5.7
+|    |    |    +--- ch.qos.logback:logback-core:1.5.7
+|    |    |    \--- org.slf4j:slf4j-api:2.0.15
+|    |    +--- org.apache.logging.log4j:log4j-to-slf4j:2.17.2
+|    |    |    +--- org.slf4j:slf4j-api:1.7.35 -> 2.0.15
+|    |    |    \--- org.apache.logging.log4j:log4j-api:2.17.2
+|    |    \--- org.slf4j:jul-to-slf4j:1.7.36
+|    |         \--- org.slf4j:slf4j-api:1.7.36 -> 2.0.15
+|    +--- jakarta.annotation:jakarta.annotation-api:1.3.5
+|    +--- org.springframework:spring-core:5.3.31 (*)
+|    \--- org.yaml:snakeyaml:1.30
++--- org.springframework.boot:spring-boot-starter-actuator -> 2.7.18
+|    +--- org.springframework.boot:spring-boot-starter:2.7.18 (*)
+|    +--- org.springframework.boot:spring-boot-actuator-autoconfigure:2.7.18
+|    |    +--- org.springframework.boot:spring-boot-actuator:2.7.18
+|    |    |    \--- org.springframework.boot:spring-boot:2.7.18 (*)
+|    |    +--- org.springframework.boot:spring-boot:2.7.18 (*)
+|    |    \--- org.springframework.boot:spring-boot-autoconfigure:2.7.18 (*)
+|    \--- io.micrometer:micrometer-core:1.9.17
+|         \--- org.hdrhistogram:HdrHistogram:2.1.12
++--- ch.qos.logback:logback-classic:1.5.7 (*)
++--- io.temporal:temporal-spring-boot-starter:1.30.1
+|    +--- org.springframework.boot:spring-boot-dependencies:2.7.18
+|    |    +--- com.fasterxml.jackson.core:jackson-annotations:2.13.5 -> 2.15.2 (c)
+|    |    +--- com.fasterxml.jackson.core:jackson-core:2.13.5 -> 2.15.2 (c)
+|    |    +--- com.fasterxml.jackson.core:jackson-databind:2.13.5 -> 2.15.2 (c)
+|    |    +--- org.apache.commons:commons-lang3:3.12.0 -> 3.14.0 (c)
+|    |    +--- ch.qos.logback:logback-classic:1.2.12 -> 1.5.7 (c)
+|    |    +--- ch.qos.logback:logback-core:1.2.12 -> 1.5.7 (c)
+|    |    +--- org.springframework.boot:spring-boot-starter:2.7.18 (c)
+|    |    +--- org.springframework.boot:spring-boot-starter-actuator:2.7.18 (c)
+|    |    +--- org.springframework.boot:spring-boot-starter-test:2.7.18 (c)
+|    |    +--- org.slf4j:slf4j-api:1.7.36 -> 2.0.15 (c)
+|    |    +--- org.springframework.boot:spring-boot-autoconfigure:2.7.18 (c)
+|    |    +--- com.google.code.gson:gson:2.9.1 -> 2.10.1 (c)
+|    |    +--- io.micrometer:micrometer-core:1.9.17 (c)
+|    |    +--- org.springframework.boot:spring-boot:2.7.18 (c)
+|    |    +--- org.springframework.boot:spring-boot-starter-logging:2.7.18 (c)
+|    |    +--- jakarta.annotation:jakarta.annotation-api:1.3.5 (c)
+|    |    +--- org.springframework:spring-core:5.3.31 (c)
+|    |    +--- org.yaml:snakeyaml:1.30 (c)
+|    |    +--- org.springframework.boot:spring-boot-actuator-autoconfigure:2.7.18 (c)
+|    |    +--- org.springframework.boot:spring-boot-test:2.7.18 (c)
+|    |    +--- org.springframework.boot:spring-boot-test-autoconfigure:2.7.18 (c)
+|    |    +--- com.jayway.jsonpath:json-path:2.7.0 (c)
+|    |    +--- jakarta.xml.bind:jakarta.xml.bind-api:2.3.3 (c)
+|    |    +--- org.assertj:assertj-core:3.22.0 (c)
+|    |    +--- org.hamcrest:hamcrest:2.2 (c)
+|    |    +--- org.junit.jupiter:junit-jupiter:5.8.2 (c)
+|    |    +--- org.mockito:mockito-core:4.5.1 (c)
+|    |    +--- org.mockito:mockito-junit-jupiter:4.5.1 (c)
+|    |    +--- org.skyscreamer:jsonassert:1.5.1 (c)
+|    |    +--- org.springframework:spring-test:5.3.31 (c)
+|    |    +--- org.xmlunit:xmlunit-core:2.9.1 (c)
+|    |    +--- org.springframework:spring-context:5.3.31 (c)
+|    |    +--- org.apache.logging.log4j:log4j-to-slf4j:2.17.2 (c)
+|    |    +--- org.slf4j:jul-to-slf4j:1.7.36 (c)
+|    |    +--- org.springframework:spring-jcl:5.3.31 (c)
+|    |    +--- org.springframework.boot:spring-boot-actuator:2.7.18 (c)
+|    |    +--- net.minidev:json-smart:2.4.11 (c)
+|    |    +--- jakarta.activation:jakarta.activation-api:1.2.2 (c)
+|    |    +--- org.junit.jupiter:junit-jupiter-api:5.8.2 (c)
+|    |    +--- org.junit.jupiter:junit-jupiter-params:5.8.2 (c)
+|    |    +--- net.bytebuddy:byte-buddy:1.12.23 (c)
+|    |    +--- net.bytebuddy:byte-buddy-agent:1.12.23 (c)
+|    |    +--- org.springframework:spring-aop:5.3.31 (c)
+|    |    +--- org.springframework:spring-beans:5.3.31 (c)
+|    |    +--- org.springframework:spring-expression:5.3.31 (c)
+|    |    +--- org.apache.logging.log4j:log4j-api:2.17.2 (c)
+|    |    \--- org.junit.platform:junit-platform-commons:1.8.2 (c)
+|    +--- io.temporal:temporal-spring-boot-autoconfigure:1.30.1
+|    |    +--- org.springframework.boot:spring-boot-dependencies:2.7.18 (*)
+|    |    +--- io.opentelemetry:opentelemetry-bom:1.25.0
+|    |    +--- org.springframework.boot:spring-boot-autoconfigure -> 2.7.18 (*)
+|    |    \--- io.temporal:temporal-opentracing:1.30.1
+|    |         \--- io.opentracing:opentracing-api:0.33.0
+|    +--- io.temporal:temporal-sdk:1.30.1
+|    |    +--- io.grpc:grpc-bom:1.58.1
+|    |    |    +--- io.grpc:grpc-api:1.58.1 (c)
+|    |    |    +--- io.grpc:grpc-stub:1.58.1 (c)
+|    |    |    +--- io.grpc:grpc-netty-shaded:1.58.1 (c)
+|    |    |    +--- io.grpc:grpc-services:1.58.1 (c)
+|    |    |    +--- io.grpc:grpc-inprocess:1.58.1 (c)
+|    |    |    +--- io.grpc:grpc-core:1.58.1 (c)
+|    |    |    +--- io.grpc:grpc-protobuf:1.58.1 (c)
+|    |    |    +--- io.grpc:grpc-util:1.58.1 (c)
+|    |    |    \--- io.grpc:grpc-protobuf-lite:1.58.1 (c)
+|    |    +--- com.fasterxml.jackson:jackson-bom:2.14.2 -> 2.15.2
+|    |    |    +--- com.fasterxml.jackson.core:jackson-annotations:2.15.2 (c)
+|    |    |    +--- com.fasterxml.jackson.core:jackson-core:2.15.2 (c)
+|    |    |    \--- com.fasterxml.jackson.core:jackson-databind:2.15.2 (c)
+|    |    +--- io.micrometer:micrometer-bom:1.9.9
+|    |    |    \--- io.micrometer:micrometer-core:1.9.9 -> 1.9.17 (c)
+|    |    +--- io.temporal:temporal-serviceclient:1.30.1
+|    |    |    +--- io.grpc:grpc-bom:1.58.1 (*)
+|    |    |    +--- io.grpc:grpc-api -> 1.58.1
+|    |    |    |    +--- com.google.code.findbugs:jsr305:3.0.2
+|    |    |    |    \--- com.google.errorprone:error_prone_annotations:2.20.0
+|    |    |    +--- io.grpc:grpc-stub -> 1.58.1
+|    |    |    |    +--- io.grpc:grpc-api:1.58.1 (*)
+|    |    |    |    \--- com.google.guava:guava:32.0.1-android -> 32.0.1-jre
+|    |    |    |         +--- com.google.guava:failureaccess:1.0.1
+|    |    |    |         +--- com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava
+|    |    |    |         +--- com.google.code.findbugs:jsr305:3.0.2
+|    |    |    |         +--- org.checkerframework:checker-qual:3.33.0
+|    |    |    |         +--- com.google.errorprone:error_prone_annotations:2.18.0 -> 2.20.0
+|    |    |    |         \--- com.google.j2objc:j2objc-annotations:2.8
+|    |    |    +--- io.grpc:grpc-netty-shaded -> 1.58.1
+|    |    |    |    \--- io.grpc:grpc-core:1.58.1
+|    |    |    |         \--- io.grpc:grpc-api:1.58.1 (*)
+|    |    |    +--- io.grpc:grpc-services -> 1.58.1
+|    |    |    |    +--- io.grpc:grpc-protobuf:1.58.1
+|    |    |    |    |    +--- io.grpc:grpc-api:1.58.1 (*)
+|    |    |    |    |    +--- com.google.code.findbugs:jsr305:3.0.2
+|    |    |    |    |    +--- com.google.protobuf:protobuf-java:3.24.0 -> 3.25.7
+|    |    |    |    |    +--- com.google.api.grpc:proto-google-common-protos:2.22.0
+|    |    |    |    |    |    \--- com.google.protobuf:protobuf-java:3.23.2 -> 3.25.7
+|    |    |    |    |    \--- io.grpc:grpc-protobuf-lite:1.58.1
+|    |    |    |    |         \--- io.grpc:grpc-api:1.58.1 (*)
+|    |    |    |    +--- io.grpc:grpc-stub:1.58.1 (*)
+|    |    |    |    \--- io.grpc:grpc-util:1.58.1
+|    |    |    |         \--- io.grpc:grpc-core:1.58.1 (*)
+|    |    |    +--- io.grpc:grpc-inprocess -> 1.58.1
+|    |    |    |    \--- io.grpc:grpc-core:1.58.1 (*)
+|    |    |    +--- com.google.protobuf:protobuf-java-util:3.25.7
+|    |    |    |    +--- com.google.protobuf:protobuf-java:3.25.7
+|    |    |    |    +--- com.google.code.findbugs:jsr305:3.0.2
+|    |    |    |    +--- com.google.code.gson:gson:2.8.9 -> 2.10.1
+|    |    |    |    +--- com.google.errorprone:error_prone_annotations:2.18.0 -> 2.20.0
+|    |    |    |    +--- com.google.guava:guava:32.0.1-jre (*)
+|    |    |    |    \--- com.google.j2objc:j2objc-annotations:2.8
+|    |    |    +--- com.uber.m3:tally-core:0.13.0
+|    |    |    |    \--- com.google.code.findbugs:jsr305:3.0.2
+|    |    |    \--- org.slf4j:slf4j-api:1.7.36 -> 2.0.15
+|    |    +--- com.google.code.gson:gson:2.10.1
+|    |    +--- io.micrometer:micrometer-core -> 1.9.17 (*)
+|    |    +--- io.nexusrpc:nexus-sdk:0.4.0-alpha
+|    |    \--- com.fasterxml.jackson.core:jackson-databind -> 2.15.2
+|    |         +--- com.fasterxml.jackson.core:jackson-annotations:2.15.2
+|    |         |    \--- com.fasterxml.jackson:jackson-bom:2.15.2 (*)
+|    |         +--- com.fasterxml.jackson.core:jackson-core:2.15.2
+|    |         |    \--- com.fasterxml.jackson:jackson-bom:2.15.2 (*)
+|    |         \--- com.fasterxml.jackson:jackson-bom:2.15.2 (*)
+|    \--- io.temporal:temporal-testing:1.30.1
+|         +--- io.temporal:temporal-sdk:1.30.1 (*)
+|         \--- io.temporal:temporal-test-server:1.30.1
+|              \--- io.temporal:temporal-sdk:1.30.1 (*)
++--- org.apache.commons:commons-lang3:3.14.0
++--- com.fasterxml.jackson.core:jackson-databind:2.15.2 (*)
++--- info.picocli:picocli:4.7.5
++--- commons-cli:commons-cli:1.6.0
+\--- org.springframework.boot:spring-boot-starter-test -> 2.7.18
+     +--- org.springframework.boot:spring-boot-starter:2.7.18 (*)
+     +--- org.springframework.boot:spring-boot-test:2.7.18
+     |    \--- org.springframework.boot:spring-boot:2.7.18 (*)
+     +--- org.springframework.boot:spring-boot-test-autoconfigure:2.7.18
+     |    +--- org.springframework.boot:spring-boot:2.7.18 (*)
+     |    +--- org.springframework.boot:spring-boot-test:2.7.18 (*)
+     |    \--- org.springframework.boot:spring-boot-autoconfigure:2.7.18 (*)
+     +--- com.jayway.jsonpath:json-path:2.7.0
+     |    +--- net.minidev:json-smart:2.4.7 -> 2.4.11
+     |    |    \--- net.minidev:accessors-smart:2.4.11
+     |    |         \--- org.ow2.asm:asm:9.3
+     |    \--- org.slf4j:slf4j-api:1.7.33 -> 2.0.15
+     +--- jakarta.xml.bind:jakarta.xml.bind-api:2.3.3
+     |    \--- jakarta.activation:jakarta.activation-api:1.2.2
+     +--- org.assertj:assertj-core:3.22.0
+     +--- org.hamcrest:hamcrest:2.2
+     +--- org.junit.jupiter:junit-jupiter:5.8.2
+     |    +--- org.junit:junit-bom:5.8.2
+     |    |    +--- org.junit.jupiter:junit-jupiter:5.8.2 (c)
+     |    |    +--- org.junit.jupiter:junit-jupiter-api:5.8.2 (c)
+     |    |    +--- org.junit.jupiter:junit-jupiter-params:5.8.2 (c)
+     |    |    \--- org.junit.platform:junit-platform-commons:1.8.2 (c)
+     |    +--- org.junit.jupiter:junit-jupiter-api:5.8.2
+     |    |    +--- org.junit:junit-bom:5.8.2 (*)
+     |    |    +--- org.opentest4j:opentest4j:1.2.0
+     |    |    +--- org.junit.platform:junit-platform-commons:1.8.2
+     |    |    |    +--- org.junit:junit-bom:5.8.2 (*)
+     |    |    |    \--- org.apiguardian:apiguardian-api:1.1.2
+     |    |    \--- org.apiguardian:apiguardian-api:1.1.2
+     |    \--- org.junit.jupiter:junit-jupiter-params:5.8.2
+     |         +--- org.junit:junit-bom:5.8.2 (*)
+     |         +--- org.junit.jupiter:junit-jupiter-api:5.8.2 (*)
+     |         \--- org.apiguardian:apiguardian-api:1.1.2
+     +--- org.mockito:mockito-core:4.5.1
+     |    +--- net.bytebuddy:byte-buddy:1.12.9 -> 1.12.23
+     |    \--- net.bytebuddy:byte-buddy-agent:1.12.9 -> 1.12.23
+     +--- org.mockito:mockito-junit-jupiter:4.5.1
+     |    \--- org.mockito:mockito-core:4.5.1 (*)
+     +--- org.skyscreamer:jsonassert:1.5.1
+     |    \--- com.vaadin.external.google:android-json:0.0.20131108.vaadin1
+     +--- org.springframework:spring-core:5.3.31 (*)
+     +--- org.springframework:spring-test:5.3.31
+     |    \--- org.springframework:spring-core:5.3.31 (*)
+     \--- org.xmlunit:xmlunit-core:2.9.1
+
+testCompileOnly - Compile only dependencies for source set 'test'. (n)
+No dependencies
+
+testImplementation - Implementation only dependencies for source set 'test'. (n)
+\--- org.springframework.boot:spring-boot-starter-test (n)
+
+testRuntimeClasspath - Runtime classpath of source set 'test'.
++--- org.springframework.boot:spring-boot-starter -> 2.7.18
+|    +--- org.springframework.boot:spring-boot:2.7.18
+|    |    +--- org.springframework:spring-core:5.3.31
+|    |    |    \--- org.springframework:spring-jcl:5.3.31
+|    |    \--- org.springframework:spring-context:5.3.31
+|    |         +--- org.springframework:spring-aop:5.3.31
+|    |         |    +--- org.springframework:spring-beans:5.3.31
+|    |         |    |    \--- org.springframework:spring-core:5.3.31 (*)
+|    |         |    \--- org.springframework:spring-core:5.3.31 (*)
+|    |         +--- org.springframework:spring-beans:5.3.31 (*)
+|    |         +--- org.springframework:spring-core:5.3.31 (*)
+|    |         \--- org.springframework:spring-expression:5.3.31
+|    |              \--- org.springframework:spring-core:5.3.31 (*)
+|    +--- org.springframework.boot:spring-boot-autoconfigure:2.7.18
+|    |    \--- org.springframework.boot:spring-boot:2.7.18 (*)
+|    +--- org.springframework.boot:spring-boot-starter-logging:2.7.18
+|    |    +--- ch.qos.logback:logback-classic:1.2.12 -> 1.5.7
+|    |    |    +--- ch.qos.logback:logback-core:1.5.7
+|    |    |    \--- org.slf4j:slf4j-api:2.0.15
+|    |    +--- org.apache.logging.log4j:log4j-to-slf4j:2.17.2
+|    |    |    +--- org.slf4j:slf4j-api:1.7.35 -> 2.0.15
+|    |    |    \--- org.apache.logging.log4j:log4j-api:2.17.2
+|    |    \--- org.slf4j:jul-to-slf4j:1.7.36
+|    |         \--- org.slf4j:slf4j-api:1.7.36 -> 2.0.15
+|    +--- jakarta.annotation:jakarta.annotation-api:1.3.5
+|    +--- org.springframework:spring-core:5.3.31 (*)
+|    \--- org.yaml:snakeyaml:1.30
++--- org.springframework.boot:spring-boot-starter-actuator -> 2.7.18
+|    +--- org.springframework.boot:spring-boot-starter:2.7.18 (*)
+|    +--- org.springframework.boot:spring-boot-actuator-autoconfigure:2.7.18
+|    |    +--- com.fasterxml.jackson.core:jackson-databind:2.13.5 -> 2.15.2
+|    |    |    +--- com.fasterxml.jackson.core:jackson-annotations:2.15.2
+|    |    |    |    \--- com.fasterxml.jackson:jackson-bom:2.15.2
+|    |    |    |         +--- com.fasterxml.jackson.core:jackson-annotations:2.15.2 (c)
+|    |    |    |         +--- com.fasterxml.jackson.core:jackson-core:2.15.2 (c)
+|    |    |    |         +--- com.fasterxml.jackson.core:jackson-databind:2.15.2 (c)
+|    |    |    |         +--- com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.15.2 (c)
+|    |    |    |         \--- com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.15.2 (c)
+|    |    |    +--- com.fasterxml.jackson.core:jackson-core:2.15.2
+|    |    |    |    \--- com.fasterxml.jackson:jackson-bom:2.15.2 (*)
+|    |    |    \--- com.fasterxml.jackson:jackson-bom:2.15.2 (*)
+|    |    +--- com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.13.5 -> 2.15.2
+|    |    |    +--- com.fasterxml.jackson.core:jackson-annotations:2.15.2 (*)
+|    |    |    +--- com.fasterxml.jackson.core:jackson-core:2.15.2 (*)
+|    |    |    +--- com.fasterxml.jackson.core:jackson-databind:2.15.2 (*)
+|    |    |    \--- com.fasterxml.jackson:jackson-bom:2.15.2 (*)
+|    |    +--- org.springframework.boot:spring-boot-actuator:2.7.18
+|    |    |    \--- org.springframework.boot:spring-boot:2.7.18 (*)
+|    |    +--- org.springframework.boot:spring-boot:2.7.18 (*)
+|    |    \--- org.springframework.boot:spring-boot-autoconfigure:2.7.18 (*)
+|    \--- io.micrometer:micrometer-core:1.9.17
+|         +--- org.hdrhistogram:HdrHistogram:2.1.12
+|         \--- org.latencyutils:LatencyUtils:2.0.3
++--- ch.qos.logback:logback-classic:1.5.7 (*)
++--- io.temporal:temporal-spring-boot-starter:1.30.1
+|    +--- org.springframework.boot:spring-boot-starter -> 2.7.18 (*)
+|    +--- org.springframework.boot:spring-boot-dependencies:2.7.18
+|    |    +--- com.fasterxml.jackson.core:jackson-annotations:2.13.5 -> 2.15.2 (c)
+|    |    +--- com.fasterxml.jackson.core:jackson-core:2.13.5 -> 2.15.2 (c)
+|    |    +--- com.fasterxml.jackson.core:jackson-databind:2.13.5 -> 2.15.2 (c)
+|    |    +--- org.apache.commons:commons-lang3:3.12.0 -> 3.14.0 (c)
+|    |    +--- ch.qos.logback:logback-classic:1.2.12 -> 1.5.7 (c)
+|    |    +--- ch.qos.logback:logback-core:1.2.12 -> 1.5.7 (c)
+|    |    +--- org.springframework.boot:spring-boot-starter:2.7.18 (c)
+|    |    +--- org.springframework.boot:spring-boot-starter-actuator:2.7.18 (c)
+|    |    +--- org.springframework.boot:spring-boot-starter-test:2.7.18 (c)
+|    |    +--- org.slf4j:slf4j-api:1.7.36 -> 2.0.15 (c)
+|    |    +--- org.springframework.boot:spring-boot-autoconfigure:2.7.18 (c)
+|    |    +--- com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.13.5 -> 2.15.2 (c)
+|    |    +--- com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.13.5 -> 2.15.2 (c)
+|    |    +--- com.google.code.gson:gson:2.9.1 -> 2.10.1 (c)
+|    |    +--- io.micrometer:micrometer-core:1.9.17 (c)
+|    |    +--- com.jayway.jsonpath:json-path:2.7.0 -> 2.9.0 (c)
+|    |    +--- org.springframework.boot:spring-boot:2.7.18 (c)
+|    |    +--- org.springframework.boot:spring-boot-starter-logging:2.7.18 (c)
+|    |    +--- jakarta.annotation:jakarta.annotation-api:1.3.5 (c)
+|    |    +--- org.springframework:spring-core:5.3.31 (c)
+|    |    +--- org.yaml:snakeyaml:1.30 (c)
+|    |    +--- org.springframework.boot:spring-boot-actuator-autoconfigure:2.7.18 (c)
+|    |    +--- org.springframework.boot:spring-boot-test:2.7.18 (c)
+|    |    +--- org.springframework.boot:spring-boot-test-autoconfigure:2.7.18 (c)
+|    |    +--- jakarta.xml.bind:jakarta.xml.bind-api:2.3.3 (c)
+|    |    +--- org.assertj:assertj-core:3.22.0 (c)
+|    |    +--- org.hamcrest:hamcrest:2.2 (c)
+|    |    +--- org.junit.jupiter:junit-jupiter:5.8.2 (c)
+|    |    +--- org.mockito:mockito-core:4.5.1 (c)
+|    |    +--- org.mockito:mockito-junit-jupiter:4.5.1 (c)
+|    |    +--- org.skyscreamer:jsonassert:1.5.1 (c)
+|    |    +--- org.springframework:spring-test:5.3.31 (c)
+|    |    +--- org.xmlunit:xmlunit-core:2.9.1 (c)
+|    |    +--- net.minidev:json-smart:2.4.11 -> 2.5.0 (c)
+|    |    +--- org.springframework:spring-context:5.3.31 (c)
+|    |    +--- org.apache.logging.log4j:log4j-to-slf4j:2.17.2 (c)
+|    |    +--- org.slf4j:jul-to-slf4j:1.7.36 (c)
+|    |    +--- org.springframework:spring-jcl:5.3.31 (c)
+|    |    +--- org.springframework.boot:spring-boot-actuator:2.7.18 (c)
+|    |    +--- jakarta.activation:jakarta.activation-api:1.2.2 (c)
+|    |    +--- org.junit.jupiter:junit-jupiter-api:5.8.2 (c)
+|    |    +--- org.junit.jupiter:junit-jupiter-params:5.8.2 (c)
+|    |    +--- org.junit.jupiter:junit-jupiter-engine:5.8.2 (c)
+|    |    +--- net.bytebuddy:byte-buddy:1.12.23 (c)
+|    |    +--- net.bytebuddy:byte-buddy-agent:1.12.23 (c)
+|    |    +--- org.springframework:spring-aop:5.3.31 (c)
+|    |    +--- org.springframework:spring-beans:5.3.31 (c)
+|    |    +--- org.springframework:spring-expression:5.3.31 (c)
+|    |    +--- org.apache.logging.log4j:log4j-api:2.17.2 (c)
+|    |    +--- org.junit.platform:junit-platform-commons:1.8.2 (c)
+|    |    \--- org.junit.platform:junit-platform-engine:1.8.2 (c)
+|    +--- io.temporal:temporal-spring-boot-autoconfigure:1.30.1
+|    |    +--- io.opentelemetry:opentelemetry-api -> 1.25.0
+|    |    |    \--- io.opentelemetry:opentelemetry-context:1.25.0
+|    |    +--- io.opentelemetry:opentelemetry-opentracing-shim:1.25.0-alpha
+|    |    |    +--- io.opentelemetry:opentelemetry-semconv:1.25.0-alpha
+|    |    |    |    \--- io.opentelemetry:opentelemetry-api:1.25.0 (*)
+|    |    |    +--- io.opentracing:opentracing-noop:0.33.0
+|    |    |    |    \--- io.opentracing:opentracing-api:0.33.0
+|    |    |    +--- io.opentelemetry:opentelemetry-api:1.25.0 (*)
+|    |    |    \--- io.opentracing:opentracing-api:0.33.0
+|    |    +--- org.springframework.boot:spring-boot-dependencies:2.7.18 (*)
+|    |    +--- io.opentelemetry:opentelemetry-bom:1.25.0
+|    |    |    +--- io.opentelemetry:opentelemetry-api:1.25.0 (c)
+|    |    |    \--- io.opentelemetry:opentelemetry-context:1.25.0 (c)
+|    |    +--- org.springframework.boot:spring-boot-autoconfigure -> 2.7.18 (*)
+|    |    \--- io.temporal:temporal-opentracing:1.30.1
+|    |         +--- com.google.guava:guava:32.0.1-jre
+|    |         |    +--- com.google.guava:failureaccess:1.0.1
+|    |         |    +--- com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava
+|    |         |    +--- com.google.code.findbugs:jsr305:3.0.2
+|    |         |    +--- org.checkerframework:checker-qual:3.33.0
+|    |         |    +--- com.google.errorprone:error_prone_annotations:2.18.0 -> 2.20.0
+|    |         |    \--- com.google.j2objc:j2objc-annotations:2.8
+|    |         +--- io.opentracing:opentracing-util:0.33.0
+|    |         |    +--- io.opentracing:opentracing-api:0.33.0
+|    |         |    \--- io.opentracing:opentracing-noop:0.33.0 (*)
+|    |         \--- io.opentracing:opentracing-api:0.33.0
+|    +--- io.temporal:temporal-sdk:1.30.1
+|    |    +--- com.google.guava:guava:32.0.1-jre (*)
+|    |    +--- com.fasterxml.jackson.datatype:jackson-datatype-jsr310 -> 2.15.2 (*)
+|    |    +--- com.fasterxml.jackson.datatype:jackson-datatype-jdk8 -> 2.15.2
+|    |    |    +--- com.fasterxml.jackson.core:jackson-core:2.15.2 (*)
+|    |    |    +--- com.fasterxml.jackson.core:jackson-databind:2.15.2 (*)
+|    |    |    \--- com.fasterxml.jackson:jackson-bom:2.15.2 (*)
+|    |    +--- io.grpc:grpc-bom:1.58.1
+|    |    |    +--- io.grpc:grpc-api:1.58.1 (c)
+|    |    |    +--- io.grpc:grpc-stub:1.58.1 (c)
+|    |    |    +--- io.grpc:grpc-netty-shaded:1.58.1 (c)
+|    |    |    +--- io.grpc:grpc-services:1.58.1 (c)
+|    |    |    +--- io.grpc:grpc-inprocess:1.58.1 (c)
+|    |    |    +--- io.grpc:grpc-core:1.58.1 (c)
+|    |    |    +--- io.grpc:grpc-protobuf:1.58.1 (c)
+|    |    |    +--- io.grpc:grpc-util:1.58.1 (c)
+|    |    |    +--- io.grpc:grpc-context:1.58.1 (c)
+|    |    |    \--- io.grpc:grpc-protobuf-lite:1.58.1 (c)
+|    |    +--- com.fasterxml.jackson:jackson-bom:2.14.2 -> 2.15.2 (*)
+|    |    +--- io.micrometer:micrometer-bom:1.9.9
+|    |    |    \--- io.micrometer:micrometer-core:1.9.9 -> 1.9.17 (c)
+|    |    +--- io.temporal:temporal-serviceclient:1.30.1
+|    |    |    +--- io.grpc:grpc-bom:1.58.1 (*)
+|    |    |    +--- io.grpc:grpc-api -> 1.58.1
+|    |    |    |    +--- com.google.code.findbugs:jsr305:3.0.2
+|    |    |    |    +--- com.google.errorprone:error_prone_annotations:2.20.0
+|    |    |    |    \--- com.google.guava:guava:32.0.1-android -> 32.0.1-jre (*)
+|    |    |    +--- io.grpc:grpc-stub -> 1.58.1
+|    |    |    |    +--- io.grpc:grpc-api:1.58.1 (*)
+|    |    |    |    +--- com.google.guava:guava:32.0.1-android -> 32.0.1-jre (*)
+|    |    |    |    \--- com.google.errorprone:error_prone_annotations:2.20.0
+|    |    |    +--- io.grpc:grpc-netty-shaded -> 1.58.1
+|    |    |    |    +--- com.google.guava:guava:32.0.1-android -> 32.0.1-jre (*)
+|    |    |    |    +--- com.google.errorprone:error_prone_annotations:2.20.0
+|    |    |    |    +--- io.perfmark:perfmark-api:0.26.0
+|    |    |    |    \--- io.grpc:grpc-core:1.58.1
+|    |    |    |         +--- io.grpc:grpc-api:1.58.1 (*)
+|    |    |    |         +--- com.google.code.gson:gson:2.10.1
+|    |    |    |         +--- com.google.android:annotations:4.1.1.4
+|    |    |    |         +--- org.codehaus.mojo:animal-sniffer-annotations:1.23
+|    |    |    |         +--- com.google.errorprone:error_prone_annotations:2.20.0
+|    |    |    |         +--- com.google.guava:guava:32.0.1-android -> 32.0.1-jre (*)
+|    |    |    |         +--- io.perfmark:perfmark-api:0.26.0
+|    |    |    |         +--- io.grpc:grpc-context:1.58.1
+|    |    |    |         |    \--- io.grpc:grpc-api:1.58.1 (*)
+|    |    |    |         \--- io.grpc:grpc-util:1.58.1
+|    |    |    |              +--- io.grpc:grpc-core:1.58.1 (*)
+|    |    |    |              +--- org.codehaus.mojo:animal-sniffer-annotations:1.23
+|    |    |    |              \--- com.google.guava:guava:32.0.1-android -> 32.0.1-jre (*)
+|    |    |    +--- io.grpc:grpc-services -> 1.58.1
+|    |    |    |    +--- io.grpc:grpc-protobuf:1.58.1
+|    |    |    |    |    +--- io.grpc:grpc-api:1.58.1 (*)
+|    |    |    |    |    +--- com.google.code.findbugs:jsr305:3.0.2
+|    |    |    |    |    +--- com.google.protobuf:protobuf-java:3.24.0 -> 3.25.7
+|    |    |    |    |    +--- com.google.api.grpc:proto-google-common-protos:2.22.0
+|    |    |    |    |    |    \--- com.google.protobuf:protobuf-java:3.23.2 -> 3.25.7
+|    |    |    |    |    +--- io.grpc:grpc-protobuf-lite:1.58.1
+|    |    |    |    |    |    +--- io.grpc:grpc-api:1.58.1 (*)
+|    |    |    |    |    |    +--- com.google.code.findbugs:jsr305:3.0.2
+|    |    |    |    |    |    \--- com.google.guava:guava:32.0.1-android -> 32.0.1-jre (*)
+|    |    |    |    |    \--- com.google.guava:guava:32.0.1-android -> 32.0.1-jre (*)
+|    |    |    |    +--- io.grpc:grpc-stub:1.58.1 (*)
+|    |    |    |    +--- io.grpc:grpc-util:1.58.1 (*)
+|    |    |    |    +--- com.google.protobuf:protobuf-java-util:3.24.0 -> 3.25.7
+|    |    |    |    |    +--- com.google.protobuf:protobuf-java:3.25.7
+|    |    |    |    |    +--- com.google.code.findbugs:jsr305:3.0.2
+|    |    |    |    |    +--- com.google.code.gson:gson:2.8.9 -> 2.10.1
+|    |    |    |    |    +--- com.google.errorprone:error_prone_annotations:2.18.0 -> 2.20.0
+|    |    |    |    |    +--- com.google.guava:guava:32.0.1-jre (*)
+|    |    |    |    |    \--- com.google.j2objc:j2objc-annotations:2.8
+|    |    |    |    +--- com.google.guava:guava:32.0.1-jre (*)
+|    |    |    |    +--- com.google.errorprone:error_prone_annotations:2.20.0
+|    |    |    |    +--- com.google.j2objc:j2objc-annotations:2.8
+|    |    |    |    \--- com.google.code.gson:gson:2.10.1
+|    |    |    +--- io.grpc:grpc-inprocess -> 1.58.1
+|    |    |    |    +--- io.grpc:grpc-core:1.58.1 (*)
+|    |    |    |    \--- com.google.guava:guava:32.0.1-android -> 32.0.1-jre (*)
+|    |    |    +--- com.google.protobuf:protobuf-java-util:3.25.7 (*)
+|    |    |    +--- com.uber.m3:tally-core:0.13.0
+|    |    |    |    \--- com.google.code.findbugs:jsr305:3.0.2
+|    |    |    \--- org.slf4j:slf4j-api:1.7.36 -> 2.0.15
+|    |    +--- com.google.code.gson:gson:2.10.1
+|    |    +--- io.micrometer:micrometer-core -> 1.9.17 (*)
+|    |    +--- io.nexusrpc:nexus-sdk:0.4.0-alpha
+|    |    \--- com.fasterxml.jackson.core:jackson-databind -> 2.15.2 (*)
+|    \--- io.temporal:temporal-testing:1.30.1
+|         +--- com.jayway.jsonpath:json-path:2.9.0
+|         |    +--- net.minidev:json-smart:2.5.0
+|         |    |    \--- net.minidev:accessors-smart:2.5.0
+|         |    |         \--- org.ow2.asm:asm:9.3
+|         |    \--- org.slf4j:slf4j-api:2.0.11 -> 2.0.15
+|         +--- io.temporal:temporal-sdk:1.30.1 (*)
+|         \--- io.temporal:temporal-test-server:1.30.1
+|              +--- com.google.guava:guava:32.0.1-jre (*)
+|              +--- com.cronutils:cron-utils:9.2.1
+|              \--- io.temporal:temporal-sdk:1.30.1 (*)
++--- org.apache.commons:commons-lang3:3.14.0
++--- com.fasterxml.jackson.core:jackson-databind:2.15.2 (*)
++--- info.picocli:picocli:4.7.5
++--- commons-cli:commons-cli:1.6.0
+\--- org.springframework.boot:spring-boot-starter-test -> 2.7.18
+     +--- org.springframework.boot:spring-boot-starter:2.7.18 (*)
+     +--- org.springframework.boot:spring-boot-test:2.7.18
+     |    \--- org.springframework.boot:spring-boot:2.7.18 (*)
+     +--- org.springframework.boot:spring-boot-test-autoconfigure:2.7.18
+     |    +--- org.springframework.boot:spring-boot:2.7.18 (*)
+     |    +--- org.springframework.boot:spring-boot-test:2.7.18 (*)
+     |    \--- org.springframework.boot:spring-boot-autoconfigure:2.7.18 (*)
+     +--- com.jayway.jsonpath:json-path:2.7.0 -> 2.9.0 (*)
+     +--- jakarta.xml.bind:jakarta.xml.bind-api:2.3.3
+     |    \--- jakarta.activation:jakarta.activation-api:1.2.2
+     +--- org.assertj:assertj-core:3.22.0
+     +--- org.hamcrest:hamcrest:2.2
+     +--- org.junit.jupiter:junit-jupiter:5.8.2
+     |    +--- org.junit:junit-bom:5.8.2
+     |    |    +--- org.junit.jupiter:junit-jupiter:5.8.2 (c)
+     |    |    +--- org.junit.jupiter:junit-jupiter-api:5.8.2 (c)
+     |    |    +--- org.junit.jupiter:junit-jupiter-engine:5.8.2 (c)
+     |    |    +--- org.junit.jupiter:junit-jupiter-params:5.8.2 (c)
+     |    |    +--- org.junit.platform:junit-platform-commons:1.8.2 (c)
+     |    |    \--- org.junit.platform:junit-platform-engine:1.8.2 (c)
+     |    +--- org.junit.jupiter:junit-jupiter-api:5.8.2
+     |    |    +--- org.junit:junit-bom:5.8.2 (*)
+     |    |    +--- org.opentest4j:opentest4j:1.2.0
+     |    |    \--- org.junit.platform:junit-platform-commons:1.8.2
+     |    |         \--- org.junit:junit-bom:5.8.2 (*)
+     |    +--- org.junit.jupiter:junit-jupiter-params:5.8.2
+     |    |    +--- org.junit:junit-bom:5.8.2 (*)
+     |    |    \--- org.junit.jupiter:junit-jupiter-api:5.8.2 (*)
+     |    \--- org.junit.jupiter:junit-jupiter-engine:5.8.2
+     |         +--- org.junit:junit-bom:5.8.2 (*)
+     |         +--- org.junit.platform:junit-platform-engine:1.8.2
+     |         |    +--- org.junit:junit-bom:5.8.2 (*)
+     |         |    +--- org.opentest4j:opentest4j:1.2.0
+     |         |    \--- org.junit.platform:junit-platform-commons:1.8.2 (*)
+     |         \--- org.junit.jupiter:junit-jupiter-api:5.8.2 (*)
+     +--- org.mockito:mockito-core:4.5.1
+     |    +--- net.bytebuddy:byte-buddy:1.12.9 -> 1.12.23
+     |    +--- net.bytebuddy:byte-buddy-agent:1.12.9 -> 1.12.23
+     |    \--- org.objenesis:objenesis:3.2
+     +--- org.mockito:mockito-junit-jupiter:4.5.1
+     |    +--- org.mockito:mockito-core:4.5.1 (*)
+     |    \--- org.junit.jupiter:junit-jupiter-api:5.8.2 (*)
+     +--- org.skyscreamer:jsonassert:1.5.1
+     |    \--- com.vaadin.external.google:android-json:0.0.20131108.vaadin1
+     +--- org.springframework:spring-core:5.3.31 (*)
+     +--- org.springframework:spring-test:5.3.31
+     |    \--- org.springframework:spring-core:5.3.31 (*)
+     \--- org.xmlunit:xmlunit-core:2.9.1
+
+testRuntimeOnly - Runtime only dependencies for source set 'test'. (n)
+No dependencies
+
+(c) - A dependency constraint, not a dependency. The dependency affected by the constraint occurs elsewhere in the tree.
+(*) - Indicates repeated occurrences of a transitive dependency subtree. Gradle expands transitive dependency subtrees only once per project; repeat occurrences only display the root of the subtree, followed by this annotation.
+
+(n) - A dependency or dependency configuration that cannot be resolved.
+
+A web-based, searchable dependency report is available by adding the --scan option.
+
+BUILD SUCCESSFUL in 330ms
+1 actionable task: 1 executed

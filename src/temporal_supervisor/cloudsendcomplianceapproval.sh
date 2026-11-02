@@ -5,4 +5,4 @@ if [ -z "$1" ]; then
 fi
 source ../../setclaimcheck.sh
 source ../../setcloudenv.sh
-poetry run python run_send_compliance_approval.py --workflow-id $1
+uv run python run_send_compliance_approval.py --workflow-id $1

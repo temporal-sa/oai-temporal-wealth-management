@@ -13,11 +13,11 @@ Scenarios currently implemented include
 
 ## Prerequisites
 
-* [Poetry](https://python-poetry.org/docs/) - Python Dependency Management
+* [uv](https://docs.astral.sh/uv/) - Python Dependency Management
 
 ## Set up Python Environment
 ```bash
-poetry install
+uv sync
 ```
 
 ## Set up your OpenAI API Key
@@ -36,7 +36,7 @@ export OPENAI_API_KEY=sk-proj-....
 ## Running the agent
 ```bash
 source setoaikey.sh
-poetry run python src/oai_supervisor/main.py
+uv run python src/oai_supervisor/main.py
 ```
 
 Example Output

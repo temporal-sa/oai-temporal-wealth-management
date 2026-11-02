@@ -4,6 +4,7 @@ from datetime import timedelta
 from enum import Enum
 
 import asyncio
+import json
 from temporalio import workflow
 from temporalio.contrib import openai_agents
 from temporalio.common import RetryPolicy
@@ -40,12 +41,16 @@ with workflow.unsafe.imports_passed_through():
         GuardrailFunctionOutput,
         InputGuardrailTripwireTriggered,
         function_tool,
+        ModelResponse,
+        RunHooks,
     )
     from pydantic import BaseModel
 
 ### Context
 
 class WealthManagementContext(BaseModel):
+    # The customer's client ID, once a tool has been called with it. Shared by all
+    # the agents so the customer is only asked for it once.
     client_id: str | None = None
     # Latest state reported by each open-account child workflow, keyed by its
     # workflow ID. Updated by the update_account_opening_state signal.
@@ -55,6 +60,34 @@ class WealthManagementContext(BaseModel):
     # check that the customer confirmed their details before KYC is approved.
     turn: int = 0
     kyc_details_shown_turn: dict[str, int] = {}
+
+class ClientIdHooks(RunHooks[WealthManagementContext]):
+    """Saves the client ID from any tool call that has one, before the tool runs."""
+
+    async def on_llm_end(self, context: RunContextWrapper[WealthManagementContext], agent: Agent,
+                         response: ModelResponse) -> None:
+        for item in response.output:
+            if getattr(item, "type", None) != "function_call":
+                continue
+            try:
+                client_id = json.loads(item.arguments or "{}").get("client_id")
+            except (json.JSONDecodeError, AttributeError):
+                continue
+            if client_id:
+                context.context.client_id = str(client_id)
+
+def with_client_id(instructions: str):
+    """Agent instructions that include the client ID once it is known.
+
+    The ID is otherwise only in the conversation history, and an agent that is handed
+    the conversation often asks for it again.
+    """
+    def dynamic_instructions(ctx: RunContextWrapper[WealthManagementContext], agent: Agent) -> str:
+        if ctx.context.client_id is None:
+            return instructions
+        return (f"{instructions}\n"
+                f"    The customer's client ID is {ctx.context.client_id}. Use it, and don't ask for it again.")
+    return dynamic_instructions
 
 @function_tool
 async def get_current_client_info(ctx: RunContextWrapper[WealthManagementContext], workflow_id: str) -> dict:
@@ -164,7 +197,7 @@ def init_agents(disable_guardrails: bool) -> Agent[WealthManagementContext]:
     beneficiary_agent = Agent[WealthManagementContext](
         name=BENE_AGENT_NAME,
         handoff_description=BENE_HANDOFF,
-        instructions=BENE_INSTRUCTIONS,
+        instructions=with_client_id(BENE_INSTRUCTIONS),
         tools=[openai_agents.workflow.activity_as_tool(Beneficiaries.list_beneficiaries,
                                 start_to_close_timeout=timedelta(seconds=5),
                                 retry_policy=TOOL_RETRY_POLICY),
@@ -181,7 +214,7 @@ def init_agents(disable_guardrails: bool) -> Agent[WealthManagementContext]:
     open_account_agent = Agent[WealthManagementContext](
         name=OPEN_ACCOUNT_AGENT_NAME,
         handoff_description=OPEN_ACCOUNT_HANDOFF,
-        instructions=OPEN_ACCOUNT_INSTRUCTIONS,
+        instructions=with_client_id(OPEN_ACCOUNT_INSTRUCTIONS),
         tools=[
             open_new_investment_account,
             get_account_opening_status,
@@ -196,7 +229,7 @@ def init_agents(disable_guardrails: bool) -> Agent[WealthManagementContext]:
     investment_agent = Agent[WealthManagementContext](
         name=INVEST_AGENT_NAME,
         handoff_description=INVEST_HANDOFF,
-        instructions=INVEST_INSTRUCTIONS,
+        instructions=with_client_id(INVEST_INSTRUCTIONS),
         tools=[openai_agents.workflow.activity_as_tool(Investments.list_investments,
                                 start_to_close_timeout=timedelta(seconds=5),
                                 retry_policy=TOOL_RETRY_POLICY),
@@ -212,7 +245,7 @@ def init_agents(disable_guardrails: bool) -> Agent[WealthManagementContext]:
     supervisor_agent = Agent[WealthManagementContext](
         name=SUPERVISOR_AGENT_NAME,
         handoff_description=SUPERVISOR_HANDOFF,
-        instructions=SUPERVISOR_INSTRUCTIONS,
+        instructions=with_client_id(SUPERVISOR_INSTRUCTIONS),
         handoffs=[
             beneficiary_agent,
             investment_agent,
@@ -247,11 +280,13 @@ class WealthManagementWorkflow:
 
     @workflow.run
     async def run(self, input_items: list[TResponseInputItem] | None = None,
-                  account_opening_states: dict[str, str] | None = None):
+                  account_opening_states: dict[str, str] | None = None,
+                  client_id: str | None = None):
         # carried over from the previous run on continue-as-new. A signal may already
         # have been handled before run started, so don't overwrite newer states.
         for opening_id, state in (account_opening_states or {}).items():
             self.context.account_opening_states.setdefault(opening_id, state)
+        self.context.client_id = client_id
         if workflow.info().continued_run_id is None:
             # delete any previous conversations
             # FIXME: We shouldn't be deleting conversations here,
@@ -296,7 +331,8 @@ class WealthManagementWorkflow:
                 await workflow.wait_condition(
                     lambda: workflow.all_handlers_finished()
                 )
-                workflow.continue_as_new(args=[self.input_items, self.context.account_opening_states])
+                workflow.continue_as_new(args=[self.input_items, self.context.account_opening_states,
+                                               self.context.client_id])
 
     async def _process_chat_message(self, message: str) -> list[ChatInteraction]:
         workflow.logger.info(f"processing chat message: {message}")
@@ -347,6 +383,7 @@ class WealthManagementWorkflow:
             self.input_items,
             context=self.context,
             run_config=self.run_config,
+            hooks=ClientIdHooks(),
         )
 
         workflow.logger.info("Runner.run has exited.")

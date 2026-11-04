@@ -515,6 +515,23 @@ uv run pytest
 * `tests/test_client_id.py` - every agent is told the client ID once a tool has used it
 * `tests/test_off_topic.py` - the supervisor prompt (Temporal and non-Temporal versions) declines off-topic questions
 
+`tests/live_agent_handoffs.py` is a live test of the agent handoffs. It is not part of `uv run pytest`,
+because it calls the paid OpenAI API. It runs the real chat workflow, with real OpenAI calls (on their own
+LLM task queue, as the worker does) and the real beneficiary and investment activities, which only read
+`data/*.json`. The Redis event stream is replaced with an in-memory one and the chaos flags read as off,
+so no Redis is needed. The customer asks "Who are my beneficiaries?", gives client ID `123`, then asks
+"What investments do I have?". The test checks that the beneficiaries are listed, and that in the same
+turn the Beneficiary Agent hands off to the supervisor, which hands off to the Investment Agent, which
+lists the Checking, Savings and 401K accounts, without asking for the client ID again and without any
+agent mentioning a transfer. It prints the transcript of each run, including what each agent said, and
+is skipped when `OPENAI_API_KEY` is not set. `LIVE_TEST_RUNS=<n>` repeats the conversation n times
+(default 1), since model output varies. From the repository root:
+
+```bash
+source ./setoaikey.sh
+LIVE_TEST_RUNS=10 uv run pytest tests/live_agent_handoffs.py -s
+```
+
 The Java workflow has the same failure-scenario tests, using the Temporal Java SDK's test environment (requires JDK 25):
 
 ```bash

@@ -14,7 +14,7 @@ import io.temporal.serviceclient.WorkflowServiceStubsOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import javax.net.ssl.SSLException;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -66,10 +66,19 @@ public class TemporalClient {
         return service;
     }
 
+    /**
+     * A client for the namespace in TEMPORAL_NAMESPACE. WorkflowClient.newInstance(service)
+     * on its own always uses the "default" namespace, which does not exist on Temporal Cloud.
+     */
+    public static WorkflowClient newWorkflowClient(WorkflowServiceStubs service) {
+        return WorkflowClient.newInstance(service,
+                WorkflowClientOptions.newBuilder().setNamespace(ServerInfo.getNamespace()).build());
+    }
+
     public static WorkflowClient get() throws FileNotFoundException, SSLException {
         System.out.println("<<<<SERVER INFO>>>>:\n " + ServerInfo.getServerInfo());
         WorkflowServiceStubs service = getWorkflowServiceStubs();
-        return WorkflowClient.newInstance(service);
+        return newWorkflowClient(service);
     }
 
 }

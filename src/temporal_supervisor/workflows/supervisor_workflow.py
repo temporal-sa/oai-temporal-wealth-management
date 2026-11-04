@@ -14,8 +14,7 @@ from common.status_update import StatusUpdate
 from common.agent_constants import BENE_AGENT_NAME, BENE_HANDOFF, BENE_INSTRUCTIONS, INVEST_AGENT_NAME, \
     INVEST_HANDOFF, \
     INVEST_INSTRUCTIONS, SUPERVISOR_AGENT_NAME, SUPERVISOR_HANDOFF, SUPERVISOR_INSTRUCTIONS, \
-    OPEN_ACCOUNT_AGENT_NAME, OPEN_ACCOUNT_HANDOFF, OPEN_ACCOUNT_INSTRUCTIONS, ROUTING_GUARDRAIL_NAME, \
-    ROUTING_INSTRUCTIONS
+    OPEN_ACCOUNT_AGENT_NAME, OPEN_ACCOUNT_HANDOFF, OPEN_ACCOUNT_INSTRUCTIONS
 
 from temporal_supervisor.activities.event_stream_activities import EventStreamActivities
 
@@ -36,10 +35,7 @@ with workflow.unsafe.imports_passed_through():
         ToolCallItem,
         ToolCallOutputItem,
         TResponseInputItem,
-        input_guardrail,
         RunContextWrapper,
-        GuardrailFunctionOutput,
-        InputGuardrailTripwireTriggered,
         function_tool,
         ModelResponse,
         RunHooks,
@@ -143,57 +139,13 @@ async def get_account_opening_status(ctx: RunContextWrapper[WealthManagementCont
         return f"No account opening with workflow ID {workflow_id} was found in this conversation."
     return state
 
-class RoutingGuardrailOutput(BaseModel):
-    is_wealth_management_question: bool
-    reasoning: str
-
-routing_guardrail_agent = Agent(
-    name=ROUTING_GUARDRAIL_NAME,
-    instructions=ROUTING_INSTRUCTIONS,
-    output_type=RoutingGuardrailOutput,
-)
-
-@input_guardrail
-async def routing_guardrail(
-        ctx: RunContextWrapper[WealthManagementContext], agent: Agent, input: str | list[TResponseInputItem]
-) -> GuardrailFunctionOutput:
-    workflow.logger.info(f"Guardrail triggered with input: {input}")
-    
-    if isinstance(input, list) and len(input) > 0:
-        last_message = input[-1].get("content", "") if isinstance(input[-1], dict) else str(input[-1])
-        workflow.logger.info(f"Analyzing message: {last_message}")
-    else:
-        last_message = str(input)
-        workflow.logger.info(f"Analyzing message: {last_message}")
-    
-    result = await Runner.run(routing_guardrail_agent, input, context=ctx.context)
-    
-    workflow.logger.info(f"Guardrail result: {result.final_output}")
-    should_block = not result.final_output.is_wealth_management_question
-    workflow.logger.info(f"Should block: {should_block}")
-    workflow.logger.info(f"Question is wealth management: {result.final_output.is_wealth_management_question}")
-    workflow.logger.info(f"Reasoning: {result.final_output.reasoning}")
-    
-    if should_block:
-        workflow.logger.info(f"Guardrail tripwire triggered! Blocking non-wealth-management question.")
-    else:
-        workflow.logger.info(f"Guardrail allowing wealth management question to pass through.")
-    
-    return GuardrailFunctionOutput(
-        output_info=result.final_output,
-        tripwire_triggered=should_block,
-    )
-
 ### Agents
-def init_agents(disable_guardrails: bool) -> Agent[WealthManagementContext]:
+def init_agents() -> Agent[WealthManagementContext]:
     """
     Initialize the agents for the Wealth Management Workflow
 
     Returns a supervisor agent
     """
-    guardrails = []
-    if disable_guardrails == False:
-        guardrails = [routing_guardrail]
     beneficiary_agent = Agent[WealthManagementContext](
         name=BENE_AGENT_NAME,
         handoff_description=BENE_HANDOFF,
@@ -208,7 +160,6 @@ def init_agents(disable_guardrails: bool) -> Agent[WealthManagementContext]:
                                 start_to_close_timeout=timedelta(seconds=5),
                                 retry_policy=TOOL_RETRY_POLICY)
                ],
-        input_guardrails=guardrails,
     )
 
     open_account_agent = Agent[WealthManagementContext](
@@ -223,7 +174,6 @@ def init_agents(disable_guardrails: bool) -> Agent[WealthManagementContext]:
             openai_agents.workflow.activity_as_tool(OpenAccount.update_client_details, start_to_close_timeout=timedelta(seconds=5),
                                 retry_policy=TOOL_RETRY_POLICY),
         ],
-        input_guardrails=guardrails,
     )
 
     investment_agent = Agent[WealthManagementContext](
@@ -239,7 +189,6 @@ def init_agents(disable_guardrails: bool) -> Agent[WealthManagementContext]:
         handoffs=[
             open_account_agent
         ],
-        input_guardrails=guardrails,
     )
 
     supervisor_agent = Agent[WealthManagementContext](
@@ -250,7 +199,6 @@ def init_agents(disable_guardrails: bool) -> Agent[WealthManagementContext]:
             beneficiary_agent,
             investment_agent,
         ],
-        input_guardrails=guardrails,
     )
 
     beneficiary_agent.handoffs.append(supervisor_agent)
@@ -262,16 +210,16 @@ def init_agents(disable_guardrails: bool) -> Agent[WealthManagementContext]:
 @workflow.defn
 class WealthManagementWorkflow:
 
-    def __init__(self, input_items: list[TResponseInputItem] | None = None ):
+    def __init__(self):
         self.wf_id = workflow.info().workflow_id
         self.pending_chat_messages: asyncio.Queue = asyncio.Queue()
         self.pending_status_updates: asyncio.Queue = asyncio.Queue()
         self.processed_response: list[ChatInteraction] | None = None
         self.run_config = RunConfig()
         self.chat_history: list[ChatInteraction] = []
-        self.current_agent: Agent[WealthManagementContext] = init_agents(True)
+        self.current_agent: Agent[WealthManagementContext] = init_agents()
         self.context = WealthManagementContext()
-        self.input_items = [] if input_items is None else input_items
+        self.input_items: list[TResponseInputItem] = []
         self.end_workflow = False
         self.sched_to_close_timeout = timedelta(seconds=5)
         self.retry_policy = RetryPolicy(initial_interval=timedelta(seconds=1),
@@ -279,27 +227,19 @@ class WealthManagementWorkflow:
                                maximum_interval=timedelta(seconds=30))
 
     @workflow.run
-    async def run(self, input_items: list[TResponseInputItem] | None = None,
-                  account_opening_states: dict[str, str] | None = None,
-                  client_id: str | None = None):
-        # carried over from the previous run on continue-as-new. A signal may already
-        # have been handled before run started, so don't overwrite newer states.
-        for opening_id, state in (account_opening_states or {}).items():
-            self.context.account_opening_states.setdefault(opening_id, state)
-        self.context.client_id = client_id
-        if workflow.info().continued_run_id is None:
-            # delete any previous conversations
-            # FIXME: We shouldn't be deleting conversations here,
-            # we should be deleting them when the workflow is ended coupled with
-            # expirations on redis in case of workflow termination.
-            # This is polluting the workflow code because we re-use the workflow ID in the demo app.
-            wf_id = workflow.info().workflow_id
-            workflow.logger.info(f"Deleting any previous conversation {wf_id}")
-            await workflow.execute_local_activity(
-                EventStreamActivities.delete_conversation,
-                args=[wf_id],
-                schedule_to_close_timeout=self.sched_to_close_timeout,
-                retry_policy=self.retry_policy)
+    async def run(self):
+        # delete any previous conversations
+        # FIXME: We shouldn't be deleting conversations here,
+        # we should be deleting them when the workflow is ended coupled with
+        # expirations on redis in case of workflow termination.
+        # This is polluting the workflow code because we re-use the workflow ID in the demo app.
+        wf_id = workflow.info().workflow_id
+        workflow.logger.info(f"Deleting any previous conversation {wf_id}")
+        await workflow.execute_local_activity(
+            EventStreamActivities.delete_conversation,
+            args=[wf_id],
+            schedule_to_close_timeout=self.sched_to_close_timeout,
+            retry_policy=self.retry_policy)
 
         while True:
             workflow.logger.info("At top of loop - waiting for messages or status updates")
@@ -324,15 +264,23 @@ class WealthManagementWorkflow:
                 await self._process_status_update(status_message)
                 workflow.logger.info("status update processed.")
 
-            # do we need to do a continue as new?
-            if workflow.info().is_continue_as_new_suggested():
-                # wait until everything finishes before doing Continue As New
-                # FIXME: This will only ensure that things are added to our self.pending_ queues, it won't process them. They will be lost.
-                await workflow.wait_condition(
-                    lambda: workflow.all_handlers_finished()
-                )
-                workflow.continue_as_new(args=[self.input_items, self.context.account_opening_states,
-                                               self.context.client_id])
+            # TODO: Continue-As-New.
+            # This demo keeps the whole conversation in one workflow run. A production system
+            # would call continue-as-new when workflow.info().is_continue_as_new_suggested()
+            # returns true, because Temporal limits a run's event history (warnings at 10K
+            # events / 10 MB, terminated at 50K events / 50 MB) and every LLM call and tool
+            # call adds events, so a long-running chat would eventually hit those limits.
+            # To do it safely:
+            #   - Wait for workflow.all_handlers_finished() and drain the pending message and
+            #     status queues first, so no customer message or status update is lost.
+            #   - Carry the conversation state into the new run: the message history, the
+            #     active agent, the client ID, the account-opening states, and the KYC
+            #     guard's turn tracking.
+            #   - Open-account child workflows are started with ParentClosePolicy.TERMINATE,
+            #     which also applies when the parent continues-as-new, so an opening waiting
+            #     for KYC or compliance would be terminated. Use ParentClosePolicy.ABANDON and
+            #     have the end_workflow handler cancel/terminate any openings still running,
+            #     or defer continue-as-new until no opening is in progress.
 
     async def _process_chat_message(self, message: str) -> list[ChatInteraction]:
         workflow.logger.info(f"processing chat message: {message}")
@@ -342,11 +290,7 @@ class WealthManagementWorkflow:
             user_prompt=message,
             text_response=""
         )
-        try:
-            await self._process_user_message(chat_interaction, message)
-        except InputGuardrailTripwireTriggered as e:
-            workflow.logger.info(f"Guardrail Tripwire triggered {e}")
-            await self._handle_guardrail_failure(chat_interaction, e)
+        await self._process_user_message(chat_interaction, message)
 
         self.chat_history.append(chat_interaction)
 
@@ -396,19 +340,6 @@ class WealthManagementWorkflow:
         chat_interaction.json_response = json_response
         chat_interaction.agent_trace = agent_trace
 
-    async def _handle_guardrail_failure(self, chat_interaction, e):
-        workflow.logger.info(f"Guardrail tripwire triggered: {e}")
-        text_response = "I'm sorry, but I can only help with wealth management questions related to beneficiaries and investments. Please ask me about your beneficiaries, investment accounts, or other wealth management topics."
-        agent_trace = f"Guardrail blocked non-wealth-management question: {e}"
-        if hasattr(e, 'result') and hasattr(e.result, 'output_info'):
-            guardrail_output = e.result.output_info
-            if hasattr(guardrail_output, 'reasoning'):
-                workflow.logger.info(f"Blocked question reasoning: {guardrail_output.reasoning}")
-                agent_trace += f" - Reasoning: {guardrail_output.reasoning}"
-        chat_interaction.text_response = text_response
-        chat_interaction.json_response = ""
-        chat_interaction.agent_trace = agent_trace
-
     async def _process_llm_response(self, result):
         text_response = ""
         json_response = ""
@@ -450,6 +381,5 @@ class WealthManagementWorkflow:
     @workflow.signal
     async def process_user_message(self, message_input: ProcessUserMessageInput):
         workflow.logger.info(f"processing user message {message_input}")
-        workflow.logger.info(f"Agent has guardrails: {hasattr(self.current_agent, 'input_guardrails') and self.current_agent.input_guardrails}")
         await self.pending_chat_messages.put(message_input.user_input)
 

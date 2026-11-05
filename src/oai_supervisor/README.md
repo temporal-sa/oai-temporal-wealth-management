@@ -1,21 +1,28 @@
 # Wealth Management Agent Example using OpenAI Agents SDK
 Demonstrates how to use OpenAI Agents SDK using handoffs to other agents. 
 
-The Temporal version of this example is located [here](src/temporal_supervisor/README.md) 
+The Temporal version of this example is located [here](../temporal_supervisor/README.md).
 
 Scenarios currently implemented include
 * Add Beneficiary - add a new beneficiary to your account
 * List Beneficiaries - shows a list of beneficiaries and their relationship to the account owner
 * Delete Beneficiary - delete a beneficiary from your account
-* Open Investment Account - opens a new investment account
+* Open Investment Account - opens a new investment account directly with a simple tool (no KYC, compliance review or saga; those are in the Temporal version)
 * List Investments - shows a list of accounts and their current balances
 * Close Investment Account - closes an investment account
+* Off-topic questions - questions that aren't about beneficiaries or investment accounts are politely declined by the supervisor agent (handled in the agents' prompts)
+
+These scenarios change the demo data in the `data/` folder at the repository root. Reset it with `git checkout data/`.
 
 ## Prerequisites
 
-* [uv](https://docs.astral.sh/uv/) - Python Dependency Management
+* [uv](https://docs.astral.sh/uv/) - Python Dependency Management (Python 3.13, installed by `uv sync` if needed)
+* [OpenAI API Key](https://platform.openai.com/api-keys)
+
+Redis and Temporal are not needed for this version.
 
 ## Set up Python Environment
+From the repository root:
 ```bash
 uv sync
 ```
@@ -34,6 +41,7 @@ export OPENAI_API_KEY=sk-proj-....
 ```
 
 ## Running the agent
+From the repository root:
 ```bash
 source setoaikey.sh
 uv run python src/oai_supervisor/main.py
@@ -72,5 +80,7 @@ Investment Agent Here are your investment accounts and their balances:
 Would you like to open a new account, close an existing one, or view more details about any of these accounts?
 Enter your message: end
 ```
+
+Type `end`, `exit` or `quit` to leave the chat.
 
 You can also add and delete beneficiaries and open and close investment accounts.

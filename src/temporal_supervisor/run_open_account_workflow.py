@@ -163,7 +163,7 @@ async def scenario3(client : Client, client_helper: ClientHelper):
 
         the_state = await handle.query(OpenInvestmentAccountWorkflow.get_current_state)
         print(f"Before signaling compliance approved, the current state is {the_state}")
-        if the_state != "Waiting for compliance review":
+        if the_state != "Waiting Compliance Review":
             break
 
     print(f"Out of the loop, the current state is {the_state}")

@@ -20,7 +20,7 @@ from common.account_context import ClientContext
 from common.agent_constants import BENE_AGENT_NAME, BENE_HANDOFF, BENE_INSTRUCTIONS, INVEST_AGENT_NAME, INVEST_HANDOFF, \
     INVEST_INSTRUCTIONS, SUPERVISOR_AGENT_NAME, SUPERVISOR_HANDOFF, SUPERVISOR_INSTRUCTIONS
 from common.beneficiaries_manager import BeneficiariesManager
-from common.investment_manager import InvestmentManager
+from common.investment_manager import InvestmentAccount, InvestmentManager
 
 ### Logging Configuration
 # logging.basicConfig(level=logging.INFO,
@@ -69,9 +69,17 @@ async def delete_beneficiaries(
 
 
 @function_tool
-async def open_investment(context: RunContextWrapper[ClientContext], client_id: str, name: str, balance: str):
+async def open_investment(context: RunContextWrapper[ClientContext], client_id: str, name: str, balance: float) -> dict:
+    """
+    Open a new investment account for the given client id.
+
+    Args:
+        client_id: The customer's client id
+        name: The name of the new investment account
+        balance: The initial balance of the new account
+    """
     context.context.client_id = client_id
-    investment_acct_mgr.add_investment_account(client_id, name, balance)
+    return investment_acct_mgr.add_investment_account(InvestmentAccount(client_id, name, float(balance)))
 
 @function_tool
 async def list_investments(

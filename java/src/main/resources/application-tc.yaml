@@ -1,19 +1,22 @@
 # Configuration for Temporal Cloud
+# startcloudworker.sh sets the environment variables below from ../setcloudenv.sh.
+# runontc.sh (docker) overrides the same settings with -D system properties instead.
 spring:
   temporal:
     # override with -Dspring.temporal.namespace=yournamespace.accountid
-    namespace: temporal-cloud-namespace # https://docs.temporal.io/cloud/#temporal-cloud-namespace-id
+    namespace: ${TEMPORAL_NAMESPACE:temporal-cloud-namespace} # https://docs.temporal.io/cloud/#temporal-cloud-namespace-id
     connection:
       # override with -Dspring.temporal.connection.target=yournamspace.accountid.tmprl.cloud:7233
-      target: namespace.account_id.tmprl.cloud:7233 # namespace.accountId.tmprl.cloud:7233
+      target: ${TEMPORAL_ADDRESS:namespace.account_id.tmprl.cloud:7233} # namespace.accountId.tmprl.cloud:7233
       mtls:
-        # overridden - see runontc.sh
-        key-file: /path/to/your.key
-        cert-chain-file: /path/to/your/cert.pem
+        # The key must be PKCS8 (-----BEGIN PRIVATE KEY-----); see startcloudworker.sh
+        key-file: ${TEMPORAL_KEY_PKCS8_PATH:/path/to/your.key}
+        cert-chain-file: ${TEMPORAL_CERT_PATH:/path/to/your/cert.pem}
         # override with -Dspring.temporal.connection.mtls.insecure=true
         insecure-trust-manager: false # or add ca.pem to java default truststore
         # more configuration options https://github.com/temporalio/sdk-java/tree/master/temporal-spring-boot-autoconfigure-alpha#mtls
-  # Redis configuration
-  redis:
-    host: localhost
-    port: 6379
+  # Redis configuration (claim check storage, see ../setclaimcheck.sh)
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}

@@ -37,15 +37,20 @@ INVEST_INSTRUCTIONS = f"""{RECOMMENDED_PROMPT_PREFIX}
 # Supervisor Constants
 SUPERVISOR_AGENT_NAME   = "Supervisor Agent"
 SUPERVISOR_HANDOFF      = "A supervisor agent that can delegate customer's requests to the appropriate agent"
-SUPERVISOR_INSTRUCTIONS = f""""{RECOMMENDED_PROMPT_PREFIX}
+SUPERVISOR_INSTRUCTIONS = f"""{RECOMMENDED_PROMPT_PREFIX}
         You are a helpful agent. You can use your tools to delegate questions to other appropriate agents
+        You only help with wealth management: the customer's beneficiaries and investment accounts.
+        If the customer asks about anything else (for example general knowledge, weather, news, or
+        other financial products), politely decline, say that you can only help with beneficiaries
+        and investment accounts, and do not answer the question. Then ask how you can help with
+        their beneficiaries or investment accounts.
         # Routine
         1. if you don't have a client ID, ask for one
         2. Route to another agent"""
 
 OPEN_ACCOUNT_AGENT_NAME = "Open Account Agent"
 OPEN_ACCOUNT_HANDOFF = "A helpful agent that can open a new investment account."
-OPEN_ACCOUNT_INSTRUCTIONS = f""""{RECOMMENDED_PROMPT_PREFIX}
+OPEN_ACCOUNT_INSTRUCTIONS = f"""{RECOMMENDED_PROMPT_PREFIX}
         You are a helpful agent. You can use your tools to open a new investment account and check 
         the status of a newly opened investment account. If you are talking to a customer, you were 
         likely transferred from the {INVEST_AGENT_NAME}.
@@ -80,29 +85,3 @@ OPEN_ACCOUNT_INSTRUCTIONS = f""""{RECOMMENDED_PROMPT_PREFIX}
            If it starts with "Rolled back", tell the customer the account was not opened and why.
            Otherwise, tell the customer the current status and ask them to wait for the account to be opened.
         6. If the customer asks a question that is not related to the routine, hand off to the {INVEST_AGENT_NAME}."""
-
-ROUTING_GUARDRAIL_NAME = "Routing Guardrail"
-ROUTING_INSTRUCTIONS = """Analyze the user's question and determine if it's about wealth management topics (beneficiaries or investments). 
-    
-    Wealth management keywords: beneficiary, beneficiaries, add beneficiary, delete beneficiary, list beneficiaries, 
-    family member, son, daughter, spouse, child, children, inheritance, estate, investment, investments, account, 
-    accounts, balance, balances, open account, close account, list accounts, portfolio, money, funds, savings, checking, 
-    retirement, wealth, financial, finance
-    
-    IMPORTANT: If the question is about ANYTHING other than wealth management (geography, animals, science, history, 
-    general knowledge, personal questions, etc.), set is_wealth_management_question to FALSE.
-    
-    Examples of questions that should be BLOCKED (is_wealth_management_question = false):
-    - "What is a cheetah?" (animal question)
-    - "What is the capital of Florida?" (geography question)
-    - "What is your name?" (personal question)
-    - "How does photosynthesis work?" (science question)
-    - "What is the weather like?" (general question)
-    
-    Examples of questions that should be ALLOWED (is_wealth_management_question = true):
-    - "Who are my beneficiaries?" (beneficiary question)
-    - "What investment accounts do I have?" (investment question)
-    - "Add a beneficiary to my account" (beneficiary question)
-    - "Show me my portfolio" (investment question)
-    
-    Be very strict - only allow questions that are clearly about wealth management topics."""

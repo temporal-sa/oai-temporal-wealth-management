@@ -148,8 +148,8 @@ public class OpenInvestmentAccountWorkflowImpl implements OpenInvestmentAccountW
     // The business reason for a non-retryable activity failure, such as the custodian rejecting the account
     private static String reason(ActivityFailure e) {
         Throwable cause = e.getCause();
-        if (cause instanceof ApplicationFailure) {
-            return ((ApplicationFailure) cause).getOriginalMessage();
+        if (cause instanceof ApplicationFailure applicationFailure) {
+            return applicationFailure.getOriginalMessage();
         }
         return cause != null ? cause.getMessage() : e.getMessage();
     }
@@ -167,8 +167,12 @@ public class OpenInvestmentAccountWorkflowImpl implements OpenInvestmentAccountW
     }
 
     @Override
-    public String update_client_details() {
-        return "";
+    public String update_client_details(Map<String, Object> clientDetails) {
+        log.info("Updating client information for {}", this.inputs.getClient_id());
+        String result = activityStub.execute("update_client", String.class,
+                this.inputs.getClient_id(), clientDetails);
+        this.kycVerified = true;
+        return result;
     }
 
     @Override

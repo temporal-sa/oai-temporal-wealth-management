@@ -1,5 +1,5 @@
 #!/bin/bash
-echo "This script starts the worker and kicks off the two scenarios for testing the open account workflow"
+echo "This script starts the worker and kicks off the three scenarios for testing the open account workflow"
 echo ""
 echo "Remember to kill the startlocalworker.sh when finished"
 echo ""

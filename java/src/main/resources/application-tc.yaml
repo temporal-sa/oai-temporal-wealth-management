@@ -1,6 +1,5 @@
 # Configuration for Temporal Cloud
 # startcloudworker.sh sets the environment variables below from ../setcloudenv.sh.
-# runontc.sh (docker) overrides the same settings with -D system properties instead.
 spring:
   temporal:
     # override with -Dspring.temporal.namespace=yournamespace.accountid

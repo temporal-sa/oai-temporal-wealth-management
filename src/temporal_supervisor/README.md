@@ -106,8 +106,7 @@ chmod +x setclaimcheck.sh
 ```
 
 Claim Check is optional. The start scripts (worker, API, codec server, compliance approval) source
-`setclaimcheck.sh`; if you haven't created it, they print a harmless "No such file or directory"
-message and run without Claim Check.
+`setclaimcheck.sh` if it exists; if you haven't created it, they run without Claim Check.
 
 Now edit the setclaimcheck.sh file and fill in the location of Redis
 It should look something like this:
@@ -253,8 +252,8 @@ open the Temporal UI (http://localhost:8233 locally) and look for the running
 temporal workflow list --query "WorkflowType='OpenInvestmentAccountWorkflow' AND ExecutionStatus='Running'"
 ```
 
-The script passes the ID unquoted, so it doesn't work for an account name that contains spaces. In
-that case (locally, without Claim Check) send the signal with the Temporal CLI instead:
+Quote the ID if the account name contains spaces. You can also send the signal with the Temporal CLI
+(locally, without Claim Check):
 
 ```bash
 temporal workflow signal --workflow-id "<Child Workflow ID>" --name compliance_approved
@@ -393,14 +392,21 @@ possible to change the value of Max Turns as a parameter to `Runner.run`, just b
 ### Testing the Open Account workflow on its own
 
 `startlocalopenaccount.sh` starts a local worker without the OpenAI Agents plugin
-(`SKIP_OPENAI_PLUGIN=True`) in the background and runs `run_open_account_workflow.py`, which starts
-`OpenInvestmentAccountWorkflow` directly (no chat, no LLM) for three scenarios: KYC approved, client
-details updated, and a third that waits for you to send the compliance approval yourself. Temporal and
-Redis must be running.
+(`SKIP_OPENAI_PLUGIN=True`, so no OpenAI key is needed) in the background, runs
+`run_open_account_workflow.py`, which starts `OpenInvestmentAccountWorkflow` directly (no chat, no LLM)
+for three scenarios: KYC approved, client details updated, and a third that waits for you to send the
+compliance approval yourself. It stops the worker when the scenarios finish. Temporal and Redis must
+be running. The script can be run from any directory:
 
 ```bash
-cd src/temporal_supervisor
-./startlocalopenaccount.sh
+src/temporal_supervisor/startlocalopenaccount.sh
+```
+
+With a task queue name, the workflow runs on that queue (`TEMPORAL_TASK_QUEUE_OPEN_ACCOUNT`), so you
+can run the same scenarios against the Java workflow (start `java/startlocalworker.sh <queue>` first):
+
+```bash
+src/temporal_supervisor/startlocalopenaccount.sh Open-Account-Java
 ```
 
 When the output asks you to signal the third workflow, in another terminal run:
@@ -409,9 +415,6 @@ When the output asks you to signal the third workflow, in another terminal run:
 cd src/temporal_supervisor
 ./localsendcomplianceapproval.sh testing-open-investment-account-workflow3
 ```
-
-The worker keeps running in the background when the script finishes; stop it yourself (for example
-`pkill -f run_worker.py`).
 
 ## Environment variables
 
@@ -425,7 +428,7 @@ The start scripts set most of these for you. The Python components read them thr
 | `TEMPORAL_NAMESPACE` | `default` | Temporal namespace |
 | `TEMPORAL_TLS_CLIENT_CERT_PATH`, `TEMPORAL_TLS_CLIENT_KEY_PATH` | none | mTLS client certificate and key for Temporal Cloud |
 | `TEMPORAL_TASK_QUEUE` | `Supervisor` | Task queue of the chat workflow and the tool activities. The worker, the API and the Java worker must use the same value. |
-| `TEMPORAL_TASK_QUEUE_OPEN_ACCOUNT` | value of `TEMPORAL_TASK_QUEUE` | Task queue of the Open Account child workflow. Set by the first argument to `startlocalworker.sh` / `startcloudworker.sh` (through `setsplitworkflows.sh`). |
+| `TEMPORAL_TASK_QUEUE_OPEN_ACCOUNT` | value of `TEMPORAL_TASK_QUEUE` | Task queue of the Open Account child workflow. Set by the first argument to `startlocalworker.sh` / `startcloudworker.sh` (through `setsplitworkflows.sh`) and `startlocalopenaccount.sh`. |
 | `TEMPORAL_TASK_QUEUE_LLM` | `<TEMPORAL_TASK_QUEUE>-llm` | Task queue of the model (LLM) activities |
 | `LLM_MAX_CALLS_PER_SECOND` | unlimited | Rate limit for model calls across all workers, e.g. `LLM_MAX_CALLS_PER_SECOND=0.2 ./startlocalworker.sh` |
 | `REDIS_HOST`, `REDIS_PORT` | `localhost`, `6379` | Redis for conversation history, status updates, chaos flags and Claim Check (Python components) |

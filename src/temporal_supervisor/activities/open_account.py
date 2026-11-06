@@ -1,5 +1,6 @@
 from dataclasses import asdict
 from datetime import timedelta
+from typing import Any
 
 from temporalio import workflow, activity
 from temporalio.client import WorkflowHandle, Client
@@ -15,14 +16,15 @@ from temporal_supervisor.retry_policies import TOOL_RETRY_POLICY
 from temporal_supervisor.claim_check.claim_check_plugin import ClaimCheckPlugin
 
 with workflow.unsafe.imports_passed_through():
-    from agents import function_tool
+    from agents import RunContextWrapper, function_tool
 
 # Don't like making this a global, but I need to get access to Task Queue name
 # in the open_new_investment_account
 client_helper = ClientHelper()
 
 @function_tool
-async def open_new_investment_account(client_id: str, account_name: str, initial_amount: float) -> str:
+async def open_new_investment_account(ctx: RunContextWrapper[Any], client_id: str, account_name: str,
+                                      initial_amount: float) -> str:
     """Begin opening a new investment account.
 
     Args:
@@ -62,9 +64,15 @@ async def open_new_investment_account(client_id: str, account_name: str, initial
                                                initial_amount=initial_amount,
                                                promo_code=promo_code)
 
-    # retrieve the current workflow id
+    # Every request starts a new account opening, even for an account name that was
+    # opened, or is still being opened, earlier in the conversation. The ID ends with
+    # the number of openings started in this conversation, counting this one. The count
+    # is kept in the chat workflow's state (WealthManagementContext), so it is
+    # deterministic and survives replay.
+    opening_number = ctx.context.account_openings_started + 1
     current_workflow_id = workflow.info().workflow_id
-    child_workflow_id = f"OpenAccount-{current_workflow_id}-{account_input.client_id}-{account_input.account_name}"
+    child_workflow_id = (f"OpenAccount-{current_workflow_id}-{account_input.client_id}-"
+                         f"{account_input.account_name}-{opening_number}")
     await workflow.start_child_workflow(
         OpenInvestmentAccountWorkflow.run,
         args=[account_input],
@@ -72,6 +80,10 @@ async def open_new_investment_account(client_id: str, account_name: str, initial
         parent_close_policy=ParentClosePolicy.TERMINATE,
         task_queue=client_helper.taskQueueOpenAccount
     )
+    ctx.context.account_openings_started = opening_number
+    # Known from the start, so a status check right away doesn't report "not found"
+    # before the child's first state update arrives.
+    ctx.context.account_opening_states.setdefault(child_workflow_id, "Initializing")
     # can't return the handle as we need something serializable for the other activities
     return child_workflow_id
 

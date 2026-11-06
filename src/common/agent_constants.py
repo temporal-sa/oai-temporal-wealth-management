@@ -67,6 +67,10 @@ OPEN_ACCOUNT_INSTRUCTIONS = f"""{RECOMMENDED_PROMPT_PREFIX}
         # Routine
         1. If you don't have a client ID, ask for one
         2. Use the open_new_investment_account tool to begin the process.
+           Every request to open an account starts a new account opening: call open_new_investment_account
+           each time, even if an account with the same name was opened, or is still being opened, earlier
+           in this conversation. Don't ask the customer whether they want another one.
+           Never answer a request to open an account from the conversation history.
            If the tool requires additional information, ask the user for the required data. Remember
            to save the return value as this will be required in the other tools.
            If the tool says the account cannot be opened, explain the reason to the customer and do not continue.

@@ -83,9 +83,10 @@ class OpenInvestmentAccountWorkflow:
         """
         amount = inputs.initial_amount
         bonus = self._welcome_bonus(inputs) if inputs.promo_code else 0.0
-        # Idempotency key: stable across activity retries and worker restarts. It
-        # includes the run ID because the workflow ID is reused when the customer
-        # opens an account with the same name again (e.g. after a rollback).
+        # Idempotency key: stable across activity retries and worker restarts. The chat
+        # gives every account opening its own workflow ID, but the key also includes the
+        # run ID so that a workflow started again with the same ID (e.g. by hand, from
+        # the CLI or the scenario runner) can't look like a repeat of an earlier transfer.
         transfer_id = f"{workflow.info().workflow_id}-{workflow.info().run_id}-initial-deposit"
         compensations = []  # (description, activity, args)
         try:

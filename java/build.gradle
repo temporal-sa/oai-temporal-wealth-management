@@ -69,16 +69,6 @@ tasks.named('test') {
     useJUnitPlatform()
 }
 
-tasks.register('testClientMgr', BootRun) {
-    mainClass = 'io.temporal.demo.wealthmanagement.service.ClientManagerApp'
-    classpath = sourceSets.main.runtimeClasspath
-}
-
-tasks.register('testInvestmentMgr', BootRun) {
-    mainClass = 'io.temporal.demo.wealthmanagement.service.InvestmentManagerCliRunner'
-    classpath = sourceSets.main.runtimeClasspath
-}
-
 tasks.register('runWorker', JavaExec) {
     dependsOn 'classes'
     mainClass = 'io.temporal.demo.wealthmanagement.StartTheWorker'

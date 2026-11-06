@@ -2,5 +2,5 @@
 echo "****************************************"
 echo "* Remember to start your Redis Server! *"
 echo "****************************************"
-source ../../setclaimcheck.sh
+[ -f ../../setclaimcheck.sh ] && source ../../setclaimcheck.sh
 uv run python codec_server/codec_server.py

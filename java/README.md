@@ -43,13 +43,16 @@ cd java
 ```
 
 The script sets `TEMPORAL_TASK_QUEUE_OPEN_ACCOUNT` from the argument, sources `../setclaimcheck.sh`
-(optional: if you haven't created it, the script prints a harmless "No such file or directory"
-message) and runs `./gradlew runWorker`. It connects to `127.0.0.1:7233`, namespace `default`, as set
+if it exists (claim check is optional) and runs `./gradlew runWorker`. It connects to `127.0.0.1:7233`, namespace `default`, as set
 in `src/main/resources/application.yaml`. When claim check is enabled, the Java worker uses the Redis at
 `spring.data.redis` in `application.yaml` (`localhost:6379`), not `REDIS_HOST` / `REDIS_PORT`.
 
 Start the API and the UX as described in the [Temporal README](../src/temporal_supervisor/README.md),
 and send the compliance approval with `src/temporal_supervisor/localsendcomplianceapproval.sh` as usual.
+
+To try the Java workflow without the chat or an OpenAI key, run the open-account scenarios against it
+(with this worker running): `src/temporal_supervisor/startlocalopenaccount.sh Open-Account-Java`. See
+"Testing the Open Account workflow on its own" in the [Temporal README](../src/temporal_supervisor/README.md).
 
 ## Running with Temporal Cloud
 
@@ -67,8 +70,7 @@ cd java
 ./startcloudworker.sh Open-Account-Java
 ```
 
-The Java cloud script can be run from any directory. It sources `../setclaimcheck.sh` (optional, same
-harmless message if missing) and `../setcloudenv.sh`, maps `TEMPORAL_TLS_CLIENT_CERT_PATH` to the
+The Java cloud script can be run from any directory. It sources `../setclaimcheck.sh` (if it exists) and `../setcloudenv.sh`, maps `TEMPORAL_TLS_CLIENT_CERT_PATH` to the
 `TEMPORAL_CERT_PATH` the Java worker reads, uses the Spring profile `tc`
 (`src/main/resources/application-tc.yaml`), and runs `./gradlew runWorker`. With this profile, the
 claim check Redis comes from `REDIS_HOST` / `REDIS_PORT` (default `localhost:6379`).

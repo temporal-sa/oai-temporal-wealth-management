@@ -93,9 +93,10 @@ public class OpenInvestmentAccountWorkflowImpl implements OpenInvestmentAccountW
         String clientId = inputs.getClient_id();
         double amount = inputs.getInitial_amount();
         double bonus = inputs.getPromo_code() != null ? welcomeBonus(inputs) : 0.0;
-        // Idempotency key: stable across activity retries and worker restarts. It includes the
-        // run ID because the workflow ID is reused when the customer opens an account with the
-        // same name again (e.g. after a rollback).
+        // Idempotency key: stable across activity retries and worker restarts. The chat gives
+        // every account opening its own workflow ID, but the key also includes the run ID so that
+        // a workflow started again with the same ID (e.g. by hand, from the CLI or the scenario
+        // runner) can't look like a repeat of an earlier transfer.
         String transferId = Workflow.getInfo().getWorkflowId() + "-" + Workflow.getInfo().getRunId() + "-initial-deposit";
 
         Saga saga = new Saga(new Saga.Options.Builder().setParallelCompensation(false).build());

@@ -8,6 +8,7 @@ import io.temporal.common.converter.DataConverter;
 import io.temporal.common.converter.DefaultDataConverter;
 import io.temporal.common.converter.GlobalDataConverter;
 import io.temporal.demo.wealthmanagement.claimcheck.ClaimCheckCodec;
+import io.temporal.payload.codec.PayloadCodec;
 import io.temporal.serviceclient.SimpleSslContextBuilder;
 import io.temporal.serviceclient.WorkflowServiceStubs;
 import io.temporal.serviceclient.WorkflowServiceStubsOptions;
@@ -36,7 +37,7 @@ public class TemporalClient {
     }
 
     public static ClaimCheckCodec getClaimCheckCodec() {
-        return instance.claimCheckCodec;
+        return instance != null ? instance.claimCheckCodec : null;
     }
 
     public static WorkflowServiceStubs getWorkflowServiceStubs() throws FileNotFoundException, SSLException {
@@ -71,8 +72,27 @@ public class TemporalClient {
      * on its own always uses the "default" namespace, which does not exist on Temporal Cloud.
      */
     public static WorkflowClient newWorkflowClient(WorkflowServiceStubs service) {
+        ClaimCheckCodec codec = instance != null ? instance.claimCheckCodec : null;
         return WorkflowClient.newInstance(service,
-                WorkflowClientOptions.newBuilder().setNamespace(ServerInfo.getNamespace()).build());
+                clientOptions(ServerInfo.getNamespace(), ServerInfo.useClaimCheck(), codec));
+    }
+
+    /**
+     * Options for the namespace, with the same claim check data converter as the Spring-configured
+     * worker client (claimcheck/TemporalOptionsConfig) when claim check is on. Without it, a signal
+     * sent with this client would carry the raw payload while the worker expects claim-checked data.
+     */
+    static WorkflowClientOptions clientOptions(String namespace, boolean useClaimCheck, PayloadCodec codec) {
+        WorkflowClientOptions.Builder builder = WorkflowClientOptions.newBuilder().setNamespace(namespace);
+        if (useClaimCheck) {
+            if (codec == null) {
+                throw new IllegalStateException(
+                        "USE_CLAIM_CHECK is true but no ClaimCheckCodec is available (Spring context not initialized)");
+            }
+            builder.setDataConverter(new CodecDataConverter(
+                    DefaultDataConverter.newDefaultInstance(), Collections.singletonList(codec)));
+        }
+        return builder.build();
     }
 
     public static WorkflowClient get() throws FileNotFoundException, SSLException {

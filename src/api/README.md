@@ -37,8 +37,8 @@ uv sync
 ### Start API Server
 
 The API listens on http://127.0.0.1:8000 (uvicorn's default, with `--reload`). Both scripts source
-`../../setclaimcheck.sh`. Claim check is optional: if you haven't created it, the script prints a
-harmless "No such file or directory" message.
+`../../setclaimcheck.sh` if it exists. Claim check is optional: without that file, the API runs
+without it.
 
 #### Connect locally
 From the repository root:

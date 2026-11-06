@@ -13,7 +13,7 @@ async def main():
                         format="%(asctime)s | %(levelname)s | %(filename)s:%(lineno)s | %(message)s")
 
     client_helper = ClientHelper()
-    print(f"address is {client_helper.address}")
+    print(f"address is {client_helper.address}, open-account task queue is {client_helper.taskQueueOpenAccount}")
     client = await Client.connect(**client_helper.client_config,
                                   plugins=[
                                       # OpenAIAgentsPlugin(),
@@ -32,14 +32,13 @@ async def scenario1(client : Client, client_helper: ClientHelper):
         account_name="Vacation",
         initial_amount=150.78)
 
-    # for the demo, we're using the same task queue as
-    # the agents. In a production situation, this
-    # would likely be a different task queue
+    # The Open Account task queue (TEMPORAL_TASK_QUEUE_OPEN_ACCOUNT) defaults to the
+    # agents' task queue; set it to run the workflow on the Java worker's queue.
     handle = await client.start_workflow(
         OpenInvestmentAccountWorkflow.run,
         args=[new_investment],
         id="testing-open-investment-account-workflow",
-        task_queue=client_helper.taskQueue)
+        task_queue=client_helper.taskQueueOpenAccount)
 
     the_state = await handle.query(OpenInvestmentAccountWorkflow.get_current_state)
     print(f"The current state is {the_state}")
@@ -77,14 +76,13 @@ async def scenario2(client : Client, client_helper: ClientHelper):
         account_name="Vacation2",
         initial_amount=350.72)
 
-    # for the demo, we're using the same task queue as
-    # the agents. In a production situation, this
-    # would likely be a different task queue
+    # The Open Account task queue (TEMPORAL_TASK_QUEUE_OPEN_ACCOUNT) defaults to the
+    # agents' task queue; set it to run the workflow on the Java worker's queue.
     handle = await client.start_workflow(
         OpenInvestmentAccountWorkflow.run,
         args=[new_investment],
         id="testing-open-investment-account-workflow-2",
-        task_queue=client_helper.taskQueue)
+        task_queue=client_helper.taskQueueOpenAccount)
 
     the_state = await handle.query(OpenInvestmentAccountWorkflow.get_current_state)
     print(f"The current state is {the_state}")
@@ -131,15 +129,14 @@ async def scenario3(client : Client, client_helper: ClientHelper):
         account_name="Vacation3",
         initial_amount=176.73)
 
-    # for the demo, we're using the same task queue as
-    # the agents. In a production situation, this
-    # would likely be a different task queue
+    # The Open Account task queue (TEMPORAL_TASK_QUEUE_OPEN_ACCOUNT) defaults to the
+    # agents' task queue; set it to run the workflow on the Java worker's queue.
     workflow_id = "testing-open-investment-account-workflow3"
     handle = await client.start_workflow(
         OpenInvestmentAccountWorkflow.run,
         args=[new_investment],
         id=workflow_id,
-        task_queue=client_helper.taskQueue)
+        task_queue=client_helper.taskQueueOpenAccount)
 
     the_state = await handle.query(OpenInvestmentAccountWorkflow.get_current_state)
     print(f"The current state is {the_state}")

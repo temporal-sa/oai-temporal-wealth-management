@@ -15,6 +15,8 @@ Scenarios currently implemented include
 * Open Investment Account - opens a new investment account
   * In the Temporal version this uses a **child workflow** with KYC confirmation, a compliance review, and a saga that rolls back on failure.
     There are Python and Java versions of this workflow. By default, the Python version is used.
+    Every request to open an account starts a new account opening (a new child workflow) with its own KYC, even if an account
+    with the same name was opened, or is still being opened, earlier in the conversation.
   * The OpenAI Agents SDK (non-Temporal) version opens the account directly with a simple tool (no KYC, compliance review or saga).
 * List Investments - shows a list of accounts and their current balances
 * Close Investment Account - closes an investment account

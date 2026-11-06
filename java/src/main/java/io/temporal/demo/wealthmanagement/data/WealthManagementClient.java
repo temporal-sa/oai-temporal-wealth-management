@@ -24,7 +24,7 @@ public class WealthManagementClient {
     String maritalStatus;
 
     public WealthManagementClient(String clientId, InvestmentClient investmentClient) {
-        this(clientId, investmentClient.getFirstName(), investmentClient.getFirstName(),
+        this(clientId, investmentClient.getFirstName(), investmentClient.getLastName(),
                 investmentClient.getAddress(), investmentClient.getPhone(),
                 investmentClient.getEmail(), investmentClient.getMaritalStatus());
     }

@@ -19,7 +19,7 @@ if [ ! -f ../setcloudenv.sh ]; then
   echo "repository root as setcloudenv.sh and fill in your Temporal Cloud details."
   exit 1
 fi
-source ../setclaimcheck.sh
+[ -f ../setclaimcheck.sh ] && source ../setclaimcheck.sh
 source ../setcloudenv.sh
 
 # Map the settings in setcloudenv.sh to the names the Java worker reads

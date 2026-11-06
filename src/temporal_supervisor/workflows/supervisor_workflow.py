@@ -56,6 +56,9 @@ class WealthManagementContext(BaseModel):
     # check that the customer confirmed their details before KYC is approved.
     turn: int = 0
     kyc_details_shown_turn: dict[str, int] = {}
+    # Number of account openings (open-account child workflows) started in this
+    # conversation. The next opening's workflow ID ends with this number plus one.
+    account_openings_started: int = 0
 
 class ClientIdHooks(RunHooks[WealthManagementContext]):
     """Saves the client ID from any tool call that has one, before the tool runs."""
@@ -274,7 +277,8 @@ class WealthManagementWorkflow:
             #   - Wait for workflow.all_handlers_finished() and drain the pending message and
             #     status queues first, so no customer message or status update is lost.
             #   - Carry the conversation state into the new run: the message history, the
-            #     active agent, the client ID, the account-opening states, and the KYC
+            #     active agent, the client ID, the account-opening states, the number of
+            #     account openings started (part of each child workflow ID), and the KYC
             #     guard's turn tracking.
             #   - Open-account child workflows are started with ParentClosePolicy.TERMINATE,
             #     which also applies when the parent continues-as-new, so an opening waiting

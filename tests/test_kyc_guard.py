@@ -30,7 +30,7 @@ from temporal_supervisor.workflows.supervisor_workflow import (
 )
 from tests.scripted_model import handoff, message, scripted_client, send, tool
 
-WORKFLOW_ID = "OpenAccount-test-123-Education"
+WORKFLOW_ID = "OpenAccount-test-123-Education-2"
 
 
 async def _approve(context: WealthManagementContext) -> str:
@@ -45,7 +45,7 @@ async def _approve(context: WealthManagementContext) -> str:
     "shown_turns",
     [
         {},  # details never shown for this opening
-        {"OpenAccount-test-123-Car": 2},  # only shown for an earlier opening
+        {"OpenAccount-test-123-Car-1": 2},  # only shown for an earlier opening
         {WORKFLOW_ID: 3},  # shown in the current turn; the customer hasn't replied yet
     ],
 )
@@ -56,8 +56,8 @@ async def test_kyc_is_not_approved_until_the_customer_confirms(shown_turns):
 
 
 TASK_QUEUE = "test-kyc-guard"
-CAR = "OpenAccount-test-123-Car"
-VACATION = "OpenAccount-test-123-Vacation"
+CAR = "OpenAccount-test-123-Car-1"
+VACATION = "OpenAccount-test-123-Vacation-2"
 
 # Account openings that KYC was approved for, in order, recorded worker-side.
 APPROVED: list = []

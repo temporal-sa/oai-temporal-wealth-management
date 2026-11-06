@@ -243,10 +243,14 @@ cd src/temporal_supervisor
 ./localsendcomplianceapproval.sh <Child Workflow ID>
 ```
 
-The Child Workflow ID has the format `OpenAccount-<chat workflow ID>-<client ID>-<account name>`, for
-example `OpenAccount-oai-temporal-agent-k3j9x2m1q8-123-Vacation`. The chat doesn't show it. To find it,
-open the Temporal UI (http://localhost:8233 locally) and look for the running
-`OpenInvestmentAccountWorkflow` (a child of your chat workflow), or list the running ones with:
+The Child Workflow ID has the format `OpenAccount-<chat workflow ID>-<client ID>-<account name>-<n>`,
+where `<n>` numbers the account openings started in that chat (1, 2, 3, ...), for example
+`OpenAccount-oai-temporal-agent-k3j9x2m1q8-123-Vacation-1`. Every request to open an account starts a
+new account opening with its own KYC, even for an account name that was opened, or is still being
+opened, earlier in the chat, so a chat can have several openings of "Vacation" waiting at once. The
+chat doesn't show the ID. To find it, open the Temporal UI (http://localhost:8233 locally) and look for
+the running `OpenInvestmentAccountWorkflow` (a child of your chat workflow), or list the running ones
+(the newest first) with:
 
 ```bash
 temporal workflow list --query "WorkflowType='OpenInvestmentAccountWorkflow' AND ExecutionStatus='Running'"
@@ -357,8 +361,12 @@ create and interact with the `OpenInvestmentAccountWorkflow`.
    `validate_new_account` activity (initial deposit between $100 and $1,000,000; a violation is
    returned to the agent, which explains it), looks up any promotion with `find_promotion`, and then
    starts the child workflow with `workflow.start_child_workflow()` on the Open Account task queue.
-   The child workflow ID is `OpenAccount-<chat workflow ID>-<client ID>-<account name>`; the tool returns
-   it, and the agent passes it to the other tools.
+   The child workflow ID is `OpenAccount-<chat workflow ID>-<client ID>-<account name>-<n>`, where `<n>`
+   is the number of account openings started in the chat, counting this one. The count is kept in the
+   chat workflow's state, so it is deterministic and survives replay, and it only goes up when a child
+   is actually started. Every request to open an account starts a new opening, with its own KYC, even
+   if an account with the same name was opened, or is still being opened, earlier in the chat. The
+   tool returns the ID, and the agent passes it to the other tools.
 2. **Status.** The child workflow signals every state change to the parent
    (`update_account_opening_state`). The chat workflow records it and streams it to the UX as a
    status update. The agent reads the latest state with the `get_account_opening_status` tool
@@ -515,6 +523,7 @@ uv run pytest
 
 * `tests/test_failure_scenarios.py` - retries, business rules, the LLM failures, the saga and its rollback, and the bug in the workflow code
 * `tests/test_kyc_guard.py` - `approve_kyc` only approves after the customer has seen and confirmed their details
+* `tests/test_repeat_opening.py` - opening the same account name twice in a chat starts two child workflows (`...-Vacation-1`, `...-Vacation-2`), each with its own KYC
 * `tests/test_client_id.py` - every agent is told the client ID once a tool has used it
 * `tests/test_off_topic.py` - the supervisor prompt (Temporal and non-Temporal versions) declines off-topic questions
 
@@ -533,6 +542,19 @@ is skipped when `OPENAI_API_KEY` is not set. `LIVE_TEST_RUNS=<n>` repeats the co
 ```bash
 source ./setoaikey.sh
 LIVE_TEST_RUNS=10 uv run pytest tests/live_agent_handoffs.py -s
+```
+
+`tests/live_repeat_opening.py` is a live test, run the same way, of opening the same account twice. The
+customer asks for their beneficiaries, gives client ID `123`, asks for their investments, says "Open
+Vacation with $13,000", confirms their details with "Yes", then says "Open Vacation with $13,000" again.
+The test checks that both replies show the client's details for KYC (Don, 123 Main Street) and that two
+child workflows, ending `-Vacation-1` and `-Vacation-2`, were started. It also runs the real
+`OpenInvestmentAccountWorkflow` on the test server; the activities that would connect to the real
+Temporal service go through the test server instead, and client detail updates aren't saved.
+
+```bash
+source ./setoaikey.sh
+LIVE_TEST_RUNS=3 uv run pytest tests/live_repeat_opening.py -s
 ```
 
 The Java workflow has the same failure-scenario tests, using the Temporal Java SDK's test environment (requires JDK 25):

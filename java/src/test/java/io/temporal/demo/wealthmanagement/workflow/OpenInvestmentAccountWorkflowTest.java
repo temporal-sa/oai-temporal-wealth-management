@@ -215,8 +215,9 @@ public class OpenInvestmentAccountWorkflowTest {
 
     @Test
     public void reopeningWithTheSameWorkflowIdUsesANewTransferId() {
-        // The open-account tool reuses the workflow ID for the same account name, so a
-        // retry after a rollback must not look like a repeat of the earlier transfer.
+        // The chat gives every account opening its own workflow ID, but a workflow can still
+        // be started again with the same ID by hand (CLI, scenario runner), and that must not
+        // look like a repeat of the earlier transfer.
         FAILURES.put("register_account", "reject");
         openAccount("same-account-name");
         FAILURES.clear();

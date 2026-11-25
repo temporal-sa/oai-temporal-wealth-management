@@ -1,3 +1,11 @@
+> [!IMPORTANT]
+> **This repository is no longer maintained.** The OpenAI Agents SDK (Python) version of the Wealth Management demo now lives in
+> [temporal-sa/wealth-management-demo](https://github.com/temporal-sa/wealth-management-demo), under
+> [`src/python/openai_agents`](https://github.com/temporal-sa/wealth-management-demo/tree/main/src/python/openai_agents). There it sits
+> alongside the same demo in twelve other agent frameworks across Python, TypeScript, Go, Java and .NET, with one shared
+> web UI and new features such as a chaos panel for injecting failures. New work, fixes and SDK upgrades happen there;
+> this repository is kept as it is for reference.
+
 # Wealth Management Agent Example using OpenAI Agents SDK
 Demonstrates how to use [OpenAI Agents SDK](https://openai.github.io/openai-agents-python/) using handoffs to other agents. 
 Shows an example of just using OpenAI Agents SDK and another version that leverages [Temporal](https://temporal.io) to 
